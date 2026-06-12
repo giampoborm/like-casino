@@ -1,0 +1,359 @@
+{% assign logo_style = section.settings.logo_style | default: 'composite2' %}
+<section class="home-hero home-hero--{{ logo_style }} full-width">
+  <img class="home-hero__curtain home-hero__curtain--left" src="{{ 'leftcurtain.png' | asset_url }}" alt="" role="presentation" loading="eager" width="1433" height="2994">
+  <img class="home-hero__curtain home-hero__curtain--right" src="{{ 'rightcurtain.png' | asset_url }}" alt="" role="presentation" loading="eager" width="1445" height="3000">
+  <div class="home-hero__inner">
+
+    {% if logo_style == 'sign' %}
+      {% assign logo_src = 'logosign2.png' | asset_url %}
+      {% assign logo_width = 3149 %}
+      {% assign logo_height = 954 %}
+    {% elsif logo_style == 'composite2' %}
+      {% assign logo_src = 'logocomposite2.png' | asset_url %}
+      {% assign logo_width = 2000 %}
+      {% assign logo_height = 1110 %}
+    {% else %}
+      {% assign logo_src = 'biglogofinal.png' | asset_url %}
+      {% assign logo_width = 2885 %}
+      {% assign logo_height = 3788 %}
+    {% endif %}
+    <div class="home-hero__logo home-hero__logo--{{ logo_style }}">
+      {% if section.settings.logo != blank %}
+        {{
+          section.settings.logo
+          | image_url: width: 1600
+          | image_tag:
+            loading: 'lazy',
+            widths: '400,600,800,1000,1200,1600',
+            alt: section.settings.logo_alt | default: shop.name,
+            class: 'home-hero__logo-img',
+            width: section.settings.logo.width,
+            height: section.settings.logo.height
+        }}
+      {% else %}
+        {% # logo_src is built with asset_url above %}
+        {% # theme-check-disable RemoteAsset %}
+        <img
+          src="{{ logo_src }}"
+          alt="{{ section.settings.logo_alt | default: shop.name }}"
+          class="home-hero__logo-img"
+          loading="lazy"
+          width="{{ logo_width }}"
+          height="{{ logo_height }}"
+        >
+        {% # theme-check-enable RemoteAsset %}
+      {% endif %}
+    </div>
+
+    {% assign products_href = section.settings.products_link | default: routes.all_products_collection_url %}
+    {% assign btn_style = section.settings.button_style | default: 'rat' %}
+    {% if btn_style == 'shoe' %}
+      {% assign btn_default_src = 'shoerope.png' | asset_url %}
+      {% assign btn_width = 767 %}
+      {% assign btn_height = 3873 %}
+    {% else %}
+      {% assign btn_default_src = 'products_button1.png' | asset_url %}
+      {% assign btn_hover_src = 'products_button1_hover.png' | asset_url %}
+      {% assign btn_width = 1184 %}
+      {% assign btn_height = 880 %}
+    {% endif %}
+    <a class="home-hero__products-btn home-hero__products-btn--{{ btn_style }}" href="{{ products_href }}">
+      {% # btn srcs are built with asset_url above %}
+      {% # theme-check-disable RemoteAsset %}
+      <img
+        class="home-hero__products-btn-img home-hero__products-btn-img--default"
+        src="{{ btn_default_src }}"
+        alt=""
+        role="presentation"
+        loading="lazy"
+        width="{{ btn_width }}"
+        height="{{ btn_height }}"
+      >
+      {% if btn_style == 'rat' %}
+        <img
+          class="home-hero__products-btn-img home-hero__products-btn-img--hover"
+          src="{{ btn_hover_src }}"
+          alt=""
+          role="presentation"
+          loading="lazy"
+          width="{{ btn_width }}"
+          height="{{ btn_height }}"
+        >
+        {% # theme-check-enable RemoteAsset %}
+        <span class="home-hero__products-btn-label">
+          {{ section.settings.products_label | default: 'Products' }}
+        </span>
+      {% endif %}
+    </a>
+
+  </div>
+</section>
+
+{% style %}
+  .home-hero {
+    background-image: url({{ 'wallback.png' | asset_url }});
+  }
+{% endstyle %}
+
+{% stylesheet %}
+  .home-hero {
+    position: relative;
+    height: 100svh;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    padding: 0 5vw;
+    background-size: cover;
+    background-position: center;
+  }
+
+  .home-hero__inner {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(3rem, 6vw, 7rem);
+  }
+
+  /* ── Logo (left) ── */
+  .home-hero__logo {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+  }
+
+  .home-hero__logo-img {
+    height: 95svh;
+    width: auto;
+    filter: drop-shadow(0 30px 40px rgba(0, 0, 0, 0.6));
+  }
+
+  .home-hero--sign .home-hero__logo {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .home-hero__logo--sign .home-hero__logo-img {
+    height: auto;
+    width: min(80vw, 1000px);
+    max-width: none;
+    filter: drop-shadow(0 0px 5px rgba(0, 0, 0, 0.85)) drop-shadow(0 20px 20px rgba(0, 0, 0, 0.15));
+  }
+
+  /* ── Composite 2 ── */
+  .home-hero--composite2 .home-hero__logo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .home-hero__logo--composite2 .home-hero__logo-img {
+    height: auto;
+    width: min(75vw, 950px);
+    max-width: none;
+    /* filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.8)) drop-shadow(0 20px 25px rgba(0, 0, 0, 0.2)); */
+  }
+
+  /* ── Products button (right) ── */
+  .home-hero__products-btn {
+    flex: 0 0 auto;
+    position: relative;
+    display: inline-block;
+    text-decoration: none;
+    transform: rotate(1deg);
+    filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.3)) drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5));
+    transition: filter 0.2s ease;
+  }
+
+  @keyframes pendulum-sway {
+    0%, 100% { transform: rotate(-3deg); }
+    50%       { transform: rotate(3deg); }
+  }
+
+  .home-hero__products-btn--shoe {
+    position: absolute;
+    top: 0;
+    right: 25vw;
+    transform-origin: top center;
+    animation: pendulum-sway 4s ease-in-out infinite;
+  }
+
+  .home-hero__products-btn--shoe .home-hero__products-btn-img {
+    width: auto;
+    height: 80svh;
+  }
+
+  .home-hero__products-btn--shoe:hover,
+  .home-hero__products-btn--shoe:focus-visible {
+    filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.3)) drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 18px rgba(255, 255, 255, 0.75));
+    transition: filter 0.2s ease;
+  }
+
+  .home-hero__products-btn-img {
+    display: block;
+    width: 280px;
+    height: auto;
+  }
+
+  .home-hero__products-btn-img--hover {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+  }
+
+  .home-hero__products-btn-img--default {
+  }
+
+  .home-hero__products-btn--rat:hover .home-hero__products-btn-img--default,
+  .home-hero__products-btn--rat:focus-visible .home-hero__products-btn-img--default {
+    opacity: 0;
+  }
+
+  .home-hero__products-btn--rat:hover .home-hero__products-btn-img--hover,
+  .home-hero__products-btn--rat:focus-visible .home-hero__products-btn-img--hover {
+    opacity: 1;
+  }
+
+  .home-hero__products-btn-label {
+    position: absolute;
+    bottom: 1%;
+    left: 80%;
+    transform: translateX(-50%);
+    font-family: 'TypewriterCustom', monospace;
+    font-size: clamp(1.5rem, 2vw, 1.7rem);
+    text-transform: uppercase;
+    color: #1c1207;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  /* ── Curtains ── */
+  .home-hero__curtain {
+    position: fixed;
+    top: 0;
+    width: clamp(30px, 30vw, 300px);
+    height: 100svh;
+    object-fit: cover;
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  /* Keep the inner (draped) edge anchored; outer edge is cropped if needed */
+  .home-hero__curtain--left {
+    left: 0;
+    object-position: right center;
+  }
+
+  .home-hero__curtain--right {
+    right: 0;
+    object-position: left center;
+  }
+
+  /* ── Mobile ── */
+  @media (max-width: 768px) {
+    .home-hero__inner {
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .home-hero__logo-img {
+      height: auto;
+      width: min(70vw, 380px);
+    }
+
+    .home-hero__products-btn {
+      flex: 0 0 auto;
+    }
+
+    .home-hero__products-btn-img {
+      width: min(70vw, 400px);
+    }
+
+    /* Sign logo: large and anchored to the bottom */
+    .home-hero--sign .home-hero__logo {
+      top: auto;
+      bottom: 25%;
+      transform: translateX(-50%);
+    }
+
+    .home-hero__logo--sign .home-hero__logo-img {
+      width: min(90vw, 400px);
+    }
+
+    /* Composite 2: centred, full-width on mobile */
+    .home-hero--composite2 .home-hero__logo {
+      top: 50%;
+      transform: translate(-50%, 30%);
+    }
+
+    .home-hero__logo--composite2 .home-hero__logo-img {
+      width: min(90vw, 420px);
+    }
+
+    /* Shoe-rope button: smaller on mobile */
+    .home-hero__products-btn--shoe .home-hero__products-btn-img {
+      height: 60svh;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Homepage hero",
+  "settings": [
+    {
+      "type": "select",
+      "id": "logo_style",
+      "label": "Logo style",
+      "default": "composite2",
+      "options": [
+        { "value": "composite2", "label": "Composite 2" },
+        { "value": "sign", "label": "Sign" },
+        { "value": "frame", "label": "Frame" }
+      ]
+    },
+    {
+      "type": "image_picker",
+      "id": "logo",
+      "label": "Override logo image"
+    },
+    {
+      "type": "text",
+      "id": "logo_alt",
+      "label": "Logo alt text",
+      "default": "Elena Store logo"
+    },
+    {
+      "type": "text",
+      "id": "products_label",
+      "label": "Products button label",
+      "default": "Products"
+    },
+    {
+      "type": "url",
+      "id": "products_link",
+      "label": "Products button link",
+      "default": "/collections/all"
+    },
+    {
+      "type": "select",
+      "id": "button_style",
+      "label": "Button style",
+      "default": "rat",
+      "options": [
+        { "value": "rat", "label": "Rat" },
+        { "value": "shoe", "label": "Shoe" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Homepage hero"
+    }
+  ]
+}
+{% endschema %}

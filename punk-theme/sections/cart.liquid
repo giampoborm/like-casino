@@ -1,0 +1,72 @@
+{{ 'cart.css' | asset_url | stylesheet_tag }}
+
+<div class="cart-page">
+
+  <a class="cart-back" href="{{ routes.all_products_collection_url }}">&#8592;</a>
+
+  {% if cart.item_count == 0 %}
+
+    <div class="cart-empty">
+      <p>{{ 'cart.empty_message' | t }}</p>
+    </div>
+
+  {% else %}
+
+    <div class="cart-layout">
+
+      <ul class="cart-items">
+        {% for item in cart.items %}
+          <li class="cart-item" data-key="{{ item.key }}">
+
+            {% if item.image %}
+              <img
+                src="{{ item.image | image_url: width: 160 }}"
+                alt="{{ item.product.title | escape }}"
+                class="cart-item__img"
+                loading="lazy"
+                width="130"
+                height="130"
+              >
+            {% else %}
+              <div class="cart-item__img cart-item__img--placeholder"></div>
+            {% endif %}
+
+            <div class="cart-item__details">
+              <a href="{{ item.url }}" class="cart-item__title">{{ item.product.title }}</a>
+              {% unless item.variant.title == 'Default Title' %}
+                <span class="cart-item__variant">{{ item.variant.title }}</span>
+              {% endunless %}
+              <span class="cart-item__price">{{ item.line_price | money }}</span>
+              <span class="cart-item__qty">{{ 'cart.quantity_label' | t }}: {{ item.quantity }}</span>
+            </div>
+
+            <a href="{{ item.url_to_remove }}" class="cart-item__remove" aria-label="{{ 'cart.remove' | t }}">
+              &times;
+            </a>
+
+          </li>
+        {% endfor %}
+      </ul>
+
+      <div class="cart-summary">
+        <div class="cart-summary__row">
+          <span>{{ 'cart.subtotal' | t }}</span>
+          <span class="cart-summary__total">{{ cart.total_price | money }}</span>
+        </div>
+        <form action="{{ routes.cart_url }}" method="post" class="cart-summary__form">
+          <button type="submit" name="checkout" class="cart-summary__checkout">{{ 'cart.checkout' | t }}</button>
+        </form>
+      </div>
+
+    </div>
+
+  {% endif %}
+
+</div>
+
+{% schema %}
+{
+  "name": "t:general.cart",
+  "settings": []
+}
+{% endschema %}

@@ -1,0 +1,15 @@
+# Screenshots and working files at project root
+*.png
+*.jpg
+*.JPG
+*.jpeg
+
+# Claude Code project data
+.claude/
+
+# Playwright MCP session
+.playwright-mcp/
+
+# OS
+.DS_Store
+Thumbs.db

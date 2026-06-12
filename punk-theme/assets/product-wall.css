@@ -1,0 +1,223 @@
+.product-wall-scroll {
+  overflow-x: auto;
+  margin: 0;
+  scrollbar-width: none;
+}
+
+.product-wall-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.product-wall {
+  display: flex;
+  align-items: center;
+  padding: 70px 40px;
+  width: max-content;
+  margin: 0 auto;
+}
+
+.product-wall-scroll {
+  cursor: grab;
+}
+
+.product-wall-scroll.is-dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.product-wall__photo {
+  position: relative;
+  flex-shrink: 0;
+  width: 260px;
+  margin-left: var(--img-overlap, -36px);
+  transform: translateY(var(--img-offset, 0px)) rotate(var(--img-rotation, 0deg));
+  z-index: var(--img-z, 1);
+  cursor: pointer;
+  overflow: visible;
+}
+
+.product-wall__photo:first-child {
+  margin-left: 0;
+}
+
+.product-wall-lightbox {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.product-wall-lightbox[open] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.product-wall-lightbox::backdrop {
+  background: rgba(0, 0, 0, 0.88);
+}
+
+.product-wall-lightbox img {
+  display: block;
+  max-width: calc(100vw - 140px);
+  max-height: 90vh;
+  object-fit: contain;
+}
+
+.product-wall-lightbox__nav {
+  display: contents;
+}
+
+.product-wall-lightbox__btn {
+  position: absolute;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  color: rgba(255, 255, 255, 0.8);
+  font-family: monospace;
+  font-size: 14px;
+  line-height: 1;
+  padding: 7px 11px;
+  cursor: pointer;
+  letter-spacing: 0.08em;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.product-wall-lightbox__btn:hover {
+  border-color: white;
+  color: white;
+}
+
+.product-wall-lightbox__close {
+  top: 24px;
+  right: 24px;
+}
+
+.product-wall-lightbox__prev {
+  left: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.product-wall-lightbox__next {
+  right: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.product-wall-lightbox__prev[hidden],
+.product-wall-lightbox__next[hidden] {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.product-wall__img img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: sepia(0.35) saturate(0.7) contrast(1.1);
+}
+
+/* Tape strips — one PNG reused at each corner, rotated via CSS */
+.product-wall__tape {
+  position: absolute;
+  width: 60px;
+  height: 22px;
+  background-image: var(--tape-url);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Center of each tape strip sits at the photo corner */
+.product-wall__tape--tl {
+  top: 4px;
+  left: -15px;
+  transform: rotate(var(--tape-tl-rot, -45deg));
+}
+
+.product-wall__tape--tr {
+  top: 4px;
+  right: -15px;
+  transform: rotate(var(--tape-tr-rot, 45deg));
+}
+
+.product-wall__tape--bl {
+  bottom: 4px;
+  left: -15px;
+  transform: rotate(var(--tape-bl-rot, 45deg));
+}
+
+.product-wall__tape--br {
+  bottom: 4px;
+  right: -15px;
+  transform: rotate(var(--tape-br-rot, -45deg));
+}
+
+@media (max-width: 640px) {
+  .product-wall {
+    padding: 60px 30px 30px;
+  }
+
+  .product-wall-lightbox[open] {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .product-wall-lightbox img {
+    max-width: calc(100vw - 40px);
+  }
+
+  .product-wall-lightbox__nav {
+    display: flex;
+    gap: 16px;
+  }
+
+  .product-wall-lightbox__prev,
+  .product-wall-lightbox__next {
+    position: static;
+    transform: none;
+  }
+
+  .product-wall-lightbox__close {
+    top: 16px;
+    right: 16px;
+  }
+
+  .product-wall-scroll--vertical {
+    overflow-x: hidden;
+    cursor: default;
+  }
+
+  .product-wall-scroll--vertical.is-dragging {
+    cursor: default;
+  }
+
+  .product-wall--vertical {
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    padding: 40px 15px 30px;
+  }
+
+  .product-wall--vertical .product-wall__photo {
+    width: min(280px, calc(100vw - 40px));
+    margin-left: 0;
+    margin-top: calc(var(--img-overlap, -20px) - 10px);
+    transform: translateX(var(--img-hoffset, 20px)) rotate(calc(var(--img-rotation, 0deg) * 2));
+  }
+
+  .product-wall--vertical .product-wall__photo:nth-child(even) {
+    transform: translateX(calc(var(--img-hoffset, 20px) * -1)) rotate(calc(var(--img-rotation, 0deg) * 1.8));
+  }
+
+  .product-wall--vertical .product-wall__photo:first-child {
+    margin-top: 0;
+  }
+}

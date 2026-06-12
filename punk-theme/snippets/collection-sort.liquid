@@ -1,0 +1,26 @@
+{% doc %}
+  Renders the collection sort-by dropdown. Submitting reloads the current
+  collection URL with the chosen `sort_by` query parameter.
+
+  @param {object} collection - The collection being sorted
+  @param {string} prefix - BEM block class for the form; the select gets `{prefix}-btn`
+  @param {boolean} [show_label] - Render a "Sort" label before the select
+
+  @example
+  {% render 'collection-sort', collection: collection, prefix: 'collection-toolbar__sort' %}
+{% enddoc %}
+
+<form class="{{ prefix }}" id="sort-form">
+  {% if show_label %}
+    <label class="{{ prefix }}-label" for="sort-select">Sort</label>
+  {% endif %}
+  <select class="{{ prefix }}-btn" id="sort-select" name="sort_by" onchange="this.form.submit()">
+    <option value="manual"{% if collection.sort_by == 'manual' %} selected{% endif %}>Featured</option>
+    <option value="best-selling"{% if collection.sort_by == 'best-selling' %} selected{% endif %}>Best Selling</option>
+    <option value="price-ascending"{% if collection.sort_by == 'price-ascending' %} selected{% endif %}>Price ↑</option>
+    <option value="price-descending"{% if collection.sort_by == 'price-descending' %} selected{% endif %}>Price ↓</option>
+    <option value="title-ascending"{% if collection.sort_by == 'title-ascending' %} selected{% endif %}>A–Z</option>
+    <option value="title-descending"{% if collection.sort_by == 'title-descending' %} selected{% endif %}>Z–A</option>
+    <option value="created-descending"{% if collection.sort_by == 'created-descending' %} selected{% endif %}>Newest</option>
+  </select>
+</form>

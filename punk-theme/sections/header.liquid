@@ -1,0 +1,112 @@
+<header class="header">
+  <div class="header__slot"></div>
+  <a class="header__logo-link" href="{{ routes.root_url }}">
+    <img
+      src="{{ 'minilogo.png' | asset_url }}"
+      alt="{{ shop.name }}"
+      class="header__minilogo"
+      width="149"
+      height="192"
+      loading="eager"
+    >
+  </a>
+  <div class="header__icons">
+    <a href="{{ routes.cart_url }}" class="header__cart-link">
+      {% if cart.item_count > 0 %}
+        {% if cart.item_count == 1 %}
+          {% assign cart_item_word = 'cart.item_singular' | t %}
+        {% else %}
+          {% assign cart_item_word = 'cart.item_plural' | t %}
+        {% endif %}
+        <img
+          src="{{ 'full-cart.png' | asset_url }}"
+          alt="{{ 'cart.title' | t }} ({{ cart.item_count }} {{ cart_item_word }})"
+          class="header__cart-icon"
+          width="131"
+          height="101"
+        >
+      {% else %}
+        <img
+          src="{{ 'empty-cart.png' | asset_url }}"
+          alt="{{ 'cart.title' | t }}"
+          class="header__cart-icon"
+          width="131"
+          height="99"
+        >
+      {% endif %}
+    </a>
+  </div>
+</header>
+
+{% stylesheet %}
+  .header {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: 0 1.5rem 1rem;
+  }
+  .header__slot {
+    /* balances cart icon so logo stays truly centred */
+  }
+  .header__logo-link {
+    display: flex;
+    justify-content: center;
+  }
+  @media (max-width: 600px) {
+    .header {
+      grid-template-columns: auto 1fr auto;
+    }
+    .header__slot {
+      display: none;
+    }
+    .header__logo-link {
+      justify-content: flex-start;
+    }
+  }
+  .header__minilogo {
+    display: block;
+    height: 5rem;
+    width: auto;
+    margin-top: 15px;
+    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.7));
+    transition: filter 0.25s ease;
+  }
+  .header__logo-link:hover .header__minilogo {
+    filter: drop-shadow(0 0 14px rgba(255, 255, 255, 1)) drop-shadow(0 0 28px rgba(255, 255, 255, 0.5));
+  }
+  .header__icons {
+    display: flex;
+    justify-content: flex-end;
+  }
+  .header a {
+    position: relative;
+    text-decoration: none;
+    color: var(--color-foreground);
+  }
+  .header__cart-link {
+    position: relative;
+  }
+  .header__cart-count {
+    position: absolute;
+    left: 100%;
+    overflow: hidden;
+    max-width: var(--page-margin);
+  }
+  .header__cart-icon {
+    display: block;
+    padding-top: 0.7rem;
+    width: 60px;
+    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.7));
+    transition: filter 0.25s ease;
+  }
+  .header__cart-link:hover .header__cart-icon {
+    filter: drop-shadow(0 0 14px rgba(255, 255, 255, 1)) drop-shadow(0 0 28px rgba(255, 255, 255, 0.5));
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.header",
+  "settings": []
+}
+{% endschema %}

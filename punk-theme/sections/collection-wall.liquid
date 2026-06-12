@@ -1,0 +1,278 @@
+{% comment %}
+  Collection wall: each product is wrapped in a randomized (deterministic) frame
+  using the PNGs from assets/frames.
+  The title/price label beneath the frame stays straight.
+{% endcomment %}
+
+{% assign frame_labels = 'ornate|gilded|carved|rustic' | split: '|' %}
+{% assign frame_images = 'frames/frame1.png|frames/frame2.png|frames/frame3.png|frames/frame4.png' | split: '|' %}
+
+<section class="collection-wall">
+  <div class="collection-wall__toolbar">
+    {% render 'collection-sort', collection: collection, prefix: 'collection-toolbar__sort' %}
+  </div>
+
+  {% paginate collection.products by 20 %}
+    <div class="collection-wall__grid">
+      {% for product in collection.products %}
+        {% assign frame_value = product.metafields.custom.frame.value | default: product.metafields.custom.frame | default: blank %}
+        {% assign frame_key = frame_value | downcase | strip | replace: ' ', '-' %}
+        {% assign frame_index = nil %}
+        {% for label in frame_labels %}
+          {% if label == frame_key %}
+            {% assign frame_index = forloop.index0 %}
+            {% break %}
+          {% endif %}
+        {% endfor %}
+        {% if frame_index != nil %}
+          {% assign frame_asset = frame_images[frame_index] %}
+        {% else %}
+          {% assign frame_fallback_index = product.id | modulo: frame_images.size %}
+          {% assign frame_asset = frame_images[frame_fallback_index] %}
+        {% endif %}
+
+        <article class="collection-frame-card">
+          <div
+            class="collection-frame-card__frame-wrapper"
+            style="--frame-image: url({{ frame_asset | asset_url }});"
+          >
+            <a class="collection-frame-card__media" href="{{ product.url }}">
+              {% if product.featured_image %}
+                {{
+                  product.featured_image
+                  | image_url: width: 900
+                  | image_tag:
+                    loading: 'lazy',
+                    widths: '400,600,800,900',
+                    class: 'collection-frame-card__img',
+                    alt: product.featured_image.alt | default: product.title
+                }}
+              {% else %}
+                <div class="collection-frame-card__placeholder"></div>
+              {% endif %}
+              {% unless product.available %}
+                <span class="collection-frame-card__sold-out">Sold Out</span>
+              {% endunless %}
+            </a>
+          </div>
+          <div class="collection-frame-card__meta">
+            <a class="collection-frame-card__title" href="{{ product.url }}">
+              {{ product.title }}
+            </a>
+            <span class="collection-frame-card__price">{{ product.price | money }}</span>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+
+    <div class="collection-wall__pagination">
+      {{ paginate | default_pagination }}
+    </div>
+  {% endpaginate %}
+</section>
+
+{% stylesheet %}
+  .collection-wall {
+    min-height: 100vh;
+    padding: clamp(1rem, 2vw, 1.5rem) clamp(1.5rem, 4vw, 3rem) clamp(2.5rem, 5vw, 4rem);
+    color: #f4ede2;
+  }
+
+  .collection-wall__toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: clamp(1rem, 2vw, 1.5rem);
+  }
+
+  .collection-toolbar__sort {
+    display: flex;
+    align-items: center;
+  }
+
+  .collection-toolbar__sort-btn {
+    --btn-border-light: rgb(143, 143, 143);
+    --btn-border-dark:  rgb(97, 97, 97);
+
+    background: none;
+    border-top:    2px solid var(--btn-border-light);
+    border-left:   2px solid var(--btn-border-light);
+    border-bottom: 2px solid var(--btn-border-dark);
+    border-right:  2px solid var(--btn-border-dark);
+    color: #fff;
+    padding: 0.4rem 1.1rem;
+    font-size: 0.85rem;
+    letter-spacing: 0.06em;
+    font-family: 'TypewriterCustom', monospace;
+    text-transform: uppercase;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .collection-toolbar__sort-btn:hover,
+  .collection-toolbar__sort-btn:focus {
+    background: #fff;
+    color: #000;
+    outline: none;
+  }
+
+  .collection-toolbar__sort-btn option {
+    background: #1a1008;
+    color: #f4ede2;
+    text-transform: none;
+  }
+
+  .collection-wall__grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: clamp(1.25rem, 3vw, 2.25rem);
+    row-gap: clamp(2rem, 4vw, 3rem);
+  }
+
+  /* Article is the grid cell — never rotated */
+  .collection-frame-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Only the frame+image wrapper rotates */
+  .collection-frame-card__frame-wrapper {
+    --frame-inset: 12%;
+    width: 100%;
+    transform: rotate(var(--tilt, 0deg));
+    filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.45));
+  }
+
+  .collection-frame-card__media {
+    position: relative;
+    display: block;
+    aspect-ratio: 3 / 4;
+    background: transparent;
+    overflow: hidden;
+    border-radius: 6px;
+    isolation: isolate;
+  }
+
+  .collection-frame-card__img {
+    position: absolute;
+    inset: var(--frame-inset);
+    width: calc(100% - 2 * var(--frame-inset));
+    height: calc(100% - 2 * var(--frame-inset));
+    object-fit: cover;
+    display: block;
+  }
+
+  .collection-frame-card__media::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: var(--frame-image);
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .collection-frame-card__placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
+  }
+
+  .collection-frame-card__sold-out {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-35deg);
+    font-family: 'OctinSpraypaint', sans-serif;
+    color: #cc0000;
+    font-size: 5rem;
+    text-transform: uppercase;
+    z-index: 4;
+    pointer-events: none;
+    white-space: nowrap;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
+    letter-spacing: 0.05em;
+  }
+
+  /* Meta label — always straight, never rotated */
+  .collection-frame-card__meta {
+    margin-top: 0.75rem;
+    text-align: center;
+    color: #f4ede2;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85), 0 4px 20px rgba(0, 0, 0, 0.7);
+    font-family: 'TypewriterCustom', monospace;
+    width: 100%;
+  }
+
+  .collection-frame-card__title {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.1rem;
+  }
+
+  .collection-frame-card__title:hover,
+  .collection-frame-card__title:focus-visible {
+    text-decoration: underline;
+  }
+
+  .collection-frame-card__price {
+    font-size: 0.95rem;
+  }
+
+  .collection-wall__pagination {
+    margin-top: clamp(1.5rem, 3vw, 2.5rem);
+    text-align: center;
+  }
+
+  @media (max-width: 1200px) {
+    .collection-wall__grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 980px) {
+    .collection-wall__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 720px) {
+    .collection-wall__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 520px) {
+    .collection-wall__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .collection-frame-card__frame-wrapper {
+      transform: rotate(calc(var(--tilt, 0deg) * 0.6));
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Collection — Wall",
+  "settings": [],
+  "presets": [
+    {
+      "name": "Collection — Wall"
+    }
+  ]
+}
+{% endschema %}

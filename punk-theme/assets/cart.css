@@ -1,0 +1,217 @@
+/* Cart page */
+
+.cart-page {
+  padding: 40px 32px 100px;
+  font-family: 'TypewriterCustom', monospace;
+  color: #1a1706;
+}
+
+/* ── Back arrow (top-left) ───────────────────── */
+
+.cart-back {
+  --btn-border-light: rgb(190, 187, 175);
+  --btn-border-dark:  rgb(145, 142, 130);
+
+  display: inline-block;
+  width: fit-content;
+  position: relative;
+  z-index: 20;
+  padding: 0 .7rem .3rem;
+  font-family: 'TypewriterCustom', monospace;
+  line-height: .5;
+  font-size: 1.5rem;
+  color: #1a1706;
+  text-decoration: none;
+  background: none;
+  border-top:    2px solid var(--btn-border-light);
+  border-left:   2px solid var(--btn-border-light);
+  border-bottom: 2px solid var(--btn-border-dark);
+  border-right:  2px solid var(--btn-border-dark);
+  transition: background 0.15s, color 0.15s;
+  margin-bottom: 32px;
+}
+
+.cart-back:hover {
+  background: #1a1706;
+  color: #fff;
+}
+
+/* ── Empty state ─────────────────────────────── */
+
+.cart-empty {
+  padding: 60px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.cart-empty p {
+  font-size: 15px;
+  color: #3a3a3a;
+  letter-spacing: 0.08em;
+  margin: 0;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+/* ── Two-column layout ───────────────────────── */
+
+.cart-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 60px;
+}
+
+/* ── Item list (left) ────────────────────────── */
+
+.cart-items {
+  flex: 1;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.cart-item {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 24px 0;
+}
+
+.cart-item__img {
+  width: 130px;
+  height: 130px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.cart-item__img--placeholder {
+  background: #ddd9cc;
+}
+
+.cart-item__details {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cart-item__title {
+  font-size: 15px;
+  font-weight: bold;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #1a1706;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cart-item__title:hover {
+  text-decoration: underline;
+}
+
+.cart-item__variant {
+  font-size: 12px;
+  color: #7a7260;
+  letter-spacing: 0.04em;
+}
+
+.cart-item__price {
+  font-size: 15px;
+  letter-spacing: 0.04em;
+}
+
+.cart-item__qty {
+  font-size: 12px;
+  color: #fff;
+  letter-spacing: 0.06em;
+}
+
+.cart-item__remove {
+  font-size: 26px;
+  line-height: 1;
+  color: #fff;
+  text-decoration: none;
+  flex-shrink: 0;
+  padding: 4px 8px;
+  transition: color 0.15s;
+}
+
+.cart-item__remove:hover {
+  color: #b03000;
+}
+
+/* ── Summary sidebar (right) ─────────────────── */
+
+.cart-summary {
+  width: 300px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cart-summary__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 16px;
+  font-weight: bold;
+  letter-spacing: 0.06em;
+}
+
+.cart-summary__total {
+  font-size: 18px;
+}
+
+.cart-summary__form {
+  width: 100%;
+}
+
+.cart-summary__checkout {
+  --btn-border-light: rgb(190, 187, 175);
+  --btn-border-dark:  rgb(145, 142, 130);
+
+  display: block;
+  width: 100%;
+  cursor: pointer;
+  padding: 0.4rem 1.1rem;
+  background: none;
+  color: #1a1706;
+  font-family: 'TypewriterCustom', monospace;
+  font-size: 0.85rem;
+  font-weight: bold;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-align: center;
+  text-decoration: none;
+  border-top:    2px solid var(--btn-border-light);
+  border-left:   2px solid var(--btn-border-light);
+  border-bottom: 2px solid var(--btn-border-dark);
+  border-right:  2px solid var(--btn-border-dark);
+  transition: background 0.15s, color 0.15s;
+}
+
+.cart-summary__checkout:hover {
+  background: #1a1706;
+  color: #f2ede3;
+}
+
+/* ── Responsive ──────────────────────────────── */
+
+@media (max-width: 760px) {
+  .cart-layout {
+    flex-direction: column;
+  }
+
+  .cart-summary {
+    width: 100%;
+    position: static;
+  }
+}

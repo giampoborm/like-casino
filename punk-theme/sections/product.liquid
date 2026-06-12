@@ -1,0 +1,211 @@
+{% comment %}
+  This section is used in the product template to render product page with
+  media, content, and add-to-cart form.
+
+  https://shopify.dev/docs/storefronts/themes/architecture/templates/product
+{% endcomment %}
+
+{{ 'product-wall.css' | asset_url | stylesheet_tag }}
+{{ 'product-text.css' | asset_url | stylesheet_tag }}
+
+{% comment %}
+  LCG pseudo-random seeded by product.id.
+  Same product → same layout every render. Different products → different layouts.
+  Each property steps the RNG independently so values don't correlate.
+{% endcomment %}
+{% assign rng = product.id | modulo: 65535 | plus: 1 %}
+{% assign mobile_layout = section.settings.mobile_layout | default: 'horizontal' %}
+
+<a class="product-breadcrumb" href="{{ collection.url | default: '/collections/all' }}">&#8592;</a>
+
+<div class="product-wall-scroll full-width{% if mobile_layout == 'vertical' %} product-wall-scroll--vertical{% endif %}">
+  <div class="product-wall{% if mobile_layout == 'vertical' %} product-wall--vertical{% endif %}">
+    {% comment %}
+      The first image is the featured/packshot image shown on collection pages,
+      so the wall skips it — unless it's the only image the product has.
+    {% endcomment %}
+    {% for image in product.images %}
+      {% if forloop.first and product.images.size > 1 %}{% continue %}{% endif %}
+
+      {% assign rng = rng | times: 1664525 | plus: 1013904223 | modulo: 65536 %}
+      {% assign img_rotation = rng | modulo: 51 | minus: 25 | divided_by: 10.0 %}
+
+      {% assign rng = rng | times: 1664525 | plus: 1013904223 | modulo: 65536 %}
+      {% assign img_offset = rng | modulo: 150 | minus: 75 %}
+
+      {% assign rng = rng | times: 1664525 | plus: 1013904223 | modulo: 65536 %}
+      {% if forloop.first %}
+        {% assign img_overlap = 0 %}
+      {% else %}
+        {% assign img_overlap = rng | modulo: 50 | minus: 15 %}
+      {% endif %}
+
+      {% assign rng = rng | times: 1664525 | plus: 1013904223 | modulo: 65536 %}
+      {% if forloop.first %}
+        {% assign img_z = 1 %}
+      {% elsif forloop.index == 2 %}
+        {% assign img_z = rng | modulo: 8 | plus: 2 %}
+      {% else %}
+        {% assign img_z = rng | modulo: 9 | plus: 1 %}
+      {% endif %}
+
+      {% assign rng = rng | times: 1664525 | plus: 1013904223 | modulo: 65536 %}
+      {% assign tape_variant = rng | modulo: 2 %}
+      {% if tape_variant == 0 %}
+        {% assign tape_url = 'tape1.png' | asset_url %}
+      {% else %}
+        {% assign tape_url = 'tape2.png' | asset_url %}
+      {% endif %}
+
+      {% assign rng = rng | times: 1664525 | plus: 1013904223 | modulo: 65536 %}
+      {% assign tape_tl_rot = rng | modulo: 61 | minus: 75 %}
+      {% assign rng = rng | times: 1664525 | plus: 1013904223 | modulo: 65536 %}
+      {% assign tape_tr_rot = rng | modulo: 61 | plus: 15 %}
+      {% assign rng = rng | times: 1664525 | plus: 1013904223 | modulo: 65536 %}
+      {% assign tape_bl_rot = rng | modulo: 61 | plus: 15 %}
+      {% assign rng = rng | times: 1664525 | plus: 1013904223 | modulo: 65536 %}
+      {% assign tape_br_rot = rng | modulo: 61 | minus: 75 %}
+
+      {% assign rng = rng | times: 1664525 | plus: 1013904223 | modulo: 65536 %}
+      {% assign img_hoffset = rng | modulo: 26 | plus: 10 %}
+
+      <div
+        class="product-wall__photo"
+        data-full-src="{{ image | image_url: width: 2000 }}"
+        style="--img-rotation: {{ img_rotation }}deg; --img-offset: {{ img_offset }}px; --img-overlap: {{ img_overlap }}px; --img-z: {{ img_z }}; --img-hoffset: {{ img_hoffset }}px; --tape-url: url('{{ tape_url }}'); --tape-tl-rot: {{ tape_tl_rot }}deg; --tape-tr-rot: {{ tape_tr_rot }}deg; --tape-bl-rot: {{ tape_bl_rot }}deg; --tape-br-rot: {{ tape_br_rot }}deg"
+      >
+        <div class="product-wall__tape product-wall__tape--tl"></div>
+        <div class="product-wall__tape product-wall__tape--tr"></div>
+        <div class="product-wall__tape product-wall__tape--bl"></div>
+        <div class="product-wall__tape product-wall__tape--br"></div>
+        {% render 'image', image: image, class: 'product-wall__img' %}
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<dialog class="product-wall-lightbox">
+  <button class="product-wall-lightbox__btn product-wall-lightbox__close" aria-label="Close">×</button>
+  {% # theme-check-disable ImgWidthAndHeight, RemoteAsset %}
+  <img src="" alt="">
+  {% # theme-check-enable ImgWidthAndHeight, RemoteAsset %}
+  <div class="product-wall-lightbox__nav">
+    <button class="product-wall-lightbox__btn product-wall-lightbox__prev" aria-label="Previous">←</button>
+    <button class="product-wall-lightbox__btn product-wall-lightbox__next" aria-label="Next">→</button>
+  </div>
+</dialog>
+
+<script>
+  (function () {
+    const scroll = document.querySelector('.product-wall-scroll');
+    const dialog = document.querySelector('.product-wall-lightbox');
+    const dialogImg = dialog.querySelector('img');
+    const btnClose = dialog.querySelector('.product-wall-lightbox__close');
+    const btnPrev = dialog.querySelector('.product-wall-lightbox__prev');
+    const btnNext = dialog.querySelector('.product-wall-lightbox__next');
+    const photos = Array.from(document.querySelectorAll('.product-wall__photo'));
+    let currentIndex = 0;
+    let hasDragged = false;
+
+    // Drag-to-scroll
+    let startX, scrollLeft;
+
+    scroll.addEventListener('mousedown', (e) => {
+      startX = e.pageX - scroll.offsetLeft;
+      scrollLeft = scroll.scrollLeft;
+      hasDragged = false;
+      scroll.classList.add('is-dragging');
+    });
+
+    scroll.addEventListener('dragstart', (e) => e.preventDefault());
+
+    window.addEventListener('mouseup', () => {
+      scroll.classList.remove('is-dragging');
+    });
+
+    scroll.addEventListener('mousemove', (e) => {
+      if (!scroll.classList.contains('is-dragging')) return;
+      e.preventDefault();
+      const x = e.pageX - scroll.offsetLeft;
+      if (Math.abs(x - startX) > 4) hasDragged = true;
+      scroll.scrollLeft = scrollLeft - (x - startX);
+    });
+
+    // Lightbox
+    function openAt(index) {
+      currentIndex = index;
+      dialogImg.src = photos[currentIndex].dataset.fullSrc;
+      btnPrev.hidden = currentIndex === 0;
+      btnNext.hidden = currentIndex === photos.length - 1;
+      if (!dialog.open) dialog.showModal();
+    }
+
+    photos.forEach((photo, i) => {
+      photo.addEventListener('click', () => {
+        if (hasDragged) return;
+        openAt(i);
+      });
+    });
+
+    btnClose.addEventListener('click', () => dialog.close());
+    btnPrev.addEventListener('click', () => openAt(currentIndex - 1));
+    btnNext.addEventListener('click', () => openAt(currentIndex + 1));
+
+    dialog.addEventListener('click', (e) => {
+      if (e.target === dialog) dialog.close();
+    });
+
+    dialog.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft' && currentIndex > 0) openAt(currentIndex - 1);
+      if (e.key === 'ArrowRight' && currentIndex < photos.length - 1) openAt(currentIndex + 1);
+    });
+  })();
+</script>
+
+<div class="product-text full-width">
+  <h1 class="product-text__title">{{ product.title }}</h1>
+  {% if product.description != blank %}
+    <div class="product-text__description">{{ product.description }}</div>
+  {% endif %}
+
+  <div class="product-text__row">
+    <div class="product-text__price">{{ product.price | money }}</div>
+    <div class="product-text__actions">
+      {% form 'product', product %}
+        <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+        <button
+          type="submit"
+          class="product-text__btn{% unless product.available %} product-text__btn--sold-out{% endunless %}"
+          {% unless product.available %}disabled{% endunless %}
+        >
+          {% if product.available %}
+            {{ 'products.add_to_cart' | t }}
+          {% else %}
+            {{ 'products.sold_out' | t }}
+          {% endif %}
+        </button>
+      {% endform %}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "t:general.product",
+  "settings": [
+    {
+      "type": "select",
+      "id": "mobile_layout",
+      "label": "Mobile gallery layout",
+      "options": [
+        { "value": "horizontal", "label": "Horizontal (scroll sideways)" },
+        { "value": "vertical", "label": "Vertical (stack downward)" }
+      ],
+      "default": "vertical"
+    }
+  ],
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  }
+}
+{% endschema %}

@@ -1,0 +1,133 @@
+<section class="events-page full-width">
+  <div class="events-page__content">
+    <h1 class="events-page__title">
+      {{ section.settings.heading | escape }}
+    </h1>
+    <p class="events-page__subtitle">
+      {{ section.settings.subheading | escape }}
+    </p>
+
+    <div class="events-page__cards">
+      {% for block in section.blocks %}
+        <article class="events-card">
+          <h2 class="events-card__title">{{ block.settings.title }}</h2>
+          <p class="events-card__date">{{ block.settings.date }}</p>
+          <p class="events-card__description">{{ block.settings.description }}</p>
+        </article>
+      {% else %}
+        <article class="events-card">
+          <h2 class="events-card__title">Next event coming soon</h2>
+          <p class="events-card__date">Stay tuned</p>
+          <p class="events-card__description">
+            We're lining up the next happening. Check back shortly!
+          </p>
+        </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% stylesheet %}
+  .events-page {
+    display: grid;
+    grid-template-columns: var(--content-grid);
+    padding: clamp(3rem, 8vw, 6rem) 0;
+  }
+
+  .events-page__content {
+    grid-column: 2;
+    text-align: center;
+    color: #f8f1d4;
+  }
+
+  .events-page__title {
+    font-size: clamp(2rem, 8vw, 4rem);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  .events-page__subtitle {
+    font-size: 1.2rem;
+    opacity: 0.85;
+    max-width: 50ch;
+    margin: 0 auto clamp(2rem, 4vw, 3rem);
+  }
+
+  .events-page__cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: clamp(1rem, 3vw, 2rem);
+  }
+
+  .events-card {
+    border: 1px solid rgba(248, 241, 212, 0.4);
+    border-radius: 12px;
+    padding: 1.5rem;
+    backdrop-filter: blur(6px);
+    background-color: rgba(11, 11, 11, 0.55);
+  }
+
+  .events-card__title {
+    font-size: 1.4rem;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  .events-card__date {
+    font-style: italic;
+    margin-bottom: 0.75rem;
+    opacity: 0.85;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Events page",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Events"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "Check back for upcoming shows and happenings."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "event",
+      "name": "Event",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Placeholder event"
+        },
+        {
+          "type": "text",
+          "id": "date",
+          "label": "Date",
+          "default": "TBA"
+        },
+        {
+          "type": "textarea",
+          "id": "description",
+          "label": "Description",
+          "default": "Details coming soon."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Events page"
+    }
+  ]
+}
+{% endschema %}

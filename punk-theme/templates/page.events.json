@@ -1,0 +1,14 @@
+{
+  "sections": {
+    "main": {
+      "type": "page-events",
+      "settings": {
+        "heading": "Events",
+        "subheading": "Placeholder schedule until the real lineup is ready."
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

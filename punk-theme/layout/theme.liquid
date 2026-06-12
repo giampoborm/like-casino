@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="{{ request.locale.iso_code }}">
+  <head>
+    {% # Inlined CSS Variables %}
+    {% render 'css-variables' %}
+
+    {% # Load and preload the critical CSS %}
+    {{ 'critical.css' | asset_url | stylesheet_tag: preload: true }}
+
+    <style>
+      body.theme-wall-bg {
+        background-image: url({{ 'productback.png' | asset_url }});
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        background-color: #111;
+      }
+    </style>
+
+    {% # Social, title, etc. %}
+    {% render 'meta-tags' %}
+
+    {{ content_for_header }}
+  </head>
+
+  <body class="theme-wall-bg">
+    {% unless request.page_type == 'index' %}
+      {% sections 'header-group' %}
+    {% endunless %}
+
+    {{ content_for_layout }}
+
+    {% unless request.page_type == 'index' %}
+      {% sections 'footer-group' %}
+    {% endunless %}
+  </body>
+</html>
