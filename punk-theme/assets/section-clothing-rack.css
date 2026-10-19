@@ -1,0 +1,235 @@
+/*
+ * Clothing rack section. Flat objects on the site background: a rail running past both screen edges,
+ * with garments hanging from it. All rack parts are PNGs (see the template notes in the section file).
+ *
+ * Geometry (relative to .clothing-rack__stage), all derived from the garment width so the hook,
+ * hanger and rail stay in proportion at every size:
+ *   --rack-hanger-w  hanger PNG width (80% of a garment)
+ *   --rack-rail-h    rail PNG height; the pipe is its top 64%, so the pipe's centre is at 32%
+ *   --rack-pivot-y   centre of the pipe = where hooks rest and garments swing from
+ */
+.section-clothing-rack {
+  --rack-paper: #efe6d2;
+  --rack-inset: clamp(12px, 5vw, 72px);
+  --rack-item-w: var(--rack-garment-width);
+  --rack-gap: var(--rack-spacing);
+  --rack-hanger-w: calc(var(--rack-item-w) * 0.8);
+  --rack-rail-h: calc(var(--rack-hanger-w) * 0.11);
+  --rack-rail-y: 40px;
+  --rack-pivot-y: calc(var(--rack-rail-y) + var(--rack-rail-h) * 0.32);
+
+  display: block;
+  padding: clamp(1.5rem, 3vw, 2.5rem) 0;
+  color: var(--rack-ink);
+  font-family: var(--font-primary--family);
+}
+
+/* Stage: the rail and the garments. Tall enough for a long garment on its hanger. */
+
+.clothing-rack__stage {
+  position: relative;
+  height: calc(var(--rack-pivot-y) + var(--rack-item-w) * 1.55);
+}
+
+/* Rail PNG tiled across the full width, so it runs off both edges of the screen */
+.clothing-rack__rail {
+  position: absolute;
+  top: var(--rack-rail-y);
+  left: 0;
+  right: 0;
+  height: var(--rack-rail-h);
+  background: var(--rack-rail-image) repeat-x left top / auto 100%;
+}
+
+/* Scrolling viewport: full width, so garments slide in and out at the screen edges */
+
+.clothing-rack__viewport {
+  position: absolute;
+  inset: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  /* Always come to rest with a garment in the middle: that one is the selected product */
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  cursor: grab;
+  outline: none;
+  container-type: inline-size; /* lets the track size its end space in cqw (see below) */
+}
+
+.clothing-rack__viewport::-webkit-scrollbar {
+  display: none;
+}
+
+.clothing-rack__viewport:focus-visible {
+  outline: 2px dashed var(--rack-ink);
+  outline-offset: -2px;
+}
+
+/* While dragging or gliding (JS), snapping is off; the glide itself lands on a snap point */
+.clothing-rack__viewport.is-dragging {
+  scroll-snap-type: none;
+  cursor: grabbing;
+  user-select: none;
+}
+
+.clothing-rack__track {
+  position: relative;
+  display: flex;
+  gap: var(--rack-gap);
+  /* max-content, so the end padding counts towards the scroll width and the last garment can reach the middle */
+  width: max-content;
+  height: 100%;
+  margin: 0;
+  /*
+   * Half the rack's width at each end, so the first and last garment can also hang in the middle.
+   * In cqw (the viewport's width) rather than %, which is cyclic when sizing a max-content box.
+   */
+  padding: 0 calc(50cqw - var(--rack-item-w) / 2);
+  list-style: none;
+}
+
+.clothing-rack__item {
+  position: relative;
+  flex: none;
+  /*
+   * An explicit width, not just a flex-basis: the contents are absolutely positioned, and Firefox sizes
+   * the max-content track from each item's content width (0), which cut the scroll short.
+   */
+  width: var(--rack-item-w);
+  scroll-snap-align: center;
+}
+
+/* The swinging part. JS sets its transform; it pivots on the rail. Only the garment itself is clickable. */
+.clothing-rack__hanger {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% var(--rack-pivot-y);
+  will-change: transform;
+  pointer-events: none;
+}
+
+/* Hanger PNG: 200:80, hook curl centre at 54.5% / 5.5% of its width, resting on the pipe */
+.clothing-rack__hanger-img {
+  position: absolute;
+  top: calc(var(--rack-pivot-y) - var(--rack-hanger-w) * 0.055);
+  left: calc(50% - var(--rack-hanger-w) * 0.545);
+  width: var(--rack-hanger-w);
+  height: auto;
+  filter: drop-shadow(3px 5px 3px rgba(0, 0, 0, 0.35));
+}
+
+/* A garment hangs from the hanger's shoulders (40% of the hanger's height down), in front of it */
+.clothing-rack__garment {
+  position: absolute;
+  top: calc(var(--rack-pivot-y) - var(--rack-hanger-w) * 0.055 + var(--rack-hanger-w) * 0.2);
+  left: 0;
+  display: block;
+  width: 100%;
+  color: inherit;
+  pointer-events: auto;
+  -webkit-user-drag: none;
+}
+
+/* A PNG with the garment already on its hanger: its hook curl sits 4.4% of its width from the top */
+.clothing-rack__garment--hung {
+  top: calc(var(--rack-pivot-y) - var(--rack-item-w) * 0.044);
+  left: calc(var(--rack-item-w) * -0.036);
+}
+
+.clothing-rack__img,
+.clothing-rack__placeholder {
+  display: block;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+}
+
+/*
+ * Garment PNGs come in different shapes. Size each one to fit a box 1.3 garments tall and up to
+ * 1.9 garments wide, centred on the hanger: a tank top fills the height, a long-sleeve shot with its
+ * arms spread gets wider (overlapping its neighbours, like on a real rail) instead of shrinking.
+ */
+.clothing-rack__garment:not(.clothing-rack__garment--hung) {
+  display: flex;
+  justify-content: center;
+}
+
+.clothing-rack__garment:not(.clothing-rack__garment--hung) .clothing-rack__img {
+  flex: none;
+  width: min(calc(var(--rack-item-w) * 1.9), calc(var(--rack-item-w) * 1.3 * var(--rack-ar, 0.77)));
+  max-width: none; /* overrides the theme's global img reset, so wide shots can overhang */
+}
+
+.clothing-rack__placeholder {
+  aspect-ratio: 200 / 260;
+}
+
+/* Shadow cast on the wall. Rasterised once into the hanger's layer, so swinging doesn't repaint it. */
+.section-clothing-rack--cutout .clothing-rack__garment,
+.clothing-rack__placeholder {
+  filter: drop-shadow(10px 16px 10px rgba(0, 0, 0, 0.45));
+}
+
+.section-clothing-rack--photo .clothing-rack__img {
+  box-shadow: 8px 12px 16px rgba(0, 0, 0, 0.45);
+}
+
+.clothing-rack__garment:focus-visible,
+.clothing-rack__sign:focus-visible {
+  outline: 2px dashed var(--rack-ink);
+  outline-offset: 6px;
+}
+
+/* Empty hanger at the end of the rail with a cardboard sign pointing to the full collection */
+.clothing-rack__sign {
+  position: absolute;
+  top: calc(var(--rack-pivot-y) + var(--rack-hanger-w) * 0.35);
+  left: 50%;
+  translate: -50% 0;
+  padding: 0.6rem 1rem;
+  background: var(--rack-paper);
+  color: #1a1410;
+  font-family: 'OctinSpraypaint', sans-serif;
+  font-size: 1.1rem;
+  text-decoration: none;
+  text-transform: uppercase;
+  white-space: nowrap;
+  box-shadow: 4px 6px 0 rgba(0, 0, 0, 0.35);
+  pointer-events: auto;
+}
+
+.clothing-rack__sign:hover {
+  text-decoration: underline;
+}
+
+/* Selected product under the rack: underlined name, price below */
+
+.clothing-rack__label {
+  margin: 0.5rem var(--rack-inset) 0;
+  text-align: center;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+}
+
+.clothing-rack__label-title {
+  color: inherit;
+  font-family: 'ProductTitle', serif;
+  font-size: clamp(1.25rem, 2.4vw, 1.6rem);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
+}
+
+.clothing-rack__label-price {
+  margin: 0.25rem 0 0;
+  font-size: clamp(0.9rem, 1.4vw, 1rem);
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 720px) {
+  .section-clothing-rack {
+    --rack-item-w: min(var(--rack-garment-width), 42vw);
+    --rack-gap: min(var(--rack-spacing), -4px);
+    --rack-rail-y: 28px;
+  }
+}

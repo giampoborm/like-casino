@@ -1,0 +1,128 @@
+{% comment %}
+  Catalogue rows: one horizontally scrollable row of product cards per block.
+  Each block picks a collection (e.g. an automated collection per product type).
+  Rows use `limit` instead of pagination; the "see all" card links to the paginated collection page.
+{% endcomment %}
+
+{{ 'section-catalogue-rows.css' | asset_url | stylesheet_tag }}
+
+<section class="section-catalogue-rows">
+  {% for block in section.blocks %}
+    {% assign row_collection = block.settings.collection %}
+    {% assign row_title = block.settings.title | default: row_collection.title %}
+
+    <div class="catalogue-row" {{ block.shopify_attributes }}>
+      {% if row_title != blank %}
+        <h2 class="catalogue-row__title">{{ row_title | escape }}</h2>
+      {% endif %}
+
+      <ul class="catalogue-row__track" role="list">
+        {% if row_collection != blank %}
+          {% for product in row_collection.products limit: block.settings.limit %}
+            <li class="catalogue-row__item">
+              <a class="product-card" href="{{ product.url }}">
+                <span class="product-card__media">
+                  {% if product.featured_image %}
+                    {{
+                      product.featured_image
+                      | image_url: width: 800
+                      | image_tag:
+                        loading: 'lazy',
+                        widths: '300,400,600,800',
+                        sizes: '(max-width: 720px) 60vw, 260px',
+                        class: 'product-card__img',
+                        alt: product.featured_image.alt | default: product.title
+                    }}
+                  {% else %}
+                    {{ 'product-1' | placeholder_svg_tag: 'product-card__img product-card__img--placeholder' }}
+                  {% endif %}
+                  {% unless product.available %}
+                    <span class="product-card__sold-out">{{ 'products.sold_out' | t }}</span>
+                  {% endunless %}
+                </span>
+                <span class="product-card__title">{{ product.title }}</span>
+                <span class="product-card__price">{{ product.price | money }}</span>
+              </a>
+            </li>
+          {% endfor %}
+
+          {% if block.settings.show_see_all and row_collection.products_count > block.settings.limit %}
+            <li class="catalogue-row__item catalogue-row__item--see-all">
+              <a class="catalogue-row__see-all" href="{{ row_collection.url }}">
+                {{ 'catalogue.see_all' | t }} &rarr;
+              </a>
+            </li>
+          {% endif %}
+        {% else %}
+          {% for i in (1..4) %}
+            <li class="catalogue-row__item">
+              <div class="product-card">
+                <span class="product-card__media">
+                  {{ 'product-1' | placeholder_svg_tag: 'product-card__img product-card__img--placeholder' }}
+                </span>
+                <span class="product-card__title">{{ 'catalogue.placeholder_title' | t }}</span>
+                <span class="product-card__price">{{ 0 | money }}</span>
+              </div>
+            </li>
+          {% endfor %}
+        {% endif %}
+      </ul>
+    </div>
+  {% endfor %}
+</section>
+
+{% stylesheet %}
+{% endstylesheet %}
+
+{% javascript %}
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "Catalogue rows",
+  "tag": "div",
+  "settings": [],
+  "blocks": [
+    {
+      "type": "row",
+      "name": "Row",
+      "settings": [
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "Collection"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "info": "Leave empty to use the collection name"
+        },
+        {
+          "type": "range",
+          "id": "limit",
+          "label": "Products shown",
+          "min": 4,
+          "max": 24,
+          "step": 1,
+          "default": 12
+        },
+        {
+          "type": "checkbox",
+          "id": "show_see_all",
+          "label": "Show \"see all\" card when there are more products",
+          "default": true
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Catalogue rows",
+      "blocks": [
+        { "type": "row" }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,14 @@
+{
+  "sections": {
+    "rack": {
+      "type": "clothing-rack",
+      "settings": {
+        "limit": 16,
+        "preview_hung": true
+      }
+    }
+  },
+  "order": [
+    "rack"
+  ]
+}

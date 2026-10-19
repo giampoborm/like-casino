@@ -1,0 +1,291 @@
+{% comment %}
+  Clothing rack: products hang from a rail that runs across the full width of the screen; scrolling
+  slides the garments along it, so they come in from the sides like on a real rail.
+  - Flat, 2D look on top of the site-wide background (no wall/floor of its own).
+  - Every rack part is a PNG the client can swap in the editor: a rail tile (repeats across) and a
+    hanger with its hook. The bundled rack-*.png files are placeholders/fallbacks.
+  - Garment image per product: the `custom.rack_image` metafield if set (a PNG of the garment already
+    on its hanger, drawn without our hanger), otherwise the featured image hung on the hanger PNG.
+  - The rail always snaps to a product (mouse wheel, drag, touch, keyboard); the product in the middle
+    is the selected one, and its name + price show under the rack.
+  - Uses `limit` (max 24) instead of `paginate`, like catalogue-rows: a rack is a teaser, and the last
+    hanger links to the full, paginated collection page.
+
+  PNG templates (draw over the placeholders to keep the alignment):
+  - rack-rail.png    400×44, tiles horizontally; the pipe fills the top 28px, a soft shadow below.
+  - rack-hanger.png  400×160; the centre of the hook's curl is at (218, 22), i.e. it rests on the rail there.
+  - hung garment     any height, width = garment width; the hook's curl centre 4.4% of the width from the
+                     top, just right of centre (see rack-placeholder-hung.png, 500×730).
+{% endcomment %}
+
+{{ 'section-clothing-rack.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'section-clothing-rack.js' | asset_url }}" defer></script>
+
+{% liquid
+  # No collection picked: the collection being viewed (on a collection template), else all products
+  assign rack_collection = section.settings.collection
+  if rack_collection == blank
+    assign rack_collection = collection | default: collections.all
+  endif
+
+  # Wide garment shots can hang up to 1.9 garments wide (see the CSS), so request images for that
+  assign widest = section.settings.garment_width | times: 1.9 | round
+  assign image_sizes = '(max-width: 720px) 80vw, ' | append: widest | append: 'px'
+
+  if section.settings.rail_image != blank
+    assign rail_url = section.settings.rail_image | image_url: height: 88
+  else
+    assign rail_url = 'rack-rail.png' | asset_url
+  endif
+%}
+
+{% # One hanger image, repeated on every hanger (same URL, so it downloads once) %}
+{% capture hanger_img %}
+  {% if section.settings.hanger_image != blank %}
+    {{ section.settings.hanger_image | image_url: width: 400 | image_tag: class: 'clothing-rack__hanger-img', alt: '', loading: 'lazy', draggable: 'false' }}
+  {% else %}
+    {% # theme-check-disable RemoteAsset %}
+    <img class="clothing-rack__hanger-img" src="{{ 'rack-hanger.png' | asset_url }}" width="400" height="160" alt="" loading="lazy" draggable="false">
+    {% # theme-check-enable RemoteAsset %}
+  {% endif %}
+{% endcapture %}
+
+<clothing-rack
+  class="section-clothing-rack section-clothing-rack--{{ section.settings.image_style }} full-width"
+  data-swing="{{ section.settings.swing }}"
+  style="
+    --rack-garment-width: {{ section.settings.garment_width }}px;
+    --rack-spacing: {{ section.settings.spacing }}px;
+    --rack-ink: {{ section.settings.text_color | default: '#f4ede2' }};
+    --rack-rail-image: url('{{ rail_url }}');
+  "
+>
+  <div class="clothing-rack__stage">
+    <div class="clothing-rack__rail" aria-hidden="true"></div>
+
+    <div class="clothing-rack__viewport" data-rack-viewport tabindex="0" role="region" aria-label="{{ 'clothing_rack.label' | t | escape }}">
+      <ul class="clothing-rack__track" role="list">
+        {% for product in rack_collection.products limit: section.settings.limit %}
+          {% liquid
+            capture price
+              echo product.price | money
+              unless product.available
+                echo ' — '
+                echo 'products.sold_out' | t
+              endunless
+            endcapture
+            assign price = price | strip_html
+
+            if forloop.first
+              assign first_title = product.title
+              assign first_price = price
+              assign first_url = product.url
+            endif
+
+            assign rack_image = product.metafields.custom.rack_image.value
+            assign garment_image = rack_image | default: product.featured_image
+            assign hung = false
+            if rack_image != blank
+              assign hung = true
+            endif
+
+            assign use_placeholder_hung = false
+            if rack_image == blank and section.settings.preview_hung
+              assign odd = forloop.index | modulo: 2
+              if odd == 0
+                assign use_placeholder_hung = true
+                assign hung = true
+              endif
+            endif
+
+            assign loading = 'lazy'
+            assign priority = 'auto'
+            if section.index <= 2 and forloop.index <= 5
+              assign loading = 'eager'
+              if forloop.first
+                assign priority = 'high'
+              endif
+            endif
+          %}
+          <li class="clothing-rack__item" data-rack-item>
+            <div class="clothing-rack__hanger" data-rack-swing>
+              {% unless hung %}{{ hanger_img }}{% endunless %}
+              {% # --rack-ar lets wide shots (sleeves spread out) hang wider instead of shrinking %}
+              <a
+                class="clothing-rack__garment{% if hung %} clothing-rack__garment--hung{% endif %}"
+                {% if garment_image.aspect_ratio %}style="--rack-ar: {{ garment_image.aspect_ratio }}"{% endif %}
+                href="{{ product.url }}"
+                data-rack-title="{{ product.title | escape }}"
+                data-rack-price="{{ price | escape }}"
+                aria-label="{{ product.title | escape }}, {{ price | escape }}"
+                draggable="false"
+              >
+                {% if use_placeholder_hung %}
+                  {% # theme-check-disable RemoteAsset %}
+                  <img class="clothing-rack__img" src="{{ 'rack-placeholder-hung.png' | asset_url }}" width="500" height="730" alt="" loading="{{ loading }}" draggable="false">
+                  {% # theme-check-enable RemoteAsset %}
+                {% elsif garment_image != blank %}
+                  {{
+                    garment_image
+                    | image_url: width: 700
+                    | image_tag:
+                      loading: loading,
+                      fetchpriority: priority,
+                      widths: '240,320,480,640,700',
+                      sizes: image_sizes,
+                      class: 'clothing-rack__img',
+                      draggable: 'false',
+                      alt: ''
+                  }}
+                {% else %}
+                  {% render 'clothing-rack-garment', index: forloop.index0, uid: section.id %}
+                {% endif %}
+              </a>
+            </div>
+          </li>
+        {% else %}
+          {% # Empty store or collection: drawn placeholder garments on the hanger PNG %}
+          {% assign first_title = 'catalogue.placeholder_title' | t %}
+          {% assign first_price = 4900 | money | strip_html %}
+          {% for i in (1..8) %}
+            {% assign placeholder_price = 4900 | times: i | money | strip_html %}
+            <li class="clothing-rack__item" data-rack-item>
+              <div class="clothing-rack__hanger" data-rack-swing>
+                {{ hanger_img }}
+                <span class="clothing-rack__garment" data-rack-title="{{ first_title | escape }}" data-rack-price="{{ placeholder_price | escape }}">
+                  {% render 'clothing-rack-garment', index: forloop.index0, uid: section.id %}
+                </span>
+              </div>
+            </li>
+          {% endfor %}
+        {% endfor %}
+
+        {% if rack_collection.products_count > section.settings.limit %}
+          {% assign see_all = 'clothing_rack.see_all' | t %}
+          <li class="clothing-rack__item clothing-rack__item--see-all" data-rack-item>
+            <div class="clothing-rack__hanger" data-rack-swing>
+              {{ hanger_img }}
+              <a class="clothing-rack__sign" href="{{ rack_collection.url }}" data-rack-title="{{ see_all | escape }}" data-rack-price="" draggable="false">
+                {{ see_all }} <span aria-hidden="true">&gt;&gt;</span>
+              </a>
+            </div>
+          </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+
+  {% comment %}
+    Name + price of the selected (centred) garment, or the hovered one. Mouse users can click the name;
+    it's hidden from assistive tech because each garment link already carries the same label.
+  {% endcomment %}
+  <div class="clothing-rack__label" aria-hidden="true">
+    <a class="clothing-rack__label-title" href="{{ first_url | default: rack_collection.url }}" tabindex="-1" data-rack-output-title>{{ first_title | escape }}</a>
+    <p class="clothing-rack__label-price" data-rack-output-price>{{ first_price | escape }}</p>
+  </div>
+</clothing-rack>
+
+{% schema %}
+{
+  "name": "Clothing rack",
+  "tag": "section",
+  "class": "clothing-rack-section",
+  "settings": [
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection",
+      "info": "Leave empty to hang the collection being viewed, or all products on other pages."
+    },
+    {
+      "type": "range",
+      "id": "limit",
+      "label": "Products on the rack",
+      "min": 4,
+      "max": 24,
+      "step": 1,
+      "default": 12
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text colour",
+      "default": "#f4ede2",
+      "info": "Product name and price under the rack."
+    },
+    {
+      "type": "header",
+      "content": "Garments"
+    },
+    {
+      "type": "select",
+      "id": "image_style",
+      "label": "Product images",
+      "options": [
+        { "value": "cutout", "label": "Cut-out (transparent PNG)" },
+        { "value": "photo", "label": "Photo" }
+      ],
+      "default": "cutout",
+      "info": "Uses each product's first image. To hang a PNG of the garment already on its hanger instead, add it to the product's \"Rack image\" metafield (custom.rack_image)."
+    },
+    {
+      "type": "range",
+      "id": "garment_width",
+      "label": "Garment size",
+      "min": 140,
+      "max": 320,
+      "step": 10,
+      "unit": "px",
+      "default": 250
+    },
+    {
+      "type": "range",
+      "id": "spacing",
+      "label": "Space between hangers",
+      "min": -60,
+      "max": 60,
+      "step": 4,
+      "unit": "px",
+      "default": 8,
+      "info": "Negative values overlap garments like a packed rack."
+    },
+    {
+      "type": "range",
+      "id": "swing",
+      "label": "Swing",
+      "min": 0,
+      "max": 10,
+      "step": 1,
+      "default": 5
+    },
+    {
+      "type": "header",
+      "content": "Rack artwork"
+    },
+    {
+      "type": "image_picker",
+      "id": "rail_image",
+      "label": "Rail",
+      "info": "Transparent PNG that repeats across the screen, 400×44 px with the pipe in the top 28 px. Leave empty for the placeholder."
+    },
+    {
+      "type": "image_picker",
+      "id": "hanger_image",
+      "label": "Hanger",
+      "info": "Transparent PNG, 400×160 px, hook curl centred at 218, 22 px. Leave empty for the placeholder."
+    },
+    {
+      "type": "checkbox",
+      "id": "preview_hung",
+      "label": "Preview hung-garment placeholders",
+      "default": false,
+      "info": "Temporary: shows a sample garment-on-hanger PNG on every other hanger that has no rack image yet."
+    }
+  ],
+  "presets": [
+    {
+      "name": "Clothing rack"
+    }
+  ]
+}
+{% endschema %}

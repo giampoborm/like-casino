@@ -1,81 +1,123 @@
-<header class="header">
-  <div class="header__slot"></div>
+{%- capture header_logo -%}
   <a class="header__logo-link" href="{{ routes.root_url }}">
-    <img
-      src="{{ 'minilogo.png' | asset_url }}"
-      alt="{{ shop.name }}"
-      class="header__minilogo"
-      width="149"
-      height="192"
-      loading="eager"
-    >
+    {%- if section.settings.logo_style == 'custom' and section.settings.custom_logo != blank -%}
+      {%- liquid
+        assign custom_logo = section.settings.custom_logo
+        assign logo_h1 = section.settings.logo_height
+        assign logo_h2 = logo_h1 | times: 2
+        assign logo_h3 = logo_h1 | times: 3
+        assign logo_w = custom_logo.aspect_ratio | times: logo_h2 | round
+      -%}
+      <img
+        src="{{ custom_logo | image_url: height: logo_h2 }}"
+        srcset="
+          {{ custom_logo | image_url: height: logo_h1 }} 1x,
+          {{ custom_logo | image_url: height: logo_h2 }} 2x,
+          {{ custom_logo | image_url: height: logo_h3 }} 3x
+        "
+        alt="{{ custom_logo.alt | default: shop.name | escape }}"
+        class="header__logo header__logo--custom"
+        width="{{ logo_w }}"
+        height="{{ logo_h2 }}"
+        loading="eager"
+      >
+    {%- elsif section.settings.logo_style == 'sign' -%}
+      <img
+        src="{{ 'logosign-header.png' | asset_url }}"
+        alt="{{ shop.name }}"
+        class="header__logo header__logo--sign"
+        width="960"
+        height="291"
+        loading="eager"
+      >
+    {%- else -%}
+      <img
+        src="{{ 'minilogo.png' | asset_url }}"
+        alt="{{ shop.name }}"
+        class="header__logo header__logo--mini"
+        width="149"
+        height="192"
+        loading="eager"
+      >
+    {%- endif -%}
   </a>
-  <div class="header__icons">
-    <a href="{{ routes.cart_url }}" class="header__cart-link">
-      {% if cart.item_count > 0 %}
-        {% if cart.item_count == 1 %}
-          {% assign cart_item_word = 'cart.item_singular' | t %}
-        {% else %}
-          {% assign cart_item_word = 'cart.item_plural' | t %}
-        {% endif %}
-        <img
-          src="{{ 'full-cart.png' | asset_url }}"
-          alt="{{ 'cart.title' | t }} ({{ cart.item_count }} {{ cart_item_word }})"
-          class="header__cart-icon"
-          width="131"
-          height="101"
-        >
+{%- endcapture -%}
+
+{%- capture header_cart -%}
+  <a href="{{ routes.cart_url }}" class="header__cart-link">
+    {% if cart.item_count > 0 %}
+      {% if cart.item_count == 1 %}
+        {% assign cart_item_word = 'cart.item_singular' | t %}
       {% else %}
-        <img
-          src="{{ 'empty-cart.png' | asset_url }}"
-          alt="{{ 'cart.title' | t }}"
-          class="header__cart-icon"
-          width="131"
-          height="99"
-        >
+        {% assign cart_item_word = 'cart.item_plural' | t %}
       {% endif %}
-    </a>
-  </div>
+      <img
+        src="{{ 'full-cart.png' | asset_url }}"
+        alt="{{ 'cart.title' | t }} ({{ cart.item_count }} {{ cart_item_word }})"
+        class="header__cart-icon"
+        width="131"
+        height="101"
+      >
+    {% else %}
+      <img
+        src="{{ 'empty-cart.png' | asset_url }}"
+        alt="{{ 'cart.title' | t }}"
+        class="header__cart-icon"
+        width="131"
+        height="99"
+      >
+    {% endif %}
+  </a>
+{%- endcapture -%}
+
+{%- assign shadow_color = section.settings.shadow_color -%}
+{%- assign shadow_alpha = section.settings.shadow_opacity | divided_by: 100.0 -%}
+<header
+  class="header{% unless section.settings.icon_effect == 'none' %} header--{{ section.settings.icon_effect }}{% endunless %}"
+  style="
+    --header-logo-height: {{ section.settings.logo_height }}px;
+    --header-shadow-x: {{ section.settings.shadow_x }}px;
+    --header-shadow-y: {{ section.settings.shadow_y }}px;
+    --header-shadow-blur: {{ section.settings.shadow_blur }}px;
+    --header-shadow-lift: {{ section.settings.shadow_lift }}px;
+    --header-shadow-color: rgba({{ shadow_color.red }}, {{ shadow_color.green }}, {{ shadow_color.blue }}, {{ shadow_alpha }});
+  "
+>
+  {%- assign header_positions = 'left,center,right' | split: ',' -%}
+  {%- for position in header_positions -%}
+    <div class="header__slot header__slot--{{ position }}">
+      {%- if section.settings.logo_position == position -%}
+        {{ header_logo }}
+      {%- endif -%}
+      {%- if section.settings.cart_position == position -%}
+        {{ header_cart }}
+      {%- endif -%}
+    </div>
+  {%- endfor -%}
 </header>
 
 {% stylesheet %}
   .header {
     display: grid;
+    /* side columns share the leftover space equally so the centre slot stays truly centred */
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
+    column-gap: 1rem;
     padding: 0 1.5rem 1rem;
   }
   .header__slot {
-    /* balances cart icon so logo stays truly centred */
-  }
-  .header__logo-link {
     display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    min-width: 0;
+  }
+  .header__slot--left {
+    justify-content: flex-start;
+  }
+  .header__slot--center {
     justify-content: center;
   }
-  @media (max-width: 600px) {
-    .header {
-      grid-template-columns: auto 1fr auto;
-    }
-    .header__slot {
-      display: none;
-    }
-    .header__logo-link {
-      justify-content: flex-start;
-    }
-  }
-  .header__minilogo {
-    display: block;
-    height: 5rem;
-    width: auto;
-    margin-top: 15px;
-    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.7));
-    transition: filter 0.25s ease;
-  }
-  .header__logo-link:hover .header__minilogo {
-    filter: drop-shadow(0 0 14px rgba(255, 255, 255, 1)) drop-shadow(0 0 28px rgba(255, 255, 255, 0.5));
-  }
-  .header__icons {
-    display: flex;
+  .header__slot--right {
     justify-content: flex-end;
   }
   .header a {
@@ -83,30 +125,209 @@
     text-decoration: none;
     color: var(--color-foreground);
   }
+  .header__logo-link {
+    display: flex;
+    min-width: 0;
+  }
+  .header__logo {
+    display: block;
+    height: var(--header-logo-height, 80px);
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+  }
+  .header__logo--mini {
+    margin-top: 15px;
+  }
+  .header__logo--sign,
+  .header__logo--custom {
+    margin-top: 10px;
+  }
   .header__cart-link {
     position: relative;
-  }
-  .header__cart-count {
-    position: absolute;
-    left: 100%;
-    overflow: hidden;
-    max-width: var(--page-margin);
+    flex-shrink: 0;
   }
   .header__cart-icon {
     display: block;
     padding-top: 0.7rem;
     width: 60px;
+  }
+  /* glow: logo + cart; brightens on hover */
+  .header--glow .header__logo,
+  .header--glow .header__cart-icon {
     filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.7));
     transition: filter 0.25s ease;
   }
-  .header__cart-link:hover .header__cart-icon {
+  .header--glow .header__logo-link:hover .header__logo,
+  .header--glow .header__cart-link:hover .header__cart-icon {
     filter: drop-shadow(0 0 14px rgba(255, 255, 255, 1)) drop-shadow(0 0 28px rgba(255, 255, 255, 0.5));
+  }
+  /* drop shadow: logo + cart; on hover the image lifts and the shadow grows by the same amount */
+  .header--shadow .header__logo,
+  .header--shadow .header__cart-icon {
+    filter: drop-shadow(var(--header-shadow-x) var(--header-shadow-y) var(--header-shadow-blur) var(--header-shadow-color));
+    transition: filter 0.2s ease, transform 0.2s ease;
+  }
+  .header--shadow .header__logo-link:hover .header__logo,
+  .header--shadow .header__cart-link:hover .header__cart-icon {
+    transform: translate(calc(var(--header-shadow-lift) * -1), calc(var(--header-shadow-lift) * -1));
+    filter: drop-shadow(
+      calc(var(--header-shadow-x) + var(--header-shadow-lift))
+      calc(var(--header-shadow-y) + var(--header-shadow-lift))
+      var(--header-shadow-blur)
+      var(--header-shadow-color)
+    );
+  }
+  @media (max-width: 600px) {
+    .header {
+      padding: 0 1rem 0.75rem;
+    }
+    .header__logo {
+      height: min(var(--header-logo-height, 80px), 5rem);
+    }
+    .header__logo--sign,
+    .header__logo--custom {
+      max-width: 60vw;
+    }
   }
 {% endstylesheet %}
 
 {% schema %}
 {
   "name": "t:general.header",
-  "settings": []
+  "settings": [
+    {
+      "type": "header",
+      "content": "Logo"
+    },
+    {
+      "type": "select",
+      "id": "logo_style",
+      "label": "Logo",
+      "options": [
+        { "value": "mini", "label": "Mini logo" },
+        { "value": "sign", "label": "Hollywood sign" },
+        { "value": "custom", "label": "Custom upload" }
+      ],
+      "default": "mini"
+    },
+    {
+      "type": "image_picker",
+      "id": "custom_logo",
+      "label": "Custom logo",
+      "info": "Used when Logo is set to \"Custom upload\". Use a PNG with a transparent background, at least 420px tall (3× the max logo height) so it stays sharp. Larger images are resized automatically. If empty, the mini logo is shown."
+    },
+    {
+      "type": "range",
+      "id": "logo_height",
+      "label": "Logo height",
+      "min": 40,
+      "max": 140,
+      "step": 4,
+      "unit": "px",
+      "default": 80
+    },
+    {
+      "type": "select",
+      "id": "logo_position",
+      "label": "Logo position",
+      "options": [
+        { "value": "left", "label": "t:options.alignment.left" },
+        { "value": "center", "label": "t:options.alignment.center" },
+        { "value": "right", "label": "t:options.alignment.right" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "header",
+      "content": "t:general.cart"
+    },
+    {
+      "type": "select",
+      "id": "cart_position",
+      "label": "Cart position",
+      "options": [
+        { "value": "left", "label": "t:options.alignment.left" },
+        { "value": "center", "label": "t:options.alignment.center" },
+        { "value": "right", "label": "t:options.alignment.right" }
+      ],
+      "default": "right",
+      "info": "If the logo and cart share a position, they sit side by side."
+    },
+    {
+      "type": "header",
+      "content": "Logo & cart effect"
+    },
+    {
+      "type": "select",
+      "id": "icon_effect",
+      "label": "Effect",
+      "info": "Applies to the logo and cart icon. The settings below only apply to the drop shadow.",
+      "options": [
+        { "value": "none", "label": "None" },
+        { "value": "glow", "label": "White glow" },
+        { "value": "shadow", "label": "Drop shadow" }
+      ],
+      "default": "glow"
+    },
+    {
+      "type": "color",
+      "id": "shadow_color",
+      "label": "Shadow color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "shadow_opacity",
+      "label": "Shadow opacity",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "shadow_x",
+      "label": "Horizontal offset",
+      "min": -20,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 3
+    },
+    {
+      "type": "range",
+      "id": "shadow_y",
+      "label": "Vertical offset",
+      "min": -20,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 3
+    },
+    {
+      "type": "range",
+      "id": "shadow_blur",
+      "label": "Blur",
+      "info": "0 gives a hard, flat shadow",
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "shadow_lift",
+      "label": "Hover lift distance",
+      "info": "How far the logo and cart rise off the wall on hover. 0 turns the hover movement off.",
+      "min": 0,
+      "max": 10,
+      "step": 1,
+      "unit": "px",
+      "default": 2
+    }
+  ]
 }
 {% endschema %}

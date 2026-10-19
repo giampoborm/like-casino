@@ -29,6 +29,14 @@
     "continue_shopping": "← continue shopping",
     "void": "Void"
   },
+  "catalogue": {
+    "see_all": "See all",
+    "placeholder_title": "Product name"
+  },
+  "clothing_rack": {
+    "label": "Clothing rack",
+    "see_all": "See all"
+  },
   "customers": {
     "login": {
       "email": "Email",
