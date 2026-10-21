@@ -56,7 +56,7 @@ layout/theme.liquid        ← wraps every page (head, header group, footer grou
 
 ## Status
 
-**Built, uncommitted — commit soon** (only the v1.0.0 commit exists):
+**Built and committed (75135e2), not yet deployed — header and rack deploy together; waiting to finish the rack first.** Scratch/test images go in `working-assets/` (outside the theme, never pushed):
 - `catalogue-rows` section — horizontal category rows (scroll-snap, "see all" card)
 - `clothing-rack` section + `clothing-rack-garment` snippet + `collection.rack.json` — first working version, flat 2D, swing/sway; needs realism + real assets
 - `header` — reworked with editor settings (glow/shadow select etc.)
@@ -67,7 +67,7 @@ layout/theme.liquid        ← wraps every page (head, header group, footer grou
 ## MVP Roadmap
 
 ### 1. Foundation (theme-wide)
-- [ ] **Global background** — Theme settings → Background (image picker + color), rendered once in `theme.liquid`; remove the per-section overrides (`productback.png`, `wallback.png`, `floorproducts.png`). ⏳ final image from client
+- [ ] **Global background** — Theme settings → Background (image picker + color), rendered once in `theme.liquid`; remove the per-section overrides (`productback.png`, `wallback.png`, `floorproducts.png`). ✅ Background (parchment) asset produced
 - [ ] **Theme color settings** wired to the real palette (currently hardcoded across sections)
 - [ ] **Shadow system** — 2–3 levels as CSS variables
 - [ ] **Fonts** — load the three typefaces, define usage in CSS variables
@@ -81,7 +81,11 @@ layout/theme.liquid        ← wraps every page (head, header group, footer grou
 - [ ] Logo position/size at all viewports; mobile layout
 
 ### 3. Hero + catalogue (collection pages)
-- [ ] **Clothing rack hero** — client wants this. Make it realistic and robust with proper assets (rail, hangers, garment cut-outs); keep it 2D. Define what garment images the client must supply (transparent PNG, consistent scale)
+- [x] **Clothing rack hero** — done: `tube.png` rail, theme-drawn hook (`hook.png`) in front of the pipe with a contact shadow, hanger body, swing, stage height follows the tallest garment. Garments are **hook-less PNGs** in the product metafield `custom.rack_image`; the theme adds the hook
+  - **Metafield setup (store admin):** Settings → Metafields definitions → *Products* (not Shop) → "Rack image", `custom.rack_image`, type File (images only), **storefront access on**. Then upload the PNG in the product's Metafields card
+  - **Rack image spec for photography/retouching:** transparent PNG, no cast shadow, one camera distance and one hanger model for every product; the **top edge touches the top of the hanger's neck** (crop tight, no empty margin above, no stray pixels) and the neck is centred. Drawn at its pixel size next to the 400 px hanger, so set the section's "Rack image resolution" to the export multiplier (2 = 2× export)
+  - **Window collection** *(user)*: make a "Window" collection, pick it in the rack section, and switch **off** "Show products without a rack image" so nothing falls back to a featured photo on the theme hanger
+  - **Before launch:** remove the `preview_hung` test placeholders from `templates/collection.rack.json` (and the setting + `rack-placeholder-hookless.png` if no longer needed); slow-connection test (hook/hanger images must not flash as empty boxes) once the skeleton is up
 - [ ] **Decide the full catalogue view:** under the rack hero on the same page, or a separate full page ("see all")? Likely: rack = hero, catalogue-rows or paginated grid below. Decide, then build
 - [ ] `catalogue-rows` — finish, confirm categories from product type / automated collections (check client's admin data)
 - [ ] Paginated grid for "see all" (`paginate … by 24`), sorting controls (plain typography), hover tilt, sold-out overlay, empty state
@@ -108,7 +112,7 @@ layout/theme.liquid        ← wraps every page (head, header group, footer grou
 - [ ] `en.default.json` / schema locales: no hardcoded strings (`page-events`, "Sold Out", etc.)
 - [ ] WebP conversion + lazy loading; mobile pass on every page
 - [ ] `theme-check` clean; test install on a fresh store with default content
-- [ ] Short client guide: how to edit each section
+- [ ] Short client guide: how to edit each section (include the rack: Window collection + `custom.rack_image` metafield and the rack image spec above)
 
 ---
 
@@ -125,6 +129,6 @@ layout/theme.liquid        ← wraps every page (head, header group, footer grou
 
 ## Assets — client / to produce
 
-**Waiting on client:** final background · lamp (off + on) and other decor objects · garment photos for the rack · mannequin cut-out · boots
+**Waiting on client:** lamp (off + on) and other decor objects · hook-less garment PNGs for the rack (see the spec under the rack hero) · mannequin cut-out · boots
 
 **To make:** small sprayed logo · cart icon · pin and nail PNGs · paper variants (small note, receipt strip, A4 sheet, polaroid — each as top/middle/bottom) · rope/wire · clip · sold-out stamp · "add to cart" stamp · clear tape texture (transparent PNG) · spotlight mask (if it needs an image)

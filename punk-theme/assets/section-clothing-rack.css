@@ -5,7 +5,8 @@
  * Geometry (relative to .clothing-rack__stage), all derived from the garment width so the hook,
  * hanger and rail stay in proportion at every size:
  *   --rack-hanger-w  hanger PNG width (80% of a garment)
- *   --rack-rail-h    rail PNG height; the pipe is its top 64%, so the pipe's centre is at 32%
+ *   --rack-px        one source pixel of the hanger / hook / tube PNGs (hanger width / 400)
+ *   --rack-rail-h    rail PNG height; the pipe fills it, so the pipe's centre is at 50%
  *   --rack-pivot-y   centre of the pipe = where hooks rest and garments swing from
  */
 .section-clothing-rack {
@@ -14,9 +15,11 @@
   --rack-item-w: var(--rack-garment-width);
   --rack-gap: var(--rack-spacing);
   --rack-hanger-w: calc(var(--rack-item-w) * 0.8);
-  --rack-rail-h: calc(var(--rack-hanger-w) * 0.11);
+  --rack-px: calc(var(--rack-hanger-w) / 400); /* one pixel of the hanger / hook / tube PNGs */
+  --rack-rail-h: calc(var(--rack-hanger-w) * 0.115); /* tube.png is 46px tall next to a 400px-wide hanger */
   --rack-rail-y: 40px;
-  --rack-pivot-y: calc(var(--rack-rail-y) + var(--rack-rail-h) * 0.32);
+  --rack-pivot-y: calc(var(--rack-rail-y) + var(--rack-rail-h) * 0.5);
+  --rack-hanger-top: calc(var(--rack-pivot-y) + var(--rack-px) * 14); /* hook bowl centre is 14 source px above the body */
 
   display: block;
   padding: clamp(1.5rem, 3vw, 2.5rem) 0;
@@ -28,17 +31,48 @@
 
 .clothing-rack__stage {
   position: relative;
-  height: calc(var(--rack-pivot-y) + var(--rack-item-w) * 1.55);
+  /*
+   * Tall enough for the longest garment, or the viewport cuts it off with a hard line: a featured photo
+   * is up to 1.3 garments tall; a rack image (tallest one, --rack-max-h in source px) hangs 82 px below
+   * the pipe, plus a fixed margin in screen pixels for its shadow (offset 16px, blur 10px), so the
+   * shadow fades out instead of ending on a hard line.
+   */
+  height: calc(
+    var(--rack-pivot-y) +
+      max(
+        var(--rack-item-w) * 1.65,
+        var(--rack-px) * (82 + var(--rack-max-h, 0) / var(--rack-res, 1)) + 32px
+      )
+  );
 }
 
-/* Rail PNG tiled across the full width, so it runs off both edges of the screen */
+/*
+ * Rail PNG tiled along the whole track (so it scrolls with the garments and runs off both screen edges).
+ * Layers inside the track: rail + contact shadow (2) < hanger, hook and garment (3), so the hook
+ * hangs in front of the pipe.
+ */
 .clothing-rack__rail {
   position: absolute;
+  z-index: 2;
   top: var(--rack-rail-y);
   left: 0;
   right: 0;
   height: var(--rack-rail-h);
   background: var(--rack-rail-image) repeat-x left top / auto 100%;
+  pointer-events: none;
+}
+
+/* Where the hook presses on the pipe: a soft dark patch, pushed a little away from the light (top left) */
+.clothing-rack__contact {
+  position: absolute;
+  z-index: 2;
+  top: calc(var(--rack-pivot-y) - var(--rack-rail-h) / 2);
+  left: 50%;
+  width: calc(var(--rack-hanger-w) * 0.22);
+  height: var(--rack-rail-h);
+  translate: -38% 0;
+  background: radial-gradient(ellipse 50% 50% at 50% 50%, rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0));
+  pointer-events: none;
 }
 
 /* Scrolling viewport: full width, so garments slide in and out at the screen edges */
@@ -103,26 +137,41 @@
 /* The swinging part. JS sets its transform; it pivots on the rail. Only the garment itself is clickable. */
 .clothing-rack__hanger {
   position: absolute;
+  z-index: 3;
   inset: 0;
   transform-origin: 50% var(--rack-pivot-y);
   will-change: transform;
   pointer-events: none;
 }
 
-/* Hanger PNG: 200:80, hook curl centre at 54.5% / 5.5% of its width, resting on the pipe */
-.clothing-rack__hanger-img {
+/*
+ * Hanger body (400×160, no hook) and hook (130×116) share one scale, --rack-px per source pixel.
+ * The bowl of the hook, at (100, 31) in its PNG, is centred on the pipe; its stem goes into the neck
+ * of the hanger (top of the neck at y 68, stem axis x 199.5, so the hook starts 45px above the body).
+ */
+.clothing-rack__hanger-img,
+.clothing-rack__hook {
   position: absolute;
-  top: calc(var(--rack-pivot-y) - var(--rack-hanger-w) * 0.055);
-  left: calc(50% - var(--rack-hanger-w) * 0.545);
-  width: var(--rack-hanger-w);
   height: auto;
-  filter: drop-shadow(3px 5px 3px rgba(0, 0, 0, 0.35));
 }
 
-/* A garment hangs from the hanger's shoulders (40% of the hanger's height down), in front of it */
+.clothing-rack__hanger-img {
+  top: var(--rack-hanger-top);
+  filter: drop-shadow(3px 5px 3px rgba(0, 0, 0, 0.35));
+  left: calc(50% - var(--rack-px) * 195);
+  width: var(--rack-hanger-w);
+}
+
+.clothing-rack__hook {
+  top: calc(var(--rack-pivot-y) - var(--rack-px) * 31);
+  left: calc(50% - var(--rack-px) * 100);
+  width: calc(var(--rack-px) * 130);
+}
+
+/* A garment hangs from the hanger's shoulders (20% of the hanger's width down), in front of it */
 .clothing-rack__garment {
   position: absolute;
-  top: calc(var(--rack-pivot-y) - var(--rack-hanger-w) * 0.055 + var(--rack-hanger-w) * 0.2);
+  top: calc(var(--rack-hanger-top) + var(--rack-hanger-w) * 0.2);
   left: 0;
   display: block;
   width: 100%;
@@ -131,10 +180,17 @@
   -webkit-user-drag: none;
 }
 
-/* A PNG with the garment already on its hanger: its hook curl sits 4.4% of its width from the top */
-.clothing-rack__garment--hung {
-  top: calc(var(--rack-pivot-y) - var(--rack-item-w) * 0.044);
-  left: calc(var(--rack-item-w) * -0.036);
+/*
+ * A rack image: the garment on a hook-less hanger, its top edge on the top of the neck and the neck centred.
+ * Drawn at its own pixel size (--rack-w, from the PNG) on the same scale as the hook and hanger, so every
+ * garment keeps its real size. The neck top is 82 source px below the pipe's centre (hook 31 above the
+ * bottom of its stem + 2 overlap), and the stem axis 4.5 px right of the bowl centre.
+ */
+.clothing-rack__garment--hookless {
+  top: calc(var(--rack-pivot-y) + var(--rack-px) * 82);
+  left: calc(50% + var(--rack-px) * 4.5);
+  translate: -50% 0;
+  width: calc(var(--rack-px) * var(--rack-w) / var(--rack-res, 1));
 }
 
 .clothing-rack__img,
@@ -150,12 +206,12 @@
  * 1.9 garments wide, centred on the hanger: a tank top fills the height, a long-sleeve shot with its
  * arms spread gets wider (overlapping its neighbours, like on a real rail) instead of shrinking.
  */
-.clothing-rack__garment:not(.clothing-rack__garment--hung) {
+.clothing-rack__garment:not(.clothing-rack__garment--hookless) {
   display: flex;
   justify-content: center;
 }
 
-.clothing-rack__garment:not(.clothing-rack__garment--hung) .clothing-rack__img {
+.clothing-rack__garment:not(.clothing-rack__garment--hookless) .clothing-rack__img {
   flex: none;
   width: min(calc(var(--rack-item-w) * 1.9), calc(var(--rack-item-w) * 1.3 * var(--rack-ar, 0.77)));
   max-width: none; /* overrides the theme's global img reset, so wide shots can overhang */

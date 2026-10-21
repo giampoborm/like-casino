@@ -48,7 +48,8 @@
         const label = el.querySelector('[data-rack-title]');
         return {
           el,
-          swing: el.querySelector('[data-rack-swing]'),
+          // Two layers per hanger (behind and in front of the rail) swing together
+          swings: [...el.querySelectorAll('[data-rack-swing]')],
           title: label?.dataset.rackTitle ?? '',
           price: label?.dataset.rackPrice ?? '',
           url: label?.getAttribute('href'),
@@ -194,7 +195,7 @@
 
         const transform = `rotate(${item.angle.toFixed(2)}deg)`;
         if (transform !== item.transform) {
-          item.swing.style.transform = transform;
+          for (const swing of item.swings) swing.style.transform = transform;
           item.transform = transform;
         }
       }
