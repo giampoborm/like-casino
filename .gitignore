@@ -1,8 +1,14 @@
-# Screenshots and working files at project root
-*.png
-*.jpg
-*.JPG
-*.jpeg
+# Screenshots and working files at the project root only (theme images in punk-theme/ are tracked)
+/*.png
+/*.jpg
+/*.JPG
+/*.jpeg
+
+# Scratch / source files, never pushed
+working-assets/
+
+# Background test variants (20+ MB each, over Shopify's file size limit); the chosen one gets tracked
+punk-theme/assets/sfondoprova*.png
 
 # Claude Code project data
 .claude/
