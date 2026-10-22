@@ -67,7 +67,7 @@ layout/theme.liquid        ← wraps every page (head, header group, footer grou
 ## MVP Roadmap
 
 ### 1. Foundation (theme-wide)
-- [ ] **Global background** — Theme settings → Background (image picker + color), rendered once in `theme.liquid`; remove the per-section overrides (`productback.png`, `wallback.png`, `floorproducts.png`). ✅ Background (parchment) asset produced
+- [x] **Global background** — Theme settings → Site background (preset select incl. `wallbackground`/`wallbackground2`, custom image picker, color, fit/zoom/position/overlay/repeat/attachment), applied once on `body` via `css-variables.liquid`; per-section overrides removed. Still to do: pick the final preset and drop the "Sfondo prova" test options
 - [ ] **Theme color settings** wired to the real palette (currently hardcoded across sections)
 - [ ] **Shadow system** — 2–3 levels as CSS variables
 - [ ] **Fonts** — load the three typefaces, define usage in CSS variables

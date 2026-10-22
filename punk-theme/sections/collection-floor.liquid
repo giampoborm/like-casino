@@ -1,19 +1,7 @@
 {% comment %}
   Collection floor: products appear as clothes scattered on a floor.
-  Overrides the body background to floorproducts.png via an injected <style> tag.
+  Sits on the global site background (Theme settings → Site background).
 {% endcomment %}
-
-<style>
-  body,
-  body.theme-wall-bg {
-    background-image: url({{ 'floorproducts.png' | asset_url }});
-    background-size: 100% auto;
-    background-position: center top;
-    background-repeat: repeat-y;
-    background-attachment: scroll;
-    background-color: #c8b89a;
-  }
-</style>
 
 <section class="collection-floor">
   <div class="collection-floor__toolbar">

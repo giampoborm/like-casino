@@ -6,6 +6,28 @@
     --page-width: {{ settings.max_page_width }};
     --page-margin: {{ settings.min_page_margin }}px;
     --color-background: {{ settings.background_color }};
+    {%- comment -%} GLOBAL SITE BACKGROUND — all values come from Theme settings → Site background. {%- endcomment -%}
+    {%- if settings.background_preset == 'custom' and settings.background_image -%}
+      {%- assign bg_url = settings.background_image | image_url: width: 2400 -%}
+    {%- elsif settings.background_preset == 'custom' -%}
+      {%- assign bg_url = 'sfondoprova6.png' | asset_url -%}
+    {%- elsif settings.background_preset contains 'wallbackground' -%}
+      {%- assign bg_file = settings.background_preset | append: '.png' -%}
+      {%- assign bg_url = bg_file | asset_url -%}
+    {%- else -%}
+      {%- assign bg_file = 'sfondoprova' | append: settings.background_preset | append: '.png' -%}
+      {%- assign bg_url = bg_file | asset_url -%}
+    {%- endif -%}
+    {%- assign bg_overlay = settings.background_overlay | divided_by: 100.0 %}
+    --site-background-image: linear-gradient(rgba(0, 0, 0, {{ bg_overlay }}), rgba(0, 0, 0, {{ bg_overlay }})), url({{ bg_url }});
+    {%- if settings.background_fit == 'zoom' %}
+    --site-background-size: {{ settings.background_zoom }}% auto;
+    {%- else %}
+    --site-background-size: {{ settings.background_fit }};
+    {%- endif %}
+    --site-background-position: {{ settings.background_position_x }}% {{ settings.background_position_y }}%;
+    --site-background-repeat: {{ settings.background_repeat }};
+    --site-background-attachment: {{ settings.background_attachment }};
     --color-foreground: {{ settings.foreground_color }};
     --style-border-radius-inputs: {{ settings.input_corner_radius }}px;
   }

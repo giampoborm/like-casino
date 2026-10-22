@@ -50,14 +50,122 @@
     ]
   },
   {
-    "name": "t:general.colors",
+    "name": "Site background",
     "settings": [
+      {
+        "type": "select",
+        "id": "background_preset",
+        "label": "Background",
+        "info": "One background for the whole site. Pick a built-in test background, or choose Custom upload.",
+        "options": [
+          { "value": "1", "label": "Sfondo prova 1" },
+          { "value": "2", "label": "Sfondo prova 2" },
+          { "value": "3", "label": "Sfondo prova 3" },
+          { "value": "4", "label": "Sfondo prova 4" },
+          { "value": "5", "label": "Sfondo prova 5" },
+          { "value": "6", "label": "Sfondo prova 6" },
+          { "value": "wallbackground", "label": "Wall background" },
+          { "value": "wallbackground2", "label": "Wall background 2" },
+          { "value": "custom", "label": "Custom upload" }
+        ],
+        "default": "6"
+      },
+      {
+        "type": "image_picker",
+        "id": "background_image",
+        "label": "Custom background image",
+        "info": "Used only when Background is set to Custom upload."
+      },
       {
         "type": "color",
         "id": "background_color",
-        "default": "#FFFFFF",
-        "label": "t:labels.background"
+        "default": "#111111",
+        "label": "Background color",
+        "info": "Shown behind the image, and while it loads."
       },
+      {
+        "type": "select",
+        "id": "background_fit",
+        "label": "Image fit",
+        "options": [
+          { "value": "cover", "label": "Fill the screen (crop)" },
+          { "value": "contain", "label": "Fit inside the screen" },
+          { "value": "zoom", "label": "Custom zoom (use slider below)" }
+        ],
+        "default": "cover"
+      },
+      {
+        "type": "range",
+        "id": "background_zoom",
+        "min": 50,
+        "max": 400,
+        "step": 5,
+        "unit": "%",
+        "label": "Zoom",
+        "info": "Image width as a % of the screen. Only used when Image fit is Custom zoom.",
+        "default": 100
+      },
+      {
+        "type": "range",
+        "id": "background_position_x",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "unit": "%",
+        "label": "Horizontal position",
+        "info": "0 = left edge, 50 = centered, 100 = right edge.",
+        "default": 50
+      },
+      {
+        "type": "range",
+        "id": "background_position_y",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "unit": "%",
+        "label": "Vertical position",
+        "info": "0 = top, 50 = centered, 100 = bottom.",
+        "default": 0
+      },
+      {
+        "type": "range",
+        "id": "background_overlay",
+        "min": 0,
+        "max": 90,
+        "step": 5,
+        "unit": "%",
+        "label": "Darken image",
+
+        "info": "Black overlay on top of the image, for readability.",
+        "default": 0
+      },
+      {
+        "type": "select",
+        "id": "background_repeat",
+        "label": "Image repeat",
+        "options": [
+          { "value": "no-repeat", "label": "No repeat" },
+          { "value": "repeat", "label": "Tile both ways" },
+          { "value": "repeat-y", "label": "Tile vertically" },
+          { "value": "repeat-x", "label": "Tile horizontally" }
+        ],
+        "default": "no-repeat"
+      },
+      {
+        "type": "select",
+        "id": "background_attachment",
+        "label": "Scrolling",
+        "options": [
+          { "value": "fixed", "label": "Stays still while scrolling" },
+          { "value": "scroll", "label": "Scrolls with the page" }
+        ],
+        "default": "fixed"
+      }
+    ]
+  },
+  {
+    "name": "t:general.colors",
+    "settings": [
       {
         "type": "color",
         "id": "foreground_color",

@@ -96,6 +96,11 @@ p:empty {
 body {
   font-family: var(--font-primary--family);
   background-color: var(--color-background);
+  background-image: var(--site-background-image);
+  background-size: var(--site-background-size, cover);
+  background-position: var(--site-background-position, 50% 0%);
+  background-repeat: var(--site-background-repeat, no-repeat);
+  background-attachment: var(--site-background-attachment, fixed);
   color: var(--color-foreground);
 }
 

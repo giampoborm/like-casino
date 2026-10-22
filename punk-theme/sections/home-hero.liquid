@@ -89,12 +89,6 @@
   </div>
 </section>
 
-{% style %}
-  .home-hero {
-    background-image: url({{ 'wallback.png' | asset_url }});
-  }
-{% endstyle %}
-
 {% stylesheet %}
   .home-hero {
     position: relative;
@@ -103,8 +97,6 @@
     display: grid;
     place-items: center;
     padding: 0 5vw;
-    background-size: cover;
-    background-position: center;
   }
 
   .home-hero__inner {
