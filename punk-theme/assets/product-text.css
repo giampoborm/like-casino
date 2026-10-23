@@ -7,10 +7,9 @@
   position: relative;
   z-index: 20;
   padding:  0 .7rem .3rem;
-  font-family: 'TypewriterCustom', monospace;
   line-height: .5;
   font-size: 1.5rem;
-  color: #fff;
+  color: var(--color-text);
   text-decoration: none;
   background: none;
   border-top:    2px solid var(--btn-border-light);
@@ -21,16 +20,15 @@
 }
 
 .product-breadcrumb:hover {
-  background: #fff;
-  color: #000;
+  background: var(--color-text);
+  color: var(--color-text-inverse);
 }
 
 .product-text {
   margin: 0 5vw;
   padding: 0 1rem;
-  font-family: 'TypewriterCustom', monospace;
-  color: #fff;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  color: var(--color-text);
+  text-shadow: var(--text-effect, none);
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   grid-template-areas:
@@ -44,7 +42,6 @@
 .product-text__title {
   grid-area: title;
   font-size: clamp(2.5rem, 3vw, 5rem);
-  font-family: 'ProductTitle';
   font-style: normal;
   /* margin: 0 0 0.5rem; */
   /* align-self: end; */
@@ -91,7 +88,7 @@
   border-left:   2px solid var(--btn-border-light);
   border-bottom: 2px solid var(--btn-border-dark);
   border-right:  2px solid var(--btn-border-dark);
-  color: #fff;
+  color: var(--color-text);
   padding: 0.4rem 1.1rem;
   font-size: 0.85rem;
   letter-spacing: 0.06em;
@@ -145,18 +142,19 @@
 }
 
 .product-text__btn:hover:not(:disabled) {
-  background: #fff;
-  color: #000;
+  background: var(--color-text);
+  color: var(--color-text-inverse);
 }
 
 .product-text__btn:disabled {
   cursor: not-allowed;
 }
 
+/* Sold-out stamp: stamp font + accent colour */
 .product-text__btn--sold-out {
-  font-family: 'OctinSpraypaint', sans-serif;
-  color: #cc0000;
+  font-family: var(--font-stamp--family);
+  color: var(--color-accent);
   font-size: 1rem;
   letter-spacing: 0.08em;
-  border-color: rgba(204, 0, 0, 0.35);
+  border-color: color-mix(in srgb, var(--color-accent) 35%, transparent);
 }

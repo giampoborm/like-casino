@@ -18,7 +18,7 @@ A custom Shopify theme built for Elena Store on top of Shopify's Skeleton theme.
 
 Standard Online Store 2.0 layout: `assets/`, `blocks/`, `config/`, `layout/`, `locales/`, `sections/`, `snippets/`, `templates/`.
 
-Theme fonts are declared once in `assets/critical.css` (TypewriterCustom, OctinSpraypaint, ProductTitle). CSS follows BEM. All user-facing strings go through `locales/en.default.json`.
+Theme fonts are declared once in `assets/critical.css` (MainFont = cella, StampFont = octin-spraypaint; set via Theme settings → Branding). CSS follows BEM.
 
 > **Do not rename or remove images in `assets/`** without updating their references — the wall design depends on them.
 

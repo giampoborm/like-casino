@@ -24,7 +24,7 @@
   display: block;
   padding: clamp(1.5rem, 3vw, 2.5rem) 0;
   color: var(--rack-ink);
-  font-family: var(--font-primary--family);
+  font-family: var(--font-main--family);
 }
 
 /* Stage: the rail and the garments. Tall enough for a long garment on its hanger. */
@@ -245,8 +245,8 @@
   translate: -50% 0;
   padding: 0.6rem 1rem;
   background: var(--rack-paper);
-  color: #1a1410;
-  font-family: 'OctinSpraypaint', sans-serif;
+  color: var(--color-positive);
+  font-family: var(--font-stamp--family);
   font-size: 1.1rem;
   text-decoration: none;
   text-transform: uppercase;
@@ -264,12 +264,12 @@
 .clothing-rack__label {
   margin: 0.5rem var(--rack-inset) 0;
   text-align: center;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+  text-shadow: var(--text-effect, none);
 }
 
 .clothing-rack__label-title {
+  /* font: inherits the main font */
   color: inherit;
-  font-family: 'ProductTitle', serif;
   font-size: clamp(1.25rem, 2.4vw, 1.6rem);
   text-decoration: underline;
   text-underline-offset: 0.2em;

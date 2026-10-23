@@ -37,7 +37,6 @@ Run all CLI commands from within `punk-theme/`:
 ## Conventions
 - BEM naming for all CSS classes
 - CSS custom properties (variables) defined in `snippets/css-variables.liquid`
-- All user-facing strings via `{{ 'translation.key' | t }}`
 - Use `{{ 'file.css' | asset_url | stylesheet_tag }}` — never hardcode asset URLs
 - Use `{% render 'snippet' %}` not `{% include %}` (deprecated)
 - Pass variables to snippets explicitly: `{% render 'snippet', var: var %}`

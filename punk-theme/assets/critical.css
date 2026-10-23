@@ -2,22 +2,14 @@
 
 /* Theme fonts — declared once here; URLs are relative to this file on the assets CDN. */
 @font-face {
-  font-family: 'TypewriterCustom';
-  src: url('MODERN TYPEWRITER.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'OctinSpraypaint';
-  src: url('octin-spraypaint.otf') format('opentype');
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'ProductTitle';
+  font-family: 'MainFont';
   src: url('cella.regular.otf') format('opentype');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'StampFont';
+  src: url('octin-spraypaint.otf') format('opentype');
   font-display: swap;
 }
 
@@ -94,7 +86,7 @@ p:empty {
 
 /** Theme styles below */
 body {
-  font-family: var(--font-primary--family);
+  font-family: var(--font-main--family);
   background-color: var(--color-background);
   background-image: var(--site-background-image);
   background-size: var(--site-background-size, cover);

@@ -15,6 +15,99 @@
         "id": "logo",
         "label": "Logo",
         "info": "Shown on the gift card page."
+      },
+      {
+        "type": "header",
+        "content": "Colours"
+      },
+      {
+        "type": "select",
+        "id": "text_theme",
+        "label": "Text theme",
+        "info": "Positive = dark ink, for light backgrounds. Negative = ivory, for dark backgrounds. Switch it when you change the site background.",
+        "options": [
+          { "value": "positive", "label": "Positive (dark ink)" },
+          { "value": "negative", "label": "Negative (ivory)" }
+        ],
+        "default": "negative"
+      },
+      {
+        "type": "color",
+        "id": "color_positive",
+        "label": "Positive",
+        "info": "Faded vintage black, like ink bleed. Text on light backgrounds.",
+        "default": "#2a2622"
+      },
+      {
+        "type": "color",
+        "id": "color_negative",
+        "label": "Negative",
+        "info": "Off-white ivory. Text on dark backgrounds.",
+        "default": "#efe6d2"
+      },
+      {
+        "type": "color",
+        "id": "color_accent",
+        "label": "Accent",
+        "info": "Dried blood red. Sold-out and discount marks, highlights.",
+        "default": "#7a1f1a"
+      },
+      {
+        "type": "header",
+        "content": "Fonts"
+      },
+      {
+        "type": "checkbox",
+        "id": "font_main_bundled",
+        "label": "Main font: use the bundled typewriter font",
+        "info": "Used for almost everything: body text, product names, prices. Untick to use the font picked below.",
+        "default": true
+      },
+      {
+        "type": "font_picker",
+        "id": "font_main",
+        "label": "Main font (when bundled is off)",
+        "default": "assistant_n4"
+      },
+      {
+        "type": "checkbox",
+        "id": "font_stamp_bundled",
+        "label": "Stamp font: use the bundled stencil font",
+        "info": "Decoration only: stamps, sold-out marks, labels. Untick to use the font picked below.",
+        "default": true
+      },
+      {
+        "type": "font_picker",
+        "id": "font_stamp",
+        "label": "Stamp font (when bundled is off)",
+        "default": "assistant_n7"
+      },
+      {
+        "type": "header",
+        "content": "Text effect"
+      },
+      {
+        "type": "select",
+        "id": "text_effect",
+        "label": "Effect on text",
+        "info": "Applies to product names, prices and labels sitting on the background.",
+        "options": [
+          { "value": "none", "label": "None (flat text)" },
+          { "value": "ink", "label": "Ink bleed (soft halo in the text colour)" },
+          { "value": "shadow", "label": "Dark shadow (readability over busy backgrounds)" }
+        ],
+        "default": "shadow"
+      },
+      {
+        "type": "range",
+        "id": "ink_bleed_strength",
+        "min": 1,
+        "max": 5,
+        "step": 1,
+        "unit": "px",
+        "label": "Ink bleed strength",
+        "info": "Only used when the effect is Ink bleed.",
+        "default": 2
       }
     ]
   },
@@ -166,12 +259,6 @@
   {
     "name": "t:general.colors",
     "settings": [
-      {
-        "type": "color",
-        "id": "foreground_color",
-        "default": "#333333",
-        "label": "t:labels.foreground"
-      },
       {
         "type": "range",
         "id": "input_corner_radius",

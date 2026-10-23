@@ -1,8 +1,49 @@
 {% style %}
+  {%- unless settings.font_main_bundled %}
+  {{ settings.font_main | font_face: font_display: 'swap' }}
+  {%- endunless %}
+  {%- unless settings.font_stamp_bundled %}
+  {{ settings.font_stamp | font_face: font_display: 'swap' }}
+  {%- endunless %}
   :root {
-    --font-primary--family: 'TypewriterCustom', monospace;
-    --font-primary--style: normal;
-    --font-primary--weight: 400;
+    {%- if settings.font_main_bundled %}
+    --font-main--family: 'MainFont', serif;
+    --font-main--style: normal;
+    --font-main--weight: 400;
+    {%- else %}
+    --font-main--family: {{ settings.font_main.family }}, {{ settings.font_main.fallback_families }};
+    --font-main--style: {{ settings.font_main.style }};
+    --font-main--weight: {{ settings.font_main.weight }};
+    {%- endif %}
+    {%- if settings.font_stamp_bundled %}
+    --font-stamp--family: 'StampFont', sans-serif;
+    --font-stamp--style: normal;
+    --font-stamp--weight: 400;
+    {%- else %}
+    --font-stamp--family: {{ settings.font_stamp.family }}, {{ settings.font_stamp.fallback_families }};
+    --font-stamp--style: {{ settings.font_stamp.style }};
+    --font-stamp--weight: {{ settings.font_stamp.weight }};
+    {%- endif %}
+    --color-positive: {{ settings.color_positive }};
+    --color-negative: {{ settings.color_negative }};
+    --color-accent: {{ settings.color_accent }};
+    {%- comment -%} Text theme: positive = dark ink, negative = ivory. Inverse is the opposite, for hover fills. {%- endcomment %}
+    {%- if settings.text_theme == 'positive' %}
+    --color-text: var(--color-positive);
+    --color-text-inverse: var(--color-negative);
+    {%- else %}
+    --color-text: var(--color-negative);
+    --color-text-inverse: var(--color-positive);
+    {%- endif %}
+    {%- case settings.text_effect %}
+      {%- when 'ink' %}
+    {%- assign ink_blur = settings.ink_bleed_strength | default: 2 -%}
+    --text-effect: 0 0 {{ ink_blur }}px color-mix(in srgb, var(--color-text) 70%, transparent), 0 0 {{ ink_blur | times: 3 }}px color-mix(in srgb, var(--color-text) 40%, transparent);
+      {%- when 'none' %}
+    --text-effect: none;
+      {%- else %}
+    --text-effect: 0 2px 8px rgba(0, 0, 0, 0.85), 0 1px 3px rgba(0, 0, 0, 0.6);
+    {%- endcase %}
     --page-width: {{ settings.max_page_width }};
     --page-margin: {{ settings.min_page_margin }}px;
     --color-background: {{ settings.background_color }};
@@ -28,7 +69,7 @@
     --site-background-position: {{ settings.background_position_x }}% {{ settings.background_position_y }}%;
     --site-background-repeat: {{ settings.background_repeat }};
     --site-background-attachment: {{ settings.background_attachment }};
-    --color-foreground: {{ settings.foreground_color }};
+    --color-foreground: var(--color-text);
     --style-border-radius-inputs: {{ settings.input_corner_radius }}px;
   }
 {% endstyle %}

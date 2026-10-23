@@ -2,8 +2,7 @@
 
 .cart-page {
   padding: 40px 32px 100px;
-  font-family: 'TypewriterCustom', monospace;
-  color: #1a1706;
+  color: var(--color-text);
 }
 
 /* ── Back arrow (top-left) ───────────────────── */
@@ -17,10 +16,9 @@
   position: relative;
   z-index: 20;
   padding: 0 .7rem .3rem;
-  font-family: 'TypewriterCustom', monospace;
   line-height: .5;
   font-size: 1.5rem;
-  color: #1a1706;
+  color: var(--color-text);
   text-decoration: none;
   background: none;
   border-top:    2px solid var(--btn-border-light);
@@ -32,8 +30,8 @@
 }
 
 .cart-back:hover {
-  background: #1a1706;
-  color: #fff;
+  background: var(--color-text);
+  color: var(--color-text-inverse);
 }
 
 /* ── Empty state ─────────────────────────────── */
@@ -46,7 +44,6 @@
 
 .cart-empty p {
   font-size: 15px;
-  color: #3a3a3a;
   letter-spacing: 0.08em;
   margin: 0;
   font-weight: 700;
@@ -103,7 +100,7 @@
   font-weight: bold;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #1a1706;
+  color: var(--color-text);
   text-decoration: none;
   white-space: nowrap;
   overflow: hidden;
@@ -116,7 +113,7 @@
 
 .cart-item__variant {
   font-size: 12px;
-  color: #7a7260;
+  opacity: 0.7;
   letter-spacing: 0.04em;
 }
 
@@ -127,14 +124,13 @@
 
 .cart-item__qty {
   font-size: 12px;
-  color: #fff;
   letter-spacing: 0.06em;
 }
 
 .cart-item__remove {
   font-size: 26px;
   line-height: 1;
-  color: #fff;
+  color: var(--color-text);
   text-decoration: none;
   flex-shrink: 0;
   padding: 4px 8px;
@@ -142,7 +138,7 @@
 }
 
 .cart-item__remove:hover {
-  color: #b03000;
+  color: var(--color-accent);
 }
 
 /* ── Summary sidebar (right) ─────────────────── */
@@ -183,8 +179,8 @@
   cursor: pointer;
   padding: 0.4rem 1.1rem;
   background: none;
-  color: #1a1706;
-  font-family: 'TypewriterCustom', monospace;
+  color: var(--color-text);
+  font-family: inherit;
   font-size: 0.85rem;
   font-weight: bold;
   letter-spacing: 0.12em;
@@ -198,9 +194,10 @@
   transition: background 0.15s, color 0.15s;
 }
 
+/* Checkout hover: swap to the inverse text colour */
 .cart-summary__checkout:hover {
-  background: #1a1706;
-  color: #f2ede3;
+  background: var(--color-text);
+  color: var(--color-text-inverse);
 }
 
 /* ── Responsive ──────────────────────────────── */

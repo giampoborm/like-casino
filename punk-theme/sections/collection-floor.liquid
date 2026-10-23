@@ -59,7 +59,7 @@
     min-height: 100vh;
     padding: clamp(1rem, 2vw, 1.5rem) clamp(1.5rem, 4vw, 3rem) clamp(2.5rem, 5vw, 4rem);
     background: transparent;
-    color: #1a1008;
+    color: var(--color-text);
   }
 
   .collection-floor__toolbar {
@@ -80,11 +80,10 @@
   }
 
   .collection-floor__sort-label {
-    font-family: 'TypewriterCustom', monospace;
     font-size: 0.75rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: rgba(244, 237, 226, 0.6);
+    opacity: 0.6;
   }
 
   .collection-floor__sort-btn {
@@ -96,11 +95,11 @@
     border-left:   2px solid var(--btn-border-light);
     border-bottom: 2px solid var(--btn-border-dark);
     border-right:  2px solid var(--btn-border-dark);
-    color: #fff;
+    color: var(--color-text);
     padding: 0.4rem 0.8rem 0.4rem 0.2rem;
     text-transform: uppercase;
     font-size: 0.65rem;
-    font-family: 'TypewriterCustom', monospace;
+    font-family: var(--font-main--family);
     cursor: pointer;
     appearance: none;
     -webkit-appearance: none;
@@ -109,14 +108,14 @@
 
   .collection-floor__sort-btn:hover,
   .collection-floor__sort-btn:focus {
-    background: #fff;
-    color: #000;
+    background: var(--color-text);
+    color: var(--color-text-inverse);
     outline: none;
   }
 
   .collection-floor__sort-btn option {
-    background: #1a1008;
-    color: #f4ede2;
+    background: var(--color-text-inverse);
+    color: var(--color-text);
   }
 
   .collection-floor__scene {
@@ -156,8 +155,8 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%) rotate(-35deg);
-    font-family: 'OctinSpraypaint', sans-serif;
-    color: #cc0000;
+    font-family: var(--font-stamp--family);
+    color: var(--color-accent);
     font-size: clamp(2rem, 10vw, 5rem);
     text-transform: uppercase;
     z-index: 3;
@@ -184,9 +183,8 @@
   .collection-floor-card__meta {
     margin-top: 1.2rem;
     text-align: center;
-    font-family: 'TypewriterCustom', monospace;
-    color: #f4ede2;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85), 0 1px 3px rgba(0, 0, 0, 0.6);
+    color: var(--color-text);
+    text-shadow: var(--text-effect, none);
     width: 100%;
   }
 

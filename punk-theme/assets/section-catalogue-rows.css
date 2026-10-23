@@ -1,5 +1,5 @@
 .section-catalogue-rows {
-  --catalogue-ink: #f4ede2;
+  --catalogue-ink: var(--color-text);
   --catalogue-card-width: clamp(160px, 22vw, 260px);
   --catalogue-gap: clamp(1rem, 2.5vw, 2rem);
   --catalogue-gutter: clamp(1rem, 4vw, 3rem);
@@ -9,17 +9,17 @@
   gap: clamp(2rem, 5vw, 4rem);
   padding: clamp(1.5rem, 3vw, 2.5rem) 0;
   color: var(--catalogue-ink);
-  font-family: var(--font-primary--family);
+  font-family: var(--font-main--family);
 }
 
 .catalogue-row__title {
   margin: 0 var(--catalogue-gutter) 1rem;
-  font-family: 'OctinSpraypaint', sans-serif;
+  font-family: var(--font-stamp--family);
   font-size: clamp(1.5rem, 4vw, 2.5rem);
   font-weight: normal;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
+  text-shadow: var(--text-effect, none);
 }
 
 .catalogue-row__track {
@@ -34,7 +34,7 @@
   scroll-padding-inline: var(--catalogue-gutter);
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
-  scrollbar-color: rgba(244, 237, 226, 0.4) transparent;
+  scrollbar-color: color-mix(in srgb, var(--catalogue-ink) 40%, transparent) transparent;
 }
 
 .catalogue-row__item {
@@ -75,7 +75,7 @@
 }
 
 .product-card__img--placeholder {
-  background: rgba(244, 237, 226, 0.15);
+  background: color-mix(in srgb, var(--catalogue-ink) 15%, transparent);
   fill: rgba(26, 16, 8, 0.4);
 }
 
@@ -84,9 +84,9 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%) rotate(-35deg);
-  font-family: 'OctinSpraypaint', sans-serif;
+  font-family: var(--font-stamp--family);
   font-size: clamp(1.5rem, 5vw, 2.75rem);
-  color: #cc0000;
+  color: var(--color-accent);
   text-transform: uppercase;
   text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
   white-space: nowrap;
@@ -95,7 +95,7 @@
 
 .product-card__title,
 .product-card__price {
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85), 0 1px 3px rgba(0, 0, 0, 0.6);
+  text-shadow: var(--text-effect, none);
 }
 
 .product-card__title {
@@ -118,13 +118,13 @@
   align-items: center;
   justify-content: center;
   aspect-ratio: 3 / 4;
-  border: 2px dashed rgba(244, 237, 226, 0.5);
+  border: 2px dashed color-mix(in srgb, var(--catalogue-ink) 50%, transparent);
   color: inherit;
-  font-family: 'OctinSpraypaint', sans-serif;
+  font-family: var(--font-stamp--family);
   font-size: 1.25rem;
   text-transform: uppercase;
   text-decoration: none;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
+  text-shadow: var(--text-effect, none);
   transition: border-color 0.2s ease;
 }
 

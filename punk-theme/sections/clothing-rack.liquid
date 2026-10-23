@@ -100,7 +100,7 @@
     --rack-spacing: {{ section.settings.spacing }}px;
     --rack-res: {{ section.settings.rack_image_scale }};
     --rack-max-h: {{ max_rack_h }};
-    --rack-ink: {{ section.settings.text_color | default: '#f4ede2' }};
+    --rack-ink: {{ section.settings.text_color | default: 'var(--color-text)' }};
     --rack-rail-image: url('{{ rail_url }}');
   "
 >
@@ -299,8 +299,7 @@
       "type": "color",
       "id": "text_color",
       "label": "Text colour",
-      "default": "#f4ede2",
-      "info": "Product name and price under the rack."
+      "info": "Product name and price under the rack. Leave empty to follow Branding → Text theme."
     },
     {
       "type": "header",

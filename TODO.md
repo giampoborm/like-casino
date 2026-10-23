@@ -2,7 +2,7 @@
 
 > Design principle: **the webstore is a wall**. Every UI element is a physical object attached to it. Nothing should feel purely digital. Look stays flat / 2D / early-internet — no heavy 3D.
 
-> **MVP goal: a drop-in THEME.** The client installs it on her store and runs everything from the Shopify theme editor. Every piece of content (text, images, links, positions, colors, behaviors) is a `{% schema %}` setting or block; fixed UI strings go through `locales/`; bundled assets are only fallbacks to `image_picker` settings. If the client might ever want to change it, it must not be hardcoded. Check this on every section before calling it done.
+> **MVP goal: a drop-in THEME.** The client installs it on her store and runs everything from the Shopify theme editor. Every piece of content (text, images, links, positions, colors, behaviors) is a `{% schema %}` setting or block; bundled assets are only fallbacks to `image_picker` settings. If the client might ever want to change it, it must not be hardcoded. Check this on every section before calling it done.
 
 ---
 
@@ -41,11 +41,11 @@ layout/theme.liquid        ← wraps every page (head, header group, footer grou
 
 **Paper containers are built in three pieces** (top edge PNG + CSS middle fill + bottom edge PNG) so they scale with content. Never one fixed PNG.
 
-**Color palette:** ink black (text, icons), dark bloody red (accents, sold-out), browns/beiges/reds/dark greens. Background drives the tone.
+**Color palette:** three editable roles. **Positive** (faded vintage ink black, text on light backgrounds), **Negative** (ivory, text on dark backgrounds), **Accent** (dried blood red: sold-out, discount marks). The Text theme setting picks which of Positive/Negative is the text colour. Background drives the tone.
 
-**Typography (three voices):** script cursive (product names), typewriter (descriptions, body, prices), sharpie/handwritten (accents, stamps).
+**Typography (two roles):** Main font (`cella`, everything) and Stamp font (`octin-spraypaint`, sold-out marks and decoration). Both swappable in Branding.
 
-**Drop shadows:** all hanging elements have one; hover deepens it. Define 2–3 levels as CSS variables.
+**Drop shadows:** hanging elements usually have one and hover deepens it, but it is decided per instance via schema settings (see Step 1), not by a global scale.
 
 **Rules from client/owner feedback:**
 - One site-wide background; sections never paint their own wall/floor.
@@ -66,51 +66,73 @@ layout/theme.liquid        ← wraps every page (head, header group, footer grou
 
 ## MVP Roadmap
 
-### 1. Foundation (theme-wide)
-- [x] **Global background** — Theme settings → Site background (preset select incl. `wallbackground`/`wallbackground2`, custom image picker, color, fit/zoom/position/overlay/repeat/attachment), applied once on `body` via `css-variables.liquid`; per-section overrides removed. Still to do: pick the final preset and drop the "Sfondo prova" test options
-- [ ] **Theme color settings** wired to the real palette (currently hardcoded across sections)
-- [ ] **Shadow system** — 2–3 levels as CSS variables
-- [ ] **Fonts** — load the three typefaces, define usage in CSS variables
-- [ ] **Decor block** `blocks/decor.liquid` — off image, optional "on" image, x/y %, width, layer, animation (none / sway / flicker / toggle on click), optional link. Shoe = first instance. ⏳ lamp assets from client
-- [ ] **Retire** `collection-wall` + `frame1–4.png` after checking every reference
+> Work order agreed Oct 2026. Estimates are focused working sessions (~a few hours each); total ≈ 9–13 sessions for steps 1–8, plus ~2 for the cart and ~1–2 for launch. Biggest schedule risk: client assets (lamps, boots, bust, garment PNGs). Steps 1, 3 and 6 need no client assets, so start there.
+
+### 1. Foundation (theme-wide) — 1–2 sessions
+- [x] **Global background** — Theme settings → Site background (preset select incl. `wallbackground`/`wallbackground2`, custom image picker, color, fit/zoom/position/overlay/repeat/attachment), applied once on `body` via `css-variables.liquid`; per-section overrides removed. The final preset is the client's choice in the editor; the "Sfondo prova" test options can go before launch
+- [x] **Theme color settings** — Theme settings → Branding: Positive (faded ink black `#2a2622`), Negative (ivory `#efe6d2`), Accent (dried blood red `#7a1f1a`), exposed as `--color-positive/negative/accent`. Hardcoded text/accent colours in the product, collection (floor, wall, rack, catalogue rows), cart, events and home-hero text now use them. Remaining hardcoded colours are neutral shadows, button bevel greys, placeholders and the rack paper (`--rack-paper`)
+- [x] **Branding control** — colours, fonts, text effect and logo all in Theme settings → Branding
+- [x] **Text colour per background** — solved with a **Text theme** select (Positive = dark ink for light backgrounds, Negative = ivory for dark ones) that sets `--color-text` / `--color-text-inverse`; no per-background pairing
+- [x] **Text effect** — Branding → Effect on text: none / ink bleed (strength slider) / dark shadow (default). One variable, `--text-effect`, read by every text-shadow on product names, prices and labels
+- [ ] **Shadows: per-instance schema settings** — no global shadow system. Each section/block with a shadow (collection floor, wall, rack, catalogue cards, home-hero objects, decor blocks) gets its own schema setting (on/off, strength; style where it makes sense), since some objects look better with a drop shadow and others without. `collection-wall` already has a strength slider; use it as the pattern
+- [x] **Fonts** — **two roles**, decided Oct 2026: **Main** (`cella`, used for everything: item names, body, prices, cart) and **Stamp** (`octin-spraypaint`, stencil, for sold-out marks and decoration). Declared once in `critical.css` as `MainFont` / `StampFont`; exposed as `--font-main--family` / `--font-stamp--family`; each can be swapped in the editor (bundled checkbox + font picker). The typewriter and any other unused fonts were removed
 - [ ] **Header** — finish: logo + cart icon pickers, optional menu; hide-on-homepage controlled from the editor, not `page_type` in `theme.liquid`
 
-### 2. Home
-- [ ] `home-hero`: logo / curtains / rat / shoe picked by filename → image pickers or decor blocks
+### 2. Decor block — 1 session
+- [ ] `blocks/decor.liquid` — off image, optional "on" image, x/y %, width, layer, animation (none / sway / flicker / toggle on click), optional link. Shoe = first instance. ⏳ lamp assets from client
+- [ ] **Decor placement list** — decide which object goes where: bust → cookie announcer, lamps/lights → (pages TBD), boots → navigation/breadcrumbs, shoe → home. Record it here
+
+### 3. Home — 0.5–1 session
+- [ ] `home-hero`: logo / curtains / rat / shoe picked by filename → image pickers or decor blocks. **Curtains fully editable via schema**
+- [ ] **Fourth logo option** *(meaning to confirm with user: fourth logo variant vs. fourth hero element)*
 - [ ] Replace paper-tape buttons with the paper+pin button component (single CTA → catalogue)
 - [ ] Logo position/size at all viewports; mobile layout
 
-### 3. Hero + catalogue (collection pages)
+### 4. Collection pages — 2–3 sessions
 - [x] **Clothing rack hero** — done: `tube.png` rail, theme-drawn hook (`hook.png`) in front of the pipe with a contact shadow, hanger body, swing, stage height follows the tallest garment. Garments are **hook-less PNGs** in the product metafield `custom.rack_image`; the theme adds the hook
   - **Metafield setup (store admin):** Settings → Metafields definitions → *Products* (not Shop) → "Rack image", `custom.rack_image`, type File (images only), **storefront access on**. Then upload the PNG in the product's Metafields card
   - **Rack image spec for photography/retouching:** transparent PNG, no cast shadow, one camera distance and one hanger model for every product; the **top edge touches the top of the hanger's neck** (crop tight, no empty margin above, no stray pixels) and the neck is centred. Drawn at its pixel size next to the 400 px hanger, so set the section's "Rack image resolution" to the export multiplier (2 = 2× export)
   - **Window collection** *(user)*: make a "Window" collection, pick it in the rack section, and switch **off** "Show products without a rack image" so nothing falls back to a featured photo on the theme hanger
   - **Before launch:** remove the `preview_hung` test placeholders from `templates/collection.rack.json` (and the setting + `rack-placeholder-hookless.png` if no longer needed); slow-connection test (hook/hanger images must not flash as empty boxes) once the skeleton is up
 - [ ] **Decide the full catalogue view:** under the rack hero on the same page, or a separate full page ("see all")? Likely: rack = hero, catalogue-rows or paginated grid below. Decide, then build
-- [ ] `catalogue-rows` — finish, confirm categories from product type / automated collections (check client's admin data)
+- [ ] Rack and its product grid as their own sections, so the editor can order/combine them
+- [ ] `catalogue-rows` (horizontal scrolling section) — finish, confirm categories from product type / automated collections (check client's admin data)
 - [ ] Paginated grid for "see all" (`paginate … by 24`), sorting controls (plain typography), hover tilt, sold-out overlay, empty state
+- [x] **`collection-wall` kept** (decided Oct 2026): follows the branding rules like every section, takes each product's **second** image (first is the packshot PNG used on the floor/rack; falls back to the first if it is the only one), and has schema settings for columns, gap, picture shape, products per page, frame choice/thickness/optional frame image pickers, max tilt, straighten on hover and shadow strength. Not yet placed in a template
+- [ ] **"Sold Out" text as a schema setting** (collection floor, wall, catalogue rows, product page) — instead of the hardcoded string
 - [ ] Mobile pass
 
-### 4. Product page
+### 5. Product page — 2 sessions
+- [ ] **Better layout** — rework the overall composition (product name on receipt-strip paper, description on A4 paper, "one of a kind" mark)
 - [ ] **Image layout option** (editor select): scroll vertically *or* horizontally
-- [ ] **Tape:** clear, semi-transparent (not dark) — editor control for opacity
+- [ ] **Tape:** clear, semi-transparent (not dark) — editor controls for **colour** (switchable) and opacity
 - [ ] **Stamp-style buttons:** "Add to cart" and "Sold out" become stamps (ink-stamp look, sold-out = different stamp; disabled state)
-- [ ] Product name on receipt-strip paper, description on A4 paper, "one of a kind" mark
-- [ ] Back-to-catalogue navigation (see breadcrumbs idea)
+- [ ] Back-to-catalogue navigation (see step 7)
 - [ ] Mobile layout
 
-### 5. Cart
+### 6. Footer + new pages — 1–2 sessions
+- [ ] **Footer** section — navigation menu, newsletter signup, social/contact, all editable (footer group in `theme.liquid`)
+- [ ] **"Who are we" / About page** — `page.about.json` with flexible sections (text on paper, images, decor blocks)
+- [ ] **Contact page** — `page.contact.json` *(form vs. info-only to confirm)*
+- [ ] Cookie banner (see mannequin idea; needs the bust asset and step 2)
+
+### 7. Navigation / breadcrumbs — 1 session
+- [ ] Breadcrumb section driven by `request.page_type`/collection/product, with a distinctive look (wall style)
+- [ ] Boots hanging from the top as navigation (one boot per level) — needs boot assets; plain-text fallback
+
+### 8. Asset cleanup + optimization — 1 session
+- [ ] Audit `assets/` and remove unused files (check every reference first; never rename/remove "wall" assets blindly)
+- [ ] WebP conversion + lazy loading
+- [ ] Slow-connection test on every page (no empty-box flashes, sensible placeholders)
+
+### 9. Cart — ~2 sessions
 - [ ] Rope across full width, polaroid items hanging by clips, horizontal scroll on overflow
 - [ ] Subtotal + checkout on paper, remove interaction, empty state, mobile
 
-### 6. New pages & global furniture
-- [ ] **Footer** section — navigation menu, newsletter signup, social/contact, all editable (footer group in `theme.liquid`)
-- [ ] **"Who are we" / About page** — `page.about.json` with flexible sections (text on paper, images, decor blocks)
-- [ ] Cookie banner (see mannequin idea)
-
-### 7. Launch checklist
-- [ ] `en.default.json` / schema locales: no hardcoded strings (`page-events`, "Sold Out", etc.)
-- [ ] WebP conversion + lazy loading; mobile pass on every page
+### 10. Launch checklist — 1–2 sessions
+- [ ] **Editability check** — every section: all content/colors/links/positions are schema settings (the MVP principle)
+- [ ] **Check the leftover hardcoded colours** (decide per item: variable, schema setting, or leave): button bevel greys (`rgb(190,187,175)`/`rgb(145,142,130)` in product-text + cart, `rgb(143)`/`rgb(97)` in collection floor + wall); `--rack-paper: #efe6d2` (the cardboard sign at the end of the rack rail; maybe link to Negative or give it a setting); placeholder garment colours/strokes in `clothing-rack-garment.liquid`; placeholder fills (`#ddd9cc` in cart, catalogue and floor placeholders); lightbox overlay/controls in `product-wall.css`; header glow filters and black glow default
+- [ ] Mobile pass on every page
 - [ ] `theme-check` clean; test install on a fresh store with default content
 - [ ] Short client guide: how to edit each section (include the rack: Window collection + `custom.rack_image` metafield and the rack image spec above)
 
