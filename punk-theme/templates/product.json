@@ -11,7 +11,33 @@
   "sections": {
     "main": {
       "type": "product",
-      "settings": {}
+      "blocks": {
+        "title": {
+          "type": "title",
+          "settings": {}
+        },
+        "description": {
+          "type": "description",
+          "settings": {}
+        },
+        "price": {
+          "type": "price",
+          "settings": {}
+        },
+        "button": {
+          "type": "button",
+          "settings": {}
+        }
+      },
+      "block_order": [
+        "title",
+        "description",
+        "price",
+        "button"
+      ],
+      "settings": {
+        "mobile_layout": "horizontal"
+      }
     }
   },
   "order": [

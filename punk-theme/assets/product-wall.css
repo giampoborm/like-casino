@@ -28,9 +28,9 @@
 .product-wall__photo {
   position: relative;
   flex-shrink: 0;
-  width: 260px;
-  margin-left: var(--img-overlap, -36px);
-  transform: translateY(var(--img-offset, 0px)) rotate(var(--img-rotation, 0deg));
+  width: calc(260px * var(--photo-scale, 1));
+  margin-left: calc(var(--img-overlap, -36px) + var(--photo-gap, 0px));
+  transform: translateY(calc(var(--img-offset, 0px) * var(--scatter-scale, 1))) rotate(calc(var(--img-rotation, 0deg) * var(--rotation-scale, 1)));
   z-index: var(--img-z, 1);
   cursor: pointer;
   overflow: visible;
@@ -123,11 +123,11 @@
   filter: sepia(0.35) saturate(0.7) contrast(1.1);
 }
 
-/* Tape strips — one PNG reused at each corner, rotated via CSS */
+/* Tape strips: one PNG reused at each corner, rotated via CSS */
 .product-wall__tape {
   position: absolute;
-  width: 60px;
-  height: 22px;
+  width: calc(60px * var(--tape-scale, 1));
+  height: calc(22px * var(--tape-scale, 1));
   background-image: var(--tape-url);
   background-size: 100% 100%;
   background-repeat: no-repeat;
@@ -138,26 +138,74 @@
 /* Center of each tape strip sits at the photo corner */
 .product-wall__tape--tl {
   top: 4px;
-  left: -15px;
+  left: calc(-15px * var(--tape-scale, 1));
   transform: rotate(var(--tape-tl-rot, -45deg));
 }
 
 .product-wall__tape--tr {
   top: 4px;
-  right: -15px;
+  right: calc(-15px * var(--tape-scale, 1));
   transform: rotate(var(--tape-tr-rot, 45deg));
 }
 
 .product-wall__tape--bl {
   bottom: 4px;
-  left: -15px;
+  left: calc(-15px * var(--tape-scale, 1));
   transform: rotate(var(--tape-bl-rot, 45deg));
 }
 
 .product-wall__tape--br {
   bottom: 4px;
-  right: -15px;
+  right: calc(-15px * var(--tape-scale, 1));
   transform: rotate(var(--tape-br-rot, -45deg));
+}
+
+/* Desktop vertical layout: photos stacked on one side, text on the other */
+@media (min-width: 641px) {
+  .product-page--vertical {
+    display: grid;
+    grid-template-columns: var(--gallery-width, 55%) 1fr;
+    grid-template-areas: "gallery text";
+    column-gap: 2rem;
+    align-items: start;
+  }
+
+  .product-page--vertical.product-page--text-left {
+    grid-template-columns: 1fr var(--gallery-width, 55%);
+    grid-template-areas: "text gallery";
+  }
+
+  .product-page--vertical .product-wall-scroll {
+    grid-area: gallery;
+    overflow-x: hidden;
+    cursor: default;
+  }
+
+  .product-page--vertical .product-wall-scroll.is-dragging {
+    cursor: default;
+  }
+
+  .product-page--vertical .product-wall {
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    padding: 40px 30px 70px;
+  }
+
+  .product-page--vertical .product-wall__photo {
+    width: min(calc(320px * var(--photo-scale, 1)), 90%);
+    margin-left: 0;
+    margin-top: calc(var(--img-overlap, -20px) - 10px + var(--photo-gap, 0px));
+    transform: translateX(calc(var(--img-hoffset, 20px) * var(--scatter-scale, 1))) rotate(calc(var(--img-rotation, 0deg) * 2 * var(--rotation-scale, 1)));
+  }
+
+  .product-page--vertical .product-wall__photo:nth-child(even) {
+    transform: translateX(calc(var(--img-hoffset, 20px) * var(--scatter-scale, 1) * -1)) rotate(calc(var(--img-rotation, 0deg) * 1.8 * var(--rotation-scale, 1)));
+  }
+
+  .product-page--vertical .product-wall__photo:first-child {
+    margin-top: 0;
+  }
 }
 
 @media (max-width: 640px) {
@@ -207,14 +255,14 @@
   }
 
   .product-wall--vertical .product-wall__photo {
-    width: min(280px, calc(100vw - 40px));
+    width: min(calc(280px * var(--photo-scale, 1)), calc(100vw - 40px));
     margin-left: 0;
-    margin-top: calc(var(--img-overlap, -20px) - 10px);
-    transform: translateX(var(--img-hoffset, 20px)) rotate(calc(var(--img-rotation, 0deg) * 2));
+    margin-top: calc(var(--img-overlap, -20px) - 10px + var(--photo-gap, 0px));
+    transform: translateX(calc(var(--img-hoffset, 20px) * var(--scatter-scale, 1))) rotate(calc(var(--img-rotation, 0deg) * 2 * var(--rotation-scale, 1)));
   }
 
   .product-wall--vertical .product-wall__photo:nth-child(even) {
-    transform: translateX(calc(var(--img-hoffset, 20px) * -1)) rotate(calc(var(--img-rotation, 0deg) * 1.8));
+    transform: translateX(calc(var(--img-hoffset, 20px) * var(--scatter-scale, 1) * -1)) rotate(calc(var(--img-rotation, 0deg) * 1.8 * var(--rotation-scale, 1)));
   }
 
   .product-wall--vertical .product-wall__photo:first-child {

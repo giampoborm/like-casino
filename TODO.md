@@ -56,7 +56,7 @@ layout/theme.liquid        ← wraps every page (head, header group, footer grou
 
 ## Status
 
-**Built and committed (75135e2), not yet deployed — header and rack deploy together; waiting to finish the rack first.** Scratch/test images go in `working-assets/` (outside the theme, never pushed):
+**Built and committed (1a0d96f, product gallery view after), not yet deployed — header and rack deploy together; waiting to finish the rack first.** Scratch/test images go in `working-assets/` (outside the theme, never pushed):
 - `catalogue-rows` section — horizontal category rows (scroll-snap, "see all" card)
 - `clothing-rack` section + `clothing-rack-garment` snippet + `collection.rack.json` — first working version, flat 2D, swing/sway; needs realism + real assets
 - `header` — reworked with editor settings (glow/shadow select etc.)
@@ -100,20 +100,37 @@ layout/theme.liquid        ← wraps every page (head, header group, footer grou
 - [ ] **Decide the full catalogue view:** under the rack hero on the same page, or a separate full page ("see all")? Likely: rack = hero, catalogue-rows or paginated grid below. Decide, then build
 - [ ] Rack and its product grid as their own sections, so the editor can order/combine them
 - [x] **Collection floor schema** — done Oct 2026: columns (desktop/mobile), gap, products per page, sort menu toggle, tilt / offset / row spacing, show names/prices, sold-out text/size/angle/shadow, shadow and hover glow; hardcoded values and dead code removed
-- [ ] `catalogue-rows` (horizontal scrolling section) — schema done Oct 2026 (card width, gap, picture ratio, names/prices, row title size, sold-out and "see all" text, shadows); still to do: place it in a template, confirm categories from product type / automated collections (check client's admin data)
+- [ ] **Horizontal catalogue row section** (`catalogue-rows`) — section built with schema Oct 2026 (card width, gap, picture ratio, names/prices, row title size, sold-out and "see all" text, shadows); still to do: place it in a template, confirm categories from product type / automated collections (check client's admin data), final visual pass and mobile. Planned as its own step after the product page rework
 - [ ] Paginated grid for "see all" (`paginate … by 24`), sorting controls (plain typography), hover tilt, sold-out overlay, empty state
 - [x] **`collection-wall` kept** (decided Oct 2026): follows the branding rules like every section, takes each product's **second** image (first is the packshot PNG used on the floor/rack; falls back to the first if it is the only one), and has schema settings for columns, gap, picture shape, products per page, frame choice/thickness/optional frame image pickers, max tilt, straighten on hover and shadow strength. Not yet placed in a template
 - [ ] **"Sold Out" text as a schema setting** — done for collection floor and catalogue rows; still to do: collection wall and product page (the product page with its rework)
 - [ ] Mobile pass
 
 ### 5. Product page — big rework, estimate to revisit (was 2 sessions)
-- [ ] **Full product page rework** — rethink the whole page, not just tweaks: composition, how it fits the wall metaphor, and every element editable via schema (including shadows, sold-out text). Scope and design to be defined with the user before building; the items below are part of it
+
+> **Decided Oct 2026:** the current `product` section becomes the **"Product – gallery view"** (taped photo wall), fixed in layout and driven by section schema + four text blocks. A second, freer section (**product basic showcase**, built from blocks) is the alternative non-gallery view.
+
+**Done (Oct 2026), gallery view:**
+- [x] **Desktop layout select** — horizontal strip (text below) or vertical (photos stacked beside the text), text on left/right, gallery width 40–70%; mobile layout select kept
+- [x] **Gallery schema** — photo size, spacing, scatter, tilt, tape size; all work in horizontal, vertical-desktop and vertical-mobile
+- [x] **Text area schema** — width, size, X/Y of the whole non-gallery block
+- [x] **Text elements as blocks** — Title, Description, Price, Add to cart button (one each), each with size and X/Y. Elements sit in fixed grid areas, so block order does not move them; removing a block hides it
+- [x] **Tape style select** — Black / Masking / Clear (`tape1/2`, `masktape1/2`, `cleartape1/2`), optional image pickers override each pair. Pickers are `visible_if` per style
+- [x] **Price colour** follows the theme text colour (opacity removed)
+- [x] Rack image exclusion — nothing to do: the rack PNG is a metafield, not in `product.images`; first image already skipped
+
+**To do next time:**
+- [ ] **Non-gallery view — "product basic showcase" section** *(potential)*: a simpler product page with more editing power through blocks. Decide if it is needed at all, then scope it
+- [ ] **Alternative buttons: boot or stamp** — "Add to cart" and "Sold out" as a stamp (ink-stamp look, sold-out = different stamp, disabled state) **or** a hanging boot. Decide which (or make it an editor select), then build; may reuse the decor block (step 2)
+- [ ] **Resize tape PNGs** — masking/clear tape files are 1568–1792 px wide, ~1 MB each; the tape draws at ~60 px, so downscale to ~300 px (the black ones are ~250 px, ~50 KB). Also part of step 8
+- [ ] **Tape opacity control** — tape colour/style is done; an opacity slider is not
+- [ ] Verify on a phone: the mobile text grid (title / price + button / description) and the vertical-desktop layout were checked in code and CSS only, not in a browser
+- [ ] **Variants:** no variant picker yet; the form always sends the first available variant. Needed if any product has sizes/options (confirm with the user)
+
+**Still open from the rework:**
 - [ ] **Better layout** — rework the overall composition (product name on receipt-strip paper, description on A4 paper, "one of a kind" mark)
-- [ ] **Image layout option** (editor select): scroll vertically *or* horizontally
-- [ ] **Tape:** clear, semi-transparent (not dark) — editor controls for **colour** (switchable) and opacity
-- [ ] **Stamp-style buttons:** "Add to cart" and "Sold out" become stamps (ink-stamp look, sold-out = different stamp; disabled state)
+- [ ] **"Sold Out" text as a schema setting** on the product page (and shadows)
 - [ ] Back-to-catalogue navigation (see step 7)
-- [ ] Mobile layout
 
 ### 6. Footer + new pages — 1–2 sessions
 - [ ] **Footer** section — navigation menu, newsletter signup, social/contact, all editable (footer group in `theme.liquid`)
@@ -128,6 +145,7 @@ layout/theme.liquid        ← wraps every page (head, header group, footer grou
 ### 8. Asset cleanup + optimization — 1 session
 - [ ] Audit `assets/` and remove unused files (check every reference first; never rename/remove "wall" assets blindly)
 - [ ] WebP conversion + lazy loading
+- [ ] Downscale `masktape*.png` / `cleartape*.png` (see step 5)
 - [ ] Slow-connection test on every page (no empty-box flashes, sensible placeholders)
 
 ### 9. Cart — ~2 sessions
