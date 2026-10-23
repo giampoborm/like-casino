@@ -3,8 +3,7 @@
     "rack": {
       "type": "clothing-rack",
       "settings": {
-        "limit": 16,
-        "preview_hung": true
+        "limit": 16
       }
     }
   },

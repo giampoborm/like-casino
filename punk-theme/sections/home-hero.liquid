@@ -1,5 +1,12 @@
 {% assign logo_style = section.settings.logo_style | default: 'composite2' %}
-<section class="home-hero home-hero--{{ logo_style }} full-width">
+<section
+  class="home-hero home-hero--{{ logo_style }} full-width"
+  style="
+    --hero-logo-shadow: {{ section.settings.logo_shadow | divided_by: 100.0 }};
+    --hero-btn-shadow: {{ section.settings.button_shadow | divided_by: 100.0 }};
+    --hero-btn-glow: {{ section.settings.button_glow | divided_by: 100.0 }};
+  "
+>
   <img class="home-hero__curtain home-hero__curtain--left" src="{{ 'leftcurtain.png' | asset_url }}" alt="" role="presentation" loading="eager" width="1433" height="2994">
   <img class="home-hero__curtain home-hero__curtain--right" src="{{ 'rightcurtain.png' | asset_url }}" alt="" role="presentation" loading="eager" width="1445" height="3000">
   <div class="home-hero__inner">
@@ -117,7 +124,7 @@
   .home-hero__logo-img {
     height: 95svh;
     width: auto;
-    filter: drop-shadow(0 30px 40px rgba(0, 0, 0, 0.6));
+    filter: drop-shadow(0 30px 40px rgba(0, 0, 0, var(--hero-logo-shadow)));
   }
 
   .home-hero--sign .home-hero__logo {
@@ -131,7 +138,9 @@
     height: auto;
     width: min(80vw, 1000px);
     max-width: none;
-    filter: drop-shadow(0 0px 5px rgba(0, 0, 0, 0.85)) drop-shadow(0 20px 20px rgba(0, 0, 0, 0.15));
+    filter:
+      drop-shadow(0 0 5px rgba(0, 0, 0, calc(var(--hero-logo-shadow) * 1.4)))
+      drop-shadow(0 20px 20px rgba(0, 0, 0, calc(var(--hero-logo-shadow) * 0.25)));
   }
 
   /* ── Composite 2 ── */
@@ -146,7 +155,9 @@
     height: auto;
     width: min(75vw, 950px);
     max-width: none;
-    /* filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.8)) drop-shadow(0 20px 25px rgba(0, 0, 0, 0.2)); */
+    filter:
+      drop-shadow(0 0 6px rgba(0, 0, 0, calc(var(--hero-logo-shadow) * 1.3)))
+      drop-shadow(0 20px 25px rgba(0, 0, 0, calc(var(--hero-logo-shadow) * 0.35)));
   }
 
   /* ── Products button (right) ── */
@@ -156,7 +167,9 @@
     display: inline-block;
     text-decoration: none;
     transform: rotate(1deg);
-    filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.3)) drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5));
+    filter:
+      drop-shadow(0 2px 2px rgba(0, 0, 0, calc(var(--hero-btn-shadow) * 0.75)))
+      drop-shadow(0 3px 6px rgba(0, 0, 0, calc(var(--hero-btn-shadow) * 1.25)));
     transition: filter 0.2s ease;
   }
 
@@ -180,8 +193,10 @@
 
   .home-hero__products-btn--shoe:hover,
   .home-hero__products-btn--shoe:focus-visible {
-    filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.3)) drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 18px rgba(255, 255, 255, 0.75));
-    transition: filter 0.2s ease;
+    filter:
+      drop-shadow(0 2px 2px rgba(0, 0, 0, calc(var(--hero-btn-shadow) * 0.75)))
+      drop-shadow(0 3px 6px rgba(0, 0, 0, calc(var(--hero-btn-shadow) * 1.25)))
+      drop-shadow(0 0 18px rgba(255, 255, 255, var(--hero-btn-glow)));
   }
 
   .home-hero__products-btn-img {
@@ -195,9 +210,6 @@
     top: 0;
     left: 0;
     opacity: 0;
-  }
-
-  .home-hero__products-btn-img--default {
   }
 
   .home-hero__products-btn--rat:hover .home-hero__products-btn-img--default,
@@ -340,6 +352,40 @@
         { "value": "rat", "label": "Rat" },
         { "value": "shoe", "label": "Shoe" }
       ]
+    },
+    {
+      "type": "header",
+      "content": "Shadows"
+    },
+    {
+      "type": "range",
+      "id": "logo_shadow",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "label": "Logo shadow",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "button_shadow",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "label": "Button shadow",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "button_glow",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "label": "Shoe hover glow",
+      "default": 75
     }
   ],
   "presets": [

@@ -6,7 +6,32 @@
 
 {{ 'section-catalogue-rows.css' | asset_url | stylesheet_tag }}
 
-<section class="section-catalogue-rows">
+{%- liquid
+  if section.settings.sold_out_text != blank
+    assign sold_out_text = section.settings.sold_out_text
+  else
+    assign sold_out_text = 'products.sold_out' | t
+  endif
+
+  if section.settings.see_all_text != blank
+    assign see_all_text = section.settings.see_all_text
+  else
+    assign see_all_text = 'catalogue.see_all' | t
+  endif
+-%}
+
+<section
+  class="section-catalogue-rows"
+  style="
+    --catalogue-card-max: {{ section.settings.card_width }}px;
+    --catalogue-gap: {{ section.settings.gap }}px;
+    --catalogue-ratio: {{ section.settings.picture_ratio }};
+    --catalogue-title-size: {{ section.settings.title_size }}px;
+    --catalogue-shadow: {{ section.settings.shadow_strength | divided_by: 100.0 }};
+    --catalogue-glow: {{ section.settings.glow_strength | divided_by: 100.0 }};
+    --catalogue-sold-out-shadow: {{ section.settings.sold_out_shadow | divided_by: 100.0 }};
+  "
+>
   {% for block in section.blocks %}
     {% assign row_collection = block.settings.collection %}
     {% assign row_title = block.settings.title | default: row_collection.title %}
@@ -37,11 +62,15 @@
                     {{ 'product-1' | placeholder_svg_tag: 'product-card__img product-card__img--placeholder' }}
                   {% endif %}
                   {% unless product.available %}
-                    <span class="product-card__sold-out">{{ 'products.sold_out' | t }}</span>
+                    <span class="product-card__sold-out">{{ sold_out_text | escape }}</span>
                   {% endunless %}
                 </span>
-                <span class="product-card__title">{{ product.title }}</span>
-                <span class="product-card__price">{{ product.price | money }}</span>
+                {% if section.settings.show_title %}
+                  <span class="product-card__title">{{ product.title }}</span>
+                {% endif %}
+                {% if section.settings.show_price %}
+                  <span class="product-card__price">{{ product.price | money }}</span>
+                {% endif %}
               </a>
             </li>
           {% endfor %}
@@ -49,7 +78,7 @@
           {% if block.settings.show_see_all and row_collection.products_count > block.settings.limit %}
             <li class="catalogue-row__item catalogue-row__item--see-all">
               <a class="catalogue-row__see-all" href="{{ row_collection.url }}">
-                {{ 'catalogue.see_all' | t }} &rarr;
+                {{ see_all_text | escape }} &rarr;
               </a>
             </li>
           {% endif %}
@@ -71,17 +100,120 @@
   {% endfor %}
 </section>
 
-{% stylesheet %}
-{% endstylesheet %}
-
-{% javascript %}
-{% endjavascript %}
-
 {% schema %}
 {
   "name": "Catalogue rows",
   "tag": "div",
-  "settings": [],
+  "settings": [
+    {
+      "type": "header",
+      "content": "Cards"
+    },
+    {
+      "type": "range",
+      "id": "card_width",
+      "min": 160,
+      "max": 400,
+      "step": 10,
+      "unit": "px",
+      "label": "Card width",
+      "default": 260
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "min": 0,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "label": "Gap",
+      "default": 32
+    },
+    {
+      "type": "select",
+      "id": "picture_ratio",
+      "label": "Picture ratio",
+      "options": [
+        { "value": "3 / 4", "label": "3:4" },
+        { "value": "4 / 5", "label": "4:5" },
+        { "value": "1 / 1", "label": "1:1" },
+        { "value": "2 / 3", "label": "2:3" }
+      ],
+      "default": "3 / 4"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_title",
+      "label": "Show names",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_price",
+      "label": "Show prices",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "title_size",
+      "min": 20,
+      "max": 80,
+      "step": 2,
+      "unit": "px",
+      "label": "Row title size",
+      "default": 40
+    },
+    {
+      "type": "header",
+      "content": "Texts"
+    },
+    {
+      "type": "text",
+      "id": "sold_out_text",
+      "label": "Sold out text",
+      "info": "Empty = default"
+    },
+    {
+      "type": "text",
+      "id": "see_all_text",
+      "label": "See all text",
+      "info": "Empty = default"
+    },
+    {
+      "type": "header",
+      "content": "Shadows"
+    },
+    {
+      "type": "range",
+      "id": "shadow_strength",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "label": "Shadow",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "glow_strength",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "label": "Hover glow",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "sold_out_shadow",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "label": "Sold out shadow",
+      "default": 60
+    }
+  ],
   "blocks": [
     {
       "type": "row",
@@ -96,21 +228,21 @@
           "type": "text",
           "id": "title",
           "label": "Title",
-          "info": "Leave empty to use the collection name"
+          "info": "Empty = collection name"
         },
         {
           "type": "range",
           "id": "limit",
-          "label": "Products shown",
           "min": 4,
           "max": 24,
           "step": 1,
+          "label": "Products shown",
           "default": 12
         },
         {
           "type": "checkbox",
           "id": "show_see_all",
-          "label": "Show \"see all\" card when there are more products",
+          "label": "Show \"see all\" card",
           "default": true
         }
       ]

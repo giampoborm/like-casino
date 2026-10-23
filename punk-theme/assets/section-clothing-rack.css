@@ -10,7 +10,6 @@
  *   --rack-pivot-y   centre of the pipe = where hooks rest and garments swing from
  */
 .section-clothing-rack {
-  --rack-paper: #efe6d2;
   --rack-inset: clamp(12px, 5vw, 72px);
   --rack-item-w: var(--rack-garment-width);
   --rack-gap: var(--rack-spacing);
@@ -71,7 +70,7 @@
   width: calc(var(--rack-hanger-w) * 0.22);
   height: var(--rack-rail-h);
   translate: -38% 0;
-  background: radial-gradient(ellipse 50% 50% at 50% 50%, rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0));
+  background: radial-gradient(ellipse 50% 50% at 50% 50%, rgba(0, 0, 0, var(--rack-contact-shadow, 0)), rgba(0, 0, 0, 0));
   pointer-events: none;
 }
 
@@ -157,7 +156,7 @@
 
 .clothing-rack__hanger-img {
   top: var(--rack-hanger-top);
-  filter: drop-shadow(3px 5px 3px rgba(0, 0, 0, 0.35));
+  filter: drop-shadow(3px 5px 3px rgba(0, 0, 0, var(--rack-hanger-shadow, 0)));
   left: calc(50% - var(--rack-px) * 195);
   width: var(--rack-hanger-w);
 }
@@ -193,8 +192,7 @@
   width: calc(var(--rack-px) * var(--rack-w) / var(--rack-res, 1));
 }
 
-.clothing-rack__img,
-.clothing-rack__placeholder {
+.clothing-rack__img {
   display: block;
   width: 100%;
   height: auto;
@@ -217,46 +215,14 @@
   max-width: none; /* overrides the theme's global img reset, so wide shots can overhang */
 }
 
-.clothing-rack__placeholder {
-  aspect-ratio: 200 / 260;
-}
-
 /* Shadow cast on the wall. Rasterised once into the hanger's layer, so swinging doesn't repaint it. */
-.section-clothing-rack--cutout .clothing-rack__garment,
-.clothing-rack__placeholder {
-  filter: drop-shadow(10px 16px 10px rgba(0, 0, 0, 0.45));
+.clothing-rack__garment {
+  filter: drop-shadow(10px 16px 10px rgba(0, 0, 0, var(--rack-garment-shadow, 0)));
 }
 
-.section-clothing-rack--photo .clothing-rack__img {
-  box-shadow: 8px 12px 16px rgba(0, 0, 0, 0.45);
-}
-
-.clothing-rack__garment:focus-visible,
-.clothing-rack__sign:focus-visible {
+.clothing-rack__garment:focus-visible {
   outline: 2px dashed var(--rack-ink);
   outline-offset: 6px;
-}
-
-/* Empty hanger at the end of the rail with a cardboard sign pointing to the full collection */
-.clothing-rack__sign {
-  position: absolute;
-  top: calc(var(--rack-pivot-y) + var(--rack-hanger-w) * 0.35);
-  left: 50%;
-  translate: -50% 0;
-  padding: 0.6rem 1rem;
-  background: var(--rack-paper);
-  color: var(--color-positive);
-  font-family: var(--font-stamp--family);
-  font-size: 1.1rem;
-  text-decoration: none;
-  text-transform: uppercase;
-  white-space: nowrap;
-  box-shadow: 4px 6px 0 rgba(0, 0, 0, 0.35);
-  pointer-events: auto;
-}
-
-.clothing-rack__sign:hover {
-  text-decoration: underline;
 }
 
 /* Selected product under the rack: underlined name, price below */

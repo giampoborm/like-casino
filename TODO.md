@@ -74,15 +74,17 @@ layout/theme.liquid        ← wraps every page (head, header group, footer grou
 - [x] **Branding control** — colours, fonts, text effect and logo all in Theme settings → Branding
 - [x] **Text colour per background** — solved with a **Text theme** select (Positive = dark ink for light backgrounds, Negative = ivory for dark ones) that sets `--color-text` / `--color-text-inverse`; no per-background pairing
 - [x] **Text effect** — Branding → Effect on text: none / ink bleed (strength slider) / dark shadow (default). One variable, `--text-effect`, read by every text-shadow on product names, prices and labels
-- [ ] **Shadows: per-instance schema settings** — no global shadow system. Each section/block with a shadow (collection floor, wall, rack, catalogue cards, home-hero objects, decor blocks) gets its own schema setting (on/off, strength; style where it makes sense), since some objects look better with a drop shadow and others without. `collection-wall` already has a strength slider; use it as the pattern
+- [x] **Shadows: per-instance schema settings** — done Oct 2026 for header, collection wall, collection floor, catalogue rows, rack (garment / hanger / hook) and home hero (logo / button / shoe glow); each is a 0–100% slider, hardcoded values removed. Still to do: decor blocks (step 2), and the product page / cart if they get shadows
+- [x] **Schema text style** — keep `info` texts to a few words (e.g. "Empty = default") or none
 - [x] **Fonts** — **two roles**, decided Oct 2026: **Main** (`cella`, used for everything: item names, body, prices, cart) and **Stamp** (`octin-spraypaint`, stencil, for sold-out marks and decoration). Declared once in `critical.css` as `MainFont` / `StampFont`; exposed as `--font-main--family` / `--font-stamp--family`; each can be swapped in the editor (bundled checkbox + font picker). The typewriter and any other unused fonts were removed
-- [ ] **Header** — finish: logo + cart icon pickers, optional menu; hide-on-homepage controlled from the editor, not `page_type` in `theme.liquid`
+- [x] **Header** — done as is (Oct 2026): accepted by the user without further changes
 
 ### 2. Decor block — 1 session
 - [ ] `blocks/decor.liquid` — off image, optional "on" image, x/y %, width, layer, animation (none / sway / flicker / toggle on click), optional link. Shoe = first instance. ⏳ lamp assets from client
 - [ ] **Decor placement list** — decide which object goes where: bust → cookie announcer, lamps/lights → (pages TBD), boots → navigation/breadcrumbs, shoe → home. Record it here
 
 ### 3. Home — 0.5–1 session
+- [x] `home-hero` shadows: logo, button and shoe hover glow are schema sliders (Oct 2026); dead code removed
 - [ ] `home-hero`: logo / curtains / rat / shoe picked by filename → image pickers or decor blocks. **Curtains fully editable via schema**
 - [ ] **Fourth logo option** *(meaning to confirm with user: fourth logo variant vs. fourth hero element)*
 - [ ] Replace paper-tape buttons with the paper+pin button component (single CTA → catalogue)
@@ -93,16 +95,19 @@ layout/theme.liquid        ← wraps every page (head, header group, footer grou
   - **Metafield setup (store admin):** Settings → Metafields definitions → *Products* (not Shop) → "Rack image", `custom.rack_image`, type File (images only), **storefront access on**. Then upload the PNG in the product's Metafields card
   - **Rack image spec for photography/retouching:** transparent PNG, no cast shadow, one camera distance and one hanger model for every product; the **top edge touches the top of the hanger's neck** (crop tight, no empty margin above, no stray pixels) and the neck is centred. Drawn at its pixel size next to the 400 px hanger, so set the section's "Rack image resolution" to the export multiplier (2 = 2× export)
   - **Window collection** *(user)*: make a "Window" collection, pick it in the rack section, and switch **off** "Show products without a rack image" so nothing falls back to a featured photo on the theme hanger
-  - **Before launch:** remove the `preview_hung` test placeholders from `templates/collection.rack.json` (and the setting + `rack-placeholder-hookless.png` if no longer needed); slow-connection test (hook/hanger images must not flash as empty boxes) once the skeleton is up
+  - Placeholder garments, the `preview_hung` test, the cardboard "see all" sign and the photo image style were removed (Oct 2026). An empty rack is just the rail
+  - **Before launch:** slow-connection test (hook/hanger images must not flash as empty boxes) once the skeleton is up
 - [ ] **Decide the full catalogue view:** under the rack hero on the same page, or a separate full page ("see all")? Likely: rack = hero, catalogue-rows or paginated grid below. Decide, then build
 - [ ] Rack and its product grid as their own sections, so the editor can order/combine them
-- [ ] `catalogue-rows` (horizontal scrolling section) — finish, confirm categories from product type / automated collections (check client's admin data)
+- [x] **Collection floor schema** — done Oct 2026: columns (desktop/mobile), gap, products per page, sort menu toggle, tilt / offset / row spacing, show names/prices, sold-out text/size/angle/shadow, shadow and hover glow; hardcoded values and dead code removed
+- [ ] `catalogue-rows` (horizontal scrolling section) — schema done Oct 2026 (card width, gap, picture ratio, names/prices, row title size, sold-out and "see all" text, shadows); still to do: place it in a template, confirm categories from product type / automated collections (check client's admin data)
 - [ ] Paginated grid for "see all" (`paginate … by 24`), sorting controls (plain typography), hover tilt, sold-out overlay, empty state
 - [x] **`collection-wall` kept** (decided Oct 2026): follows the branding rules like every section, takes each product's **second** image (first is the packshot PNG used on the floor/rack; falls back to the first if it is the only one), and has schema settings for columns, gap, picture shape, products per page, frame choice/thickness/optional frame image pickers, max tilt, straighten on hover and shadow strength. Not yet placed in a template
-- [ ] **"Sold Out" text as a schema setting** (collection floor, wall, catalogue rows, product page) — instead of the hardcoded string
+- [ ] **"Sold Out" text as a schema setting** — done for collection floor and catalogue rows; still to do: collection wall and product page (the product page with its rework)
 - [ ] Mobile pass
 
-### 5. Product page — 2 sessions
+### 5. Product page — big rework, estimate to revisit (was 2 sessions)
+- [ ] **Full product page rework** — rethink the whole page, not just tweaks: composition, how it fits the wall metaphor, and every element editable via schema (including shadows, sold-out text). Scope and design to be defined with the user before building; the items below are part of it
 - [ ] **Better layout** — rework the overall composition (product name on receipt-strip paper, description on A4 paper, "one of a kind" mark)
 - [ ] **Image layout option** (editor select): scroll vertically *or* horizontally
 - [ ] **Tape:** clear, semi-transparent (not dark) — editor controls for **colour** (switchable) and opacity

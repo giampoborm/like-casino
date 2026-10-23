@@ -1,7 +1,6 @@
 .section-catalogue-rows {
   --catalogue-ink: var(--color-text);
-  --catalogue-card-width: clamp(160px, 22vw, 260px);
-  --catalogue-gap: clamp(1rem, 2.5vw, 2rem);
+  --catalogue-card-width: clamp(160px, 22vw, var(--catalogue-card-max));
   --catalogue-gutter: clamp(1rem, 4vw, 3rem);
 
   display: flex;
@@ -15,7 +14,7 @@
 .catalogue-row__title {
   margin: 0 var(--catalogue-gutter) 1rem;
   font-family: var(--font-stamp--family);
-  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  font-size: clamp(1.5rem, 4vw, var(--catalogue-title-size));
   font-weight: normal;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -56,15 +55,17 @@
   position: relative;
   display: block;
   width: 100%;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: var(--catalogue-ratio);
   margin-bottom: 0.75rem;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, var(--catalogue-shadow)));
   transition: filter 0.2s ease;
 }
 
 .product-card:hover .product-card__media,
 .product-card:focus-visible .product-card__media {
-  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 18px rgba(255, 255, 255, 0.6));
+  filter:
+    drop-shadow(0 3px 6px rgba(0, 0, 0, calc(var(--catalogue-shadow) * 1.6)))
+    drop-shadow(0 0 18px rgba(255, 255, 255, var(--catalogue-glow)));
 }
 
 .product-card__img {
@@ -88,7 +89,7 @@
   font-size: clamp(1.5rem, 5vw, 2.75rem);
   color: var(--color-accent);
   text-transform: uppercase;
-  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, var(--catalogue-sold-out-shadow));
   white-space: nowrap;
   pointer-events: none;
 }
@@ -117,7 +118,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: var(--catalogue-ratio);
   border: 2px dashed color-mix(in srgb, var(--catalogue-ink) 50%, transparent);
   color: inherit;
   font-family: var(--font-stamp--family);
