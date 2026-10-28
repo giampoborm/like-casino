@@ -14,7 +14,7 @@
         "type": "image_picker",
         "id": "logo",
         "label": "Logo",
-        "info": "Shown on the gift card page."
+        "info": "Gift card page"
       },
       {
         "type": "header",
@@ -23,33 +23,30 @@
       {
         "type": "select",
         "id": "text_theme",
-        "label": "Text theme",
-        "info": "Positive = dark ink, for light backgrounds. Negative = ivory, for dark backgrounds. Switch it when you change the site background.",
+        "label": "Text colour",
         "options": [
           { "value": "positive", "label": "Positive (dark ink)" },
           { "value": "negative", "label": "Negative (ivory)" }
         ],
-        "default": "negative"
+        "default": "positive"
       },
       {
         "type": "color",
         "id": "color_positive",
         "label": "Positive",
-        "info": "Faded vintage black, like ink bleed. Text on light backgrounds.",
         "default": "#2a2622"
       },
       {
         "type": "color",
         "id": "color_negative",
         "label": "Negative",
-        "info": "Off-white ivory. Text on dark backgrounds.",
         "default": "#efe6d2"
       },
       {
         "type": "color",
         "id": "color_accent",
         "label": "Accent",
-        "info": "Dried blood red. Sold-out and discount marks, highlights.",
+        "info": "Sold out, discounts",
         "default": "#7a1f1a"
       },
       {
@@ -59,28 +56,28 @@
       {
         "type": "checkbox",
         "id": "font_main_bundled",
-        "label": "Main font: use the bundled typewriter font",
-        "info": "Used for almost everything: body text, product names, prices. Untick to use the font picked below.",
+        "label": "Bundled main font",
         "default": true
       },
       {
         "type": "font_picker",
         "id": "font_main",
-        "label": "Main font (when bundled is off)",
-        "default": "assistant_n4"
+        "label": "Main font",
+        "default": "assistant_n4",
+        "visible_if": "{{ settings.font_main_bundled == false }}"
       },
       {
         "type": "checkbox",
         "id": "font_stamp_bundled",
-        "label": "Stamp font: use the bundled stencil font",
-        "info": "Decoration only: stamps, sold-out marks, labels. Untick to use the font picked below.",
+        "label": "Bundled stamp font",
         "default": true
       },
       {
         "type": "font_picker",
         "id": "font_stamp",
-        "label": "Stamp font (when bundled is off)",
-        "default": "assistant_n7"
+        "label": "Stamp font",
+        "default": "assistant_n7",
+        "visible_if": "{{ settings.font_stamp_bundled == false }}"
       },
       {
         "type": "header",
@@ -90,13 +87,12 @@
         "type": "select",
         "id": "text_effect",
         "label": "Effect on text",
-        "info": "Applies to product names, prices and labels sitting on the background.",
         "options": [
-          { "value": "none", "label": "None (flat text)" },
-          { "value": "ink", "label": "Ink bleed (soft halo in the text colour)" },
-          { "value": "shadow", "label": "Dark shadow (readability over busy backgrounds)" }
+          { "value": "none", "label": "None" },
+          { "value": "ink", "label": "Ink bleed" },
+          { "value": "shadow", "label": "Dark shadow" }
         ],
-        "default": "shadow"
+        "default": "ink"
       },
       {
         "type": "range",
@@ -106,8 +102,8 @@
         "step": 1,
         "unit": "px",
         "label": "Ink bleed strength",
-        "info": "Only used when the effect is Ink bleed.",
-        "default": 2
+        "default": 2,
+        "visible_if": "{{ settings.text_effect == 'ink' }}"
       }
     ]
   },
@@ -149,7 +145,6 @@
         "type": "select",
         "id": "background_preset",
         "label": "Background",
-        "info": "One background for the whole site. Pick a built-in test background, or choose Custom upload.",
         "options": [
           { "value": "1", "label": "Sfondo prova 1" },
           { "value": "2", "label": "Sfondo prova 2" },
@@ -161,20 +156,19 @@
           { "value": "wallbackground2", "label": "Wall background 2" },
           { "value": "custom", "label": "Custom upload" }
         ],
-        "default": "6"
+        "default": "4"
       },
       {
         "type": "image_picker",
         "id": "background_image",
         "label": "Custom background image",
-        "info": "Used only when Background is set to Custom upload."
+        "visible_if": "{{ settings.background_preset == 'custom' }}"
       },
       {
         "type": "color",
         "id": "background_color",
         "default": "#111111",
-        "label": "Background color",
-        "info": "Shown behind the image, and while it loads."
+        "label": "Background color"
       },
       {
         "type": "select",
@@ -183,7 +177,7 @@
         "options": [
           { "value": "cover", "label": "Fill the screen (crop)" },
           { "value": "contain", "label": "Fit inside the screen" },
-          { "value": "zoom", "label": "Custom zoom (use slider below)" }
+          { "value": "zoom", "label": "Custom zoom" }
         ],
         "default": "cover"
       },
@@ -195,8 +189,8 @@
         "step": 5,
         "unit": "%",
         "label": "Zoom",
-        "info": "Image width as a % of the screen. Only used when Image fit is Custom zoom.",
-        "default": 100
+        "default": 100,
+        "visible_if": "{{ settings.background_fit == 'zoom' }}"
       },
       {
         "type": "range",
@@ -206,7 +200,6 @@
         "step": 1,
         "unit": "%",
         "label": "Horizontal position",
-        "info": "0 = left edge, 50 = centered, 100 = right edge.",
         "default": 50
       },
       {
@@ -217,7 +210,6 @@
         "step": 1,
         "unit": "%",
         "label": "Vertical position",
-        "info": "0 = top, 50 = centered, 100 = bottom.",
         "default": 0
       },
       {
@@ -228,8 +220,6 @@
         "step": 5,
         "unit": "%",
         "label": "Darken image",
-
-        "info": "Black overlay on top of the image, for readability.",
         "default": 0
       },
       {

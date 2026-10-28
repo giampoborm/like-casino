@@ -345,7 +345,6 @@
       "max": 6,
       "step": 1,
       "label": "Columns (desktop)",
-      "info": "Fewer columns on tablet and phone automatically.",
       "default": 5
     },
     {
@@ -399,7 +398,7 @@
       "type": "select",
       "id": "frame_style",
       "label": "Frame",
-      "info": "Auto uses each product's custom.frame metafield, or a stable pick based on the product.",
+      "info": "Auto = custom.frame metafield, else random",
       "options": [
         { "value": "auto", "label": "Auto (per product)" },
         { "value": "ornate", "label": "Ornate" },
@@ -418,32 +417,31 @@
       "step": 1,
       "unit": "%",
       "label": "Frame thickness",
-      "info": "How much of the picture is covered by the frame border. Match it to your frame images.",
       "default": 12
     },
     {
       "type": "image_picker",
       "id": "frame_1",
       "label": "Ornate frame image",
-      "info": "Optional. Replaces the bundled image."
+      "info": "Empty = default"
     },
     {
       "type": "image_picker",
       "id": "frame_2",
       "label": "Gilded frame image",
-      "info": "Optional. Replaces the bundled image."
+      "info": "Empty = default"
     },
     {
       "type": "image_picker",
       "id": "frame_3",
       "label": "Carved frame image",
-      "info": "Optional. Replaces the bundled image."
+      "info": "Empty = default"
     },
     {
       "type": "image_picker",
       "id": "frame_4",
       "label": "Rustic frame image",
-      "info": "Optional. Replaces the bundled image."
+      "info": "Empty = default"
     },
     {
       "type": "header",
@@ -457,7 +455,6 @@
       "step": 1,
       "unit": "°",
       "label": "Maximum tilt",
-      "info": "Each picture gets its own tilt up to this angle. 0 = all straight.",
       "default": 3
     },
     {

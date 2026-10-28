@@ -1,7 +1,7 @@
 /*
  * Hanging boot: image on a lace tied at the instep, drops from the top then sways.
  * Set by the parent: --boot-w (px), --boot-string (px), --boot-swing (deg),
- * --boot-shadow (0-1), --boot-size (multiplier). Set per boot inline: --boot-hook-x / --boot-hook-y
+ * --boot-lace-color, --boot-lace-width, --boot-shadow (0-1), --boot-size (multiplier). Set per boot inline: --boot-hook-x / --boot-hook-y
  * (% of the image, where the lace is tied) and --boot-delay.
  * The lace runs straight up from the tie point, long enough to leave the screen. The drop animates
  * the wrapper (boot and lace together); the sway rotates only the boot, around the tie point.
@@ -37,10 +37,14 @@
   position: absolute;
   left: var(--boot-hook-x, 50%);
   bottom: calc(100% - var(--boot-hook-y, 0%));
-  width: 3px;
+  width: var(--boot-lace-width, 2px);
   height: var(--boot-string, 1500px);
   transform: translateX(-50%);
-  background: linear-gradient(90deg, #1a1612, #4a3f33);
+  background: linear-gradient(
+    90deg,
+    var(--boot-lace-color, #14110e),
+    color-mix(in srgb, var(--boot-lace-color, #14110e) 70%, #8a7c6a)
+  );
 }
 
 .hanging-boot__img {
@@ -66,12 +70,32 @@
   transform: rotate(0deg) translateY(2px);
 }
 
+/*
+ * Fixed: stays on screen while the page scrolls, placed by --boot-fixed-x / -y (% of the viewport).
+ * No ancestor between the boot and the page may have a transform, or the boot would scroll with it.
+ */
+.hanging-boot--fixed {
+  position: fixed;
+  left: calc(var(--boot-fixed-x, 0) * 1%);
+  top: calc(var(--boot-fixed-y, 0) * 1vh);
+}
+
 .hanging-boot--disabled {
   cursor: not-allowed;
 }
 
-.hanging-boot--disabled .hanging-boot__img {
+.hanging-boot--dim .hanging-boot__img {
   filter: grayscale(1) brightness(0.7) drop-shadow(4px 8px 6px rgba(0, 0, 0, var(--boot-shadow, 0.5)));
+}
+
+/* Sold-out stamp across the boot: moves with the swing, sized by --sold-size, angled by --sold-angle */
+.hanging-boot__stamp {
+  position: absolute;
+  left: 50%;
+  top: 62%;
+  translate: -50% -50%;
+  white-space: nowrap;
+  pointer-events: none;
 }
 
 /*

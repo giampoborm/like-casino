@@ -35,9 +35,7 @@
         "price",
         "button"
       ],
-      "settings": {
-        "mobile_layout": "horizontal"
-      }
+      "settings": {}
     }
   },
   "order": [

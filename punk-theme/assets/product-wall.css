@@ -11,7 +11,7 @@
 .product-wall {
   display: flex;
   align-items: center;
-  padding: 70px 40px;
+  padding: var(--pp-wall-pad, 70px 40px);
   width: max-content;
   margin: 0 auto;
 }
@@ -209,10 +209,6 @@
 }
 
 @media (max-width: 640px) {
-  .product-wall {
-    padding: 60px 30px 30px;
-  }
-
   .product-wall-lightbox[open] {
     flex-direction: column;
     gap: 20px;

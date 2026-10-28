@@ -215,7 +215,8 @@
       "type": "image_picker",
       "id": "custom_logo",
       "label": "Custom logo",
-      "info": "Used when Logo is set to \"Custom upload\". Use a PNG with a transparent background, at least 420px tall (3× the max logo height) so it stays sharp. Larger images are resized automatically. If empty, the mini logo is shown."
+      "info": "Transparent PNG, 420px+ tall",
+      "visible_if": "{{ section.settings.logo_style == 'custom' }}"
     },
     {
       "type": "range",
@@ -251,8 +252,7 @@
         { "value": "center", "label": "t:options.alignment.center" },
         { "value": "right", "label": "t:options.alignment.right" }
       ],
-      "default": "right",
-      "info": "If the logo and cart share a position, they sit side by side."
+      "default": "right"
     },
     {
       "type": "header",
@@ -262,7 +262,6 @@
       "type": "select",
       "id": "icon_effect",
       "label": "Effect",
-      "info": "Applies to the logo and cart icon. The settings below only apply to the drop shadow.",
       "options": [
         { "value": "none", "label": "None" },
         { "value": "glow", "label": "White glow" },
@@ -274,7 +273,8 @@
       "type": "color",
       "id": "shadow_color",
       "label": "Shadow color",
-      "default": "#000000"
+      "default": "#000000",
+      "visible_if": "{{ section.settings.icon_effect == 'shadow' }}"
     },
     {
       "type": "range",
@@ -284,7 +284,8 @@
       "max": 100,
       "step": 5,
       "unit": "%",
-      "default": 60
+      "default": 60,
+      "visible_if": "{{ section.settings.icon_effect == 'shadow' }}"
     },
     {
       "type": "range",
@@ -294,7 +295,8 @@
       "max": 20,
       "step": 1,
       "unit": "px",
-      "default": 3
+      "default": 3,
+      "visible_if": "{{ section.settings.icon_effect == 'shadow' }}"
     },
     {
       "type": "range",
@@ -304,24 +306,25 @@
       "max": 20,
       "step": 1,
       "unit": "px",
-      "default": 3
+      "default": 3,
+      "visible_if": "{{ section.settings.icon_effect == 'shadow' }}"
     },
     {
       "type": "range",
       "id": "shadow_blur",
       "label": "Blur",
-      "info": "0 gives a hard, flat shadow",
       "min": 0,
       "max": 20,
       "step": 1,
       "unit": "px",
-      "default": 0
+      "default": 0,
+      "visible_if": "{{ section.settings.icon_effect == 'shadow' }}"
     },
     {
       "type": "range",
       "id": "shadow_lift",
-      "label": "Hover lift distance",
-      "info": "How far the logo and cart rise off the wall on hover. 0 turns the hover movement off.",
+      "label": "Hover lift",
+      "visible_if": "{{ section.settings.icon_effect == 'shadow' }}",
       "min": 0,
       "max": 10,
       "step": 1,

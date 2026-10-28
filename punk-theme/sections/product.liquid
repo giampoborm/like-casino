@@ -8,6 +8,7 @@
 
 {{ 'product-wall.css' | asset_url | stylesheet_tag }}
 {{ 'product-text.css' | asset_url | stylesheet_tag }}
+{{ 'stamp.css' | asset_url | stylesheet_tag }}
 
 {% comment %}
   LCG pseudo-random seeded by product.id.
@@ -31,14 +32,15 @@
 {% endcase %}
 
 {% assign s = section.settings %}
-{% assign action_style = s.action_style | default: 'buttons' %}
+{% assign action_style = s.action_style | default: 'boots' %}
 {% assign back_url = collection.url | default: '/collections/all' %}
 
 {% comment %}
   Numeric tweaks (sizes, spacing, positions) are emitted as CSS variables in a
   scoped <style> block. "Reset layout to defaults" skips them all, so the CSS
   fallbacks (the schema defaults) apply while the saved values are kept.
-  The mobile values only apply when "Customise for mobile" is on.
+  The mobile values only apply when "Separate phone values" is on.
+  In the editor they sit behind the "Fine-tune" select, which only decides what is shown.
 {% endcomment %}
 {% unless s.reset_layout %}
   <style>
@@ -46,8 +48,17 @@
     #shopify-section-{{ section.id }} .product-boot-back {
       --boot-w: {{ s.boot_width }}px;
       --boot-string: {{ s.boot_string }}px;
+      --boot-lace-color: {{ s.boot_lace_color }};
+      --boot-lace-width: {{ s.boot_lace_width }}px;
       --boot-swing: {{ s.boot_swing | times: 0.025 }}deg;
       --boot-shadow: {{ s.boot_shadow | divided_by: 100.0 }};
+    }
+    #shopify-section-{{ section.id }} .product-page,
+    #shopify-section-{{ section.id }} .product-stamp-back {
+      --stamp-angle: {{ s.stamp_angle }}deg;
+      --stamp-ink: {{ s.stamp_color }};
+      --sold-size: {{ s.sold_out_size | divided_by: 100.0 }};
+      --sold-angle: {{ s.sold_out_angle }}deg;
     }
     #shopify-section-{{ section.id }} .product-page {
       --gallery-width: {{ s.gallery_width }}%;
@@ -63,7 +74,8 @@
       --text-x: {{ s.text_x }}px;
       --text-y: {{ s.text_y }}px;
     }
-    #shopify-section-{{ section.id }} .product-boot-back {
+    #shopify-section-{{ section.id }} .product-boot-back,
+    #shopify-section-{{ section.id }} .product-stamp-back {
       --boot-size: {{ s.back_boot_size | divided_by: 100.0 }};
       --boot-x: {{ s.back_boot_x }}px;
       --boot-y: {{ s.back_boot_y }}px;
@@ -95,7 +107,8 @@
           --text-x: {{ s.mobile_text_x }}px;
           --text-y: {{ s.mobile_text_y }}px;
         }
-        #shopify-section-{{ section.id }} .product-boot-back {
+        #shopify-section-{{ section.id }} .product-boot-back,
+        #shopify-section-{{ section.id }} .product-stamp-back {
           --boot-size: {{ s.mobile_back_boot_size | divided_by: 100.0 }};
           --boot-x: {{ s.mobile_back_boot_x }}px;
           --boot-y: {{ s.mobile_back_boot_y }}px;
@@ -122,17 +135,33 @@
     {% assign buy_boot_src = s.buy_boot_image | image_url: width: 600 %}
   {% endif %}
   {% assign back_label = 'products.boot_back' | t %}
+  {% comment %} Fixed boots hang from the viewport, not the page: X in % of the width, Y in % of the height. {% endcomment %}
+  {% assign back_fx = s.back_fixed_x %}
+  {% assign back_fy = s.back_fixed_y %}
+  {% assign buy_fx = s.buy_fixed_x %}
+  {% assign buy_fy = s.buy_fixed_y %}
+  {% if s.reset_layout %}
+    {% assign back_fx = 3 %}
+    {% assign back_fy = 4 %}
+    {% assign buy_fx = 85 %}
+    {% assign buy_fy = 40 %}
+  {% endif %}
   {% comment %} Zero-height anchor where the back button used to be: the boot hangs down from it. {% endcomment %}
   <div class="product-boot-back">
     {% render 'hanging-boot',
       src: back_boot_src,
       href: back_url,
       label: back_label,
-      hook_x: 57,
-      hook_y: 52,
+      hook_x: s.back_hook_x,
+      hook_y: s.back_hook_y,
+      fixed: s.back_boot_fixed,
+      fixed_x: back_fx,
+      fixed_y: back_fy,
       modifier: 'back'
     %}
   </div>
+{% elsif action_style == 'stamps' %}
+  <a class="stamp product-stamp-back" href="{{ back_url }}" aria-label="{{ 'products.boot_back' | t }}"><svg class="stamp__arrow" viewBox="0 0 48 32" aria-hidden="true" focusable="false"><polygon points="0,16 18,0 18,10 48,10 48,22 18,22 18,32" fill="currentColor"></polygon></svg></a>
 {% else %}
   <a class="product-breadcrumb" href="{{ back_url }}">&#8592;</a>
 {% endif %}
@@ -238,33 +267,47 @@
                 {% assign sold_out_label = 'products.sold_out' | t %}
               {% endif %}
               {% if action_style == 'boots' %}
-                {% assign buy_label = 'products.add_to_cart' | t %}
-                {% assign buy_disabled = false %}
-                {% unless product.available %}{% assign buy_disabled = true %}{% endunless %}
-                {% render 'hanging-boot',
-                  src: buy_boot_src,
-                  label: buy_label,
-                  hook_x: 42,
-                  hook_y: 53,
-                  delay: 0.35,
-                  disabled: buy_disabled,
-                  modifier: 'buy'
-                %}
-                {% unless product.available %}
-                  <p class="product-text__sold-out-note">{{ sold_out_label }}</p>
-                {% endunless %}
-              {% else %}
+                {% comment %} Sold out: the boot is disabled and swaps to the sold-out boot image (bundled, or the picker). {% endcomment %}
+                {% if product.available %}
+                  {% assign buy_label = 'products.add_to_cart' | t %}
+                  {% render 'hanging-boot',
+                    src: buy_boot_src,
+                    label: buy_label,
+                    hook_x: s.buy_hook_x,
+                    hook_y: s.buy_hook_y,
+                    fixed: s.buy_boot_fixed,
+                    fixed_x: buy_fx,
+                    fixed_y: buy_fy,
+                    delay: 0.35,
+                    modifier: 'buy'
+                  %}
+                {% else %}
+                  {% assign sold_boot_src = 'soldoutboot.png' | asset_url %}
+                  {% if s.sold_out_boot_image != blank %}
+                    {% assign sold_boot_src = s.sold_out_boot_image | image_url: width: 600 %}
+                  {% endif %}
+                  {% render 'hanging-boot',
+                    src: sold_boot_src,
+                    label: sold_out_label,
+                    hook_x: s.buy_hook_x,
+                    hook_y: s.buy_hook_y,
+                    fixed: s.buy_boot_fixed,
+                    fixed_x: buy_fx,
+                    fixed_y: buy_fy,
+                    delay: 0.35,
+                    disabled: true,
+                    modifier: 'buy'
+                  %}
+                {% endif %}
+              {% elsif product.available %}
                 <button
                   type="submit"
-                  class="product-text__btn{% unless product.available %} product-text__btn--sold-out{% endunless %}"
-                  {% unless product.available %}disabled{% endunless %}
+                  class="{% if action_style == 'stamps' %}stamp{% if section.settings.stamp_press %} stamp--press{% endif %}{% else %}product-text__btn{% endif %}"
                 >
-                  {% if product.available %}
-                    {{ 'products.add_to_cart' | t }}
-                  {% else %}
-                    {{ sold_out_label }}
-                  {% endif %}
+                  {{ 'products.add_to_cart' | t }}
                 </button>
+              {% else %}
+                <button type="submit" class="stamp stamp--sold-out" disabled>{{ sold_out_label }}</button>
               {% endif %}
             {% endform %}
           </div>
@@ -357,73 +400,58 @@
   "settings": [
     {
       "type": "header",
-      "content": "Reset"
-    },
-    {
-      "type": "checkbox",
-      "id": "reset_layout",
-      "label": "Reset layout to defaults",
-      "info": "Ignores every size, spacing and position value below (including the text blocks). Your values are kept: untick to bring them back.",
-      "default": false
-    },
-    {
-      "type": "checkbox",
-      "id": "mobile_custom",
-      "label": "Customise for mobile",
-      "info": "Off: phones use the same values as desktop. On: phones use the Mobile fields (bottom of this section and inside each text block).",
-      "default": false
-    },
-    {
-      "type": "header",
-      "content": "Desktop layout"
+      "content": "Layout"
     },
     {
       "type": "select",
       "id": "desktop_layout",
-      "label": "Desktop gallery layout",
+      "label": "Desktop gallery",
       "options": [
-        { "value": "horizontal", "label": "Horizontal (strip above the text)" },
-        { "value": "vertical", "label": "Vertical (photos beside the text)" }
+        { "value": "horizontal", "label": "Strip above the text" },
+        { "value": "vertical", "label": "Stack beside the text" }
       ],
       "default": "horizontal"
     },
     {
       "type": "select",
       "id": "text_side",
-      "label": "Text side (vertical)",
+      "label": "Text side",
       "options": [
-        { "value": "right", "label": "Text on the right" },
-        { "value": "left", "label": "Text on the left" }
+        { "value": "right", "label": "Right" },
+        { "value": "left", "label": "Left" }
       ],
-      "default": "right"
+      "default": "right",
+      "visible_if": "{{ section.settings.desktop_layout == 'vertical' }}"
     },
     {
       "type": "range",
       "id": "gallery_width",
-      "label": "Gallery width (vertical)",
+      "label": "Gallery width",
       "min": 40,
       "max": 70,
       "step": 5,
       "unit": "%",
-      "default": 55
+      "default": 55,
+      "visible_if": "{{ section.settings.desktop_layout == 'vertical' }}"
+    },
+    {
+      "type": "select",
+      "id": "mobile_layout",
+      "label": "Phone gallery",
+      "options": [
+        { "value": "horizontal", "label": "Scroll sideways" },
+        { "value": "vertical", "label": "Stack downward" }
+      ],
+      "default": "horizontal"
     },
     {
       "type": "header",
-      "content": "Photos"
+      "content": "Style"
     },
-    {
-      "type": "paragraph",
-      "content": "Applies to desktop and mobile. Mobile can have its own values under \"Mobile\"."
-    },
-    { "type": "range", "id": "photo_size", "label": "Photo size", "min": 50, "max": 200, "step": 5, "unit": "%", "default": 100 },
-    { "type": "range", "id": "photo_spacing", "label": "Spacing", "min": -100, "max": 100, "step": 5, "unit": "px", "default": 0 },
-    { "type": "range", "id": "photo_scatter", "label": "Scatter", "min": 0, "max": 200, "step": 5, "unit": "%", "default": 100 },
-    { "type": "range", "id": "photo_tilt", "label": "Tilt", "min": 0, "max": 200, "step": 5, "unit": "%", "default": 100 },
-    { "type": "range", "id": "tape_size", "label": "Tape size", "min": 50, "max": 200, "step": 5, "unit": "%", "default": 100 },
     {
       "type": "select",
       "id": "tape_style",
-      "label": "Tape style",
+      "label": "Tape",
       "options": [
         { "value": "black", "label": "Black" },
         { "value": "masking", "label": "Masking" },
@@ -431,87 +459,124 @@
       ],
       "default": "black"
     },
-    { "type": "image_picker", "id": "tape_black_a", "label": "Black tape A", "info": "Empty = default", "visible_if": "{{ section.settings.tape_style == 'black' }}" },
-    { "type": "image_picker", "id": "tape_black_b", "label": "Black tape B", "info": "Empty = default", "visible_if": "{{ section.settings.tape_style == 'black' }}" },
-    { "type": "image_picker", "id": "tape_masking_a", "label": "Masking tape A", "info": "Empty = default", "visible_if": "{{ section.settings.tape_style == 'masking' }}" },
-    { "type": "image_picker", "id": "tape_masking_b", "label": "Masking tape B", "info": "Empty = default", "visible_if": "{{ section.settings.tape_style == 'masking' }}" },
-    { "type": "image_picker", "id": "tape_clear_a", "label": "Clear tape A", "info": "Empty = default", "visible_if": "{{ section.settings.tape_style == 'clear' }}" },
-    { "type": "image_picker", "id": "tape_clear_b", "label": "Clear tape B", "info": "Empty = default", "visible_if": "{{ section.settings.tape_style == 'clear' }}" },
-    {
-      "type": "header",
-      "content": "Text area"
-    },
-    { "type": "range", "id": "text_width", "label": "Width", "min": 30, "max": 100, "step": 5, "unit": "%", "default": 100 },
-    { "type": "range", "id": "text_scale", "label": "Size", "min": 50, "max": 200, "step": 5, "unit": "%", "default": 100 },
-    { "type": "range", "id": "text_x", "label": "Position X", "min": -300, "max": 300, "step": 10, "unit": "px", "default": 0 },
-    { "type": "range", "id": "text_y", "label": "Position Y", "min": -300, "max": 300, "step": 10, "unit": "px", "default": 0 },
-    {
-      "type": "header",
-      "content": "Action buttons"
-    },
     {
       "type": "select",
       "id": "action_style",
-      "label": "Style",
+      "label": "Back and buy buttons",
       "options": [
         { "value": "buttons", "label": "Buttons" },
-        { "value": "boots", "label": "Hanging boots" }
+        { "value": "boots", "label": "Hanging boots" },
+        { "value": "stamps", "label": "Ink stamps" }
       ],
-      "default": "buttons"
+      "default": "boots"
     },
     { "type": "text", "id": "sold_out_text", "label": "Sold out text", "info": "Empty = default" },
-    { "type": "range", "id": "boot_width", "label": "Boot width", "min": 80, "max": 300, "step": 5, "unit": "px", "default": 140, "visible_if": "{{ section.settings.action_style == 'boots' }}" },
-    { "type": "range", "id": "boot_string", "label": "Lace length", "info": "Long = leaves the screen", "min": 100, "max": 3000, "step": 100, "unit": "px", "default": 1500, "visible_if": "{{ section.settings.action_style == 'boots' }}" },
-    { "type": "range", "id": "boot_swing", "label": "Sway", "min": 0, "max": 200, "step": 10, "unit": "%", "default": 100, "visible_if": "{{ section.settings.action_style == 'boots' }}" },
-    { "type": "range", "id": "boot_shadow", "label": "Boot shadow", "min": 0, "max": 100, "step": 5, "unit": "%", "default": 50, "visible_if": "{{ section.settings.action_style == 'boots' }}" },
-    { "type": "range", "id": "back_boot_size", "label": "Back boot size", "min": 50, "max": 200, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ section.settings.action_style == 'boots' }}" },
-    { "type": "range", "id": "back_boot_x", "label": "Back boot X", "min": -300, "max": 300, "step": 10, "unit": "px", "default": 0, "visible_if": "{{ section.settings.action_style == 'boots' }}" },
-    { "type": "range", "id": "back_boot_y", "label": "Back boot Y", "min": -300, "max": 300, "step": 10, "unit": "px", "default": 0, "visible_if": "{{ section.settings.action_style == 'boots' }}" },
-    { "type": "image_picker", "id": "back_boot_image", "label": "Back boot image", "info": "Empty = default", "visible_if": "{{ section.settings.action_style == 'boots' }}" },
-    { "type": "image_picker", "id": "buy_boot_image", "label": "Buy boot image", "info": "Empty = default", "visible_if": "{{ section.settings.action_style == 'boots' }}" },
     {
       "type": "header",
-      "content": "Mobile"
+      "content": "Fine-tune"
     },
     {
       "type": "select",
-      "id": "mobile_layout",
-      "label": "Mobile gallery layout",
+      "id": "tune",
+      "label": "Show settings for",
       "options": [
-        { "value": "horizontal", "label": "Horizontal (scroll sideways)" },
-        { "value": "vertical", "label": "Vertical (stack downward)" }
+        { "value": "none", "label": "Nothing" },
+        { "value": "photos", "label": "Photos and tape" },
+        { "value": "text", "label": "Text area" },
+        { "value": "actions", "label": "Back and buy buttons" },
+        { "value": "boot_points", "label": "Boot lace points" },
+        { "value": "boot_fixed", "label": "Fixed boots" },
+        { "value": "sold_out", "label": "Sold out stamp" },
+        { "value": "images", "label": "Custom images" },
+        { "value": "phone_photos", "label": "Phone: photos and tape" },
+        { "value": "phone_text", "label": "Phone: text area" },
+        { "value": "phone_actions", "label": "Phone: back and buy" }
       ],
-      "default": "vertical"
+      "default": "none"
     },
+
+    { "type": "range", "id": "photo_size", "label": "Photo size", "min": 50, "max": 200, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ section.settings.tune == 'photos' }}" },
+    { "type": "range", "id": "photo_spacing", "label": "Spacing", "min": -100, "max": 100, "step": 5, "unit": "px", "default": 0, "visible_if": "{{ section.settings.tune == 'photos' }}" },
+    { "type": "range", "id": "photo_scatter", "label": "Scatter", "min": 0, "max": 200, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ section.settings.tune == 'photos' }}" },
+    { "type": "range", "id": "photo_tilt", "label": "Tilt", "min": 0, "max": 200, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ section.settings.tune == 'photos' }}" },
+    { "type": "range", "id": "tape_size", "label": "Tape size", "min": 50, "max": 200, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ section.settings.tune == 'photos' }}" },
+
+    { "type": "range", "id": "text_width", "label": "Width", "min": 30, "max": 100, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ section.settings.tune == 'text' }}" },
+    { "type": "range", "id": "text_scale", "label": "Size", "min": 50, "max": 200, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ section.settings.tune == 'text' }}" },
+    { "type": "range", "id": "text_x", "label": "Position X", "min": -300, "max": 300, "step": 10, "unit": "px", "default": 0, "visible_if": "{{ section.settings.tune == 'text' }}" },
+    { "type": "range", "id": "text_y", "label": "Position Y", "min": -300, "max": 300, "step": 10, "unit": "px", "default": 0, "visible_if": "{{ section.settings.tune == 'text' }}" },
+
+    { "type": "paragraph", "content": "Nothing to adjust for buttons", "visible_if": "{{ section.settings.tune == 'actions' and section.settings.action_style == 'buttons' }}" },
+    { "type": "range", "id": "back_boot_size", "label": "Back size", "min": 50, "max": 200, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ section.settings.tune == 'actions' and section.settings.action_style != 'buttons' }}" },
+    { "type": "range", "id": "back_boot_x", "label": "Back X", "min": -1000, "max": 1000, "step": 20, "unit": "px", "default": 0, "visible_if": "{{ section.settings.tune == 'actions' and section.settings.action_style != 'buttons' }}" },
+    { "type": "range", "id": "back_boot_y", "label": "Back Y", "min": -1000, "max": 1000, "step": 20, "unit": "px", "default": 0, "visible_if": "{{ section.settings.tune == 'actions' and section.settings.action_style != 'buttons' }}" },
+    { "type": "range", "id": "stamp_angle", "label": "Stamp tilt", "min": -15, "max": 15, "step": 1, "unit": "°", "default": -4, "visible_if": "{{ section.settings.tune == 'actions' and section.settings.action_style == 'stamps' }}" },
+    { "type": "checkbox", "id": "stamp_press", "label": "Stamp press on hover", "default": true, "visible_if": "{{ section.settings.tune == 'actions' and section.settings.action_style == 'stamps' }}" },
+    { "type": "color", "id": "stamp_color", "label": "Stamp ink", "default": "#000000", "visible_if": "{{ section.settings.tune == 'actions' and section.settings.action_style == 'stamps' }}" },
+    { "type": "range", "id": "boot_width", "label": "Boot width", "min": 80, "max": 300, "step": 5, "unit": "px", "default": 140, "visible_if": "{{ section.settings.tune == 'actions' and section.settings.action_style == 'boots' }}" },
+    { "type": "range", "id": "boot_string", "label": "Lace length","min": 100, "max": 3000, "step": 100, "unit": "px", "default": 1500, "visible_if": "{{ section.settings.tune == 'actions' and section.settings.action_style == 'boots' }}" },
+    { "type": "color", "id": "boot_lace_color", "label": "Lace colour", "default": "#14110e", "visible_if": "{{ section.settings.tune == 'actions' and section.settings.action_style == 'boots' }}" },
+    { "type": "range", "id": "boot_lace_width", "label": "Lace thickness", "min": 1, "max": 10, "step": 1, "unit": "px", "default": 2, "visible_if": "{{ section.settings.tune == 'actions' and section.settings.action_style == 'boots' }}" },
+    { "type": "range", "id": "boot_swing", "label": "Sway", "min": 0, "max": 200, "step": 10, "unit": "%", "default": 100, "visible_if": "{{ section.settings.tune == 'actions' and section.settings.action_style == 'boots' }}" },
+    { "type": "range", "id": "boot_shadow", "label": "Boot shadow", "min": 0, "max": 100, "step": 5, "unit": "%", "default": 50, "visible_if": "{{ section.settings.tune == 'actions' and section.settings.action_style == 'boots' }}" },
+
+    { "type": "paragraph", "content": "Hanging boots only", "visible_if": "{{ section.settings.tune contains 'boot_' and section.settings.action_style != 'boots' }}" },
+    { "type": "range", "id": "back_hook_x", "label": "Back lace X", "min": 0, "max": 100, "step": 1, "unit": "%", "default": 65, "visible_if": "{{ section.settings.tune == 'boot_points' and section.settings.action_style == 'boots' }}" },
+    { "type": "range", "id": "back_hook_y", "label": "Back lace Y", "min": 0, "max": 100, "step": 1, "unit": "%", "default": 58, "visible_if": "{{ section.settings.tune == 'boot_points' and section.settings.action_style == 'boots' }}" },
+    { "type": "range", "id": "buy_hook_x", "label": "Buy lace X", "min": 0, "max": 100, "step": 1, "unit": "%", "default": 42, "visible_if": "{{ section.settings.tune == 'boot_points' and section.settings.action_style == 'boots' }}" },
+    { "type": "range", "id": "buy_hook_y", "label": "Buy lace Y", "min": 0, "max": 100, "step": 1, "unit": "%", "default": 58, "visible_if": "{{ section.settings.tune == 'boot_points' and section.settings.action_style == 'boots' }}" },
+
+    { "type": "checkbox", "id": "back_boot_fixed", "label": "Fix the back boot", "default": false, "visible_if": "{{ section.settings.tune == 'boot_fixed' and section.settings.action_style == 'boots' }}" },
+    { "type": "range", "id": "back_fixed_x", "label": "Back boot from left", "min": 0, "max": 100, "step": 1, "unit": "%", "default": 3, "visible_if": "{{ section.settings.tune == 'boot_fixed' and section.settings.action_style == 'boots' and section.settings.back_boot_fixed }}" },
+    { "type": "range", "id": "back_fixed_y", "label": "Back boot from top", "min": 0, "max": 100, "step": 1, "unit": "%", "default": 4, "visible_if": "{{ section.settings.tune == 'boot_fixed' and section.settings.action_style == 'boots' and section.settings.back_boot_fixed }}" },
+    { "type": "checkbox", "id": "buy_boot_fixed", "label": "Fix the buy boot", "default": false, "visible_if": "{{ section.settings.tune == 'boot_fixed' and section.settings.action_style == 'boots' }}" },
+    { "type": "range", "id": "buy_fixed_x", "label": "Buy boot from left", "min": 0, "max": 100, "step": 1, "unit": "%", "default": 85, "visible_if": "{{ section.settings.tune == 'boot_fixed' and section.settings.action_style == 'boots' and section.settings.buy_boot_fixed }}" },
+    { "type": "range", "id": "buy_fixed_y", "label": "Buy boot from top", "min": 0, "max": 100, "step": 1, "unit": "%", "default": 40, "visible_if": "{{ section.settings.tune == 'boot_fixed' and section.settings.action_style == 'boots' and section.settings.buy_boot_fixed }}" },
+
+    { "type": "range", "id": "sold_out_size", "label": "Stamp size", "min": 50, "max": 250, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ section.settings.tune == 'sold_out' }}" },
+    { "type": "range", "id": "sold_out_angle", "label": "Stamp tilt", "min": -45, "max": 45, "step": 1, "unit": "°", "default": -12, "visible_if": "{{ section.settings.tune == 'sold_out' }}" },
+
+    { "type": "image_picker", "id": "tape_black_a", "label": "Black tape A", "info": "Empty = default", "visible_if": "{{ section.settings.tune == 'images' and section.settings.tape_style == 'black' }}" },
+    { "type": "image_picker", "id": "tape_black_b", "label": "Black tape B", "info": "Empty = default", "visible_if": "{{ section.settings.tune == 'images' and section.settings.tape_style == 'black' }}" },
+    { "type": "image_picker", "id": "tape_masking_a", "label": "Masking tape A", "info": "Empty = default", "visible_if": "{{ section.settings.tune == 'images' and section.settings.tape_style == 'masking' }}" },
+    { "type": "image_picker", "id": "tape_masking_b", "label": "Masking tape B", "info": "Empty = default", "visible_if": "{{ section.settings.tune == 'images' and section.settings.tape_style == 'masking' }}" },
+    { "type": "image_picker", "id": "tape_clear_a", "label": "Clear tape A", "info": "Empty = default", "visible_if": "{{ section.settings.tune == 'images' and section.settings.tape_style == 'clear' }}" },
+    { "type": "image_picker", "id": "tape_clear_b", "label": "Clear tape B", "info": "Empty = default", "visible_if": "{{ section.settings.tune == 'images' and section.settings.tape_style == 'clear' }}" },
+    { "type": "image_picker", "id": "back_boot_image", "label": "Back boot image", "info": "Empty = default", "visible_if": "{{ section.settings.tune == 'images' and section.settings.action_style == 'boots' }}" },
+    { "type": "image_picker", "id": "buy_boot_image", "label": "Buy boot image", "info": "Empty = default", "visible_if": "{{ section.settings.tune == 'images' and section.settings.action_style == 'boots' }}" },
+    { "type": "image_picker", "id": "sold_out_boot_image", "label": "Sold out boot image", "info": "Empty = default", "visible_if": "{{ section.settings.tune == 'images' and section.settings.action_style == 'boots' }}" },
+
     {
-      "type": "header",
-      "content": "Mobile – photos",
-      "visible_if": "{{ section.settings.mobile_custom }}"
+      "type": "checkbox",
+      "id": "mobile_custom",
+      "label": "Separate phone values",
+      "default": false,
+      "visible_if": "{{ section.settings.tune contains 'phone_' }}"
     },
-    { "type": "range", "id": "mobile_photo_size", "label": "Photo size", "min": 50, "max": 200, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ section.settings.mobile_custom }}" },
-    { "type": "range", "id": "mobile_photo_spacing", "label": "Spacing", "min": -100, "max": 100, "step": 5, "unit": "px", "default": 0, "visible_if": "{{ section.settings.mobile_custom }}" },
-    { "type": "range", "id": "mobile_photo_scatter", "label": "Scatter", "min": 0, "max": 200, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ section.settings.mobile_custom }}" },
-    { "type": "range", "id": "mobile_photo_tilt", "label": "Tilt", "min": 0, "max": 200, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ section.settings.mobile_custom }}" },
-    { "type": "range", "id": "mobile_tape_size", "label": "Tape size", "min": 50, "max": 200, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ section.settings.mobile_custom }}" },
+    { "type": "range", "id": "mobile_photo_size", "label": "Photo size", "min": 50, "max": 200, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ section.settings.tune == 'phone_photos' and section.settings.mobile_custom }}" },
+    { "type": "range", "id": "mobile_photo_spacing", "label": "Spacing", "min": -100, "max": 100, "step": 5, "unit": "px", "default": 0, "visible_if": "{{ section.settings.tune == 'phone_photos' and section.settings.mobile_custom }}" },
+    { "type": "range", "id": "mobile_photo_scatter", "label": "Scatter", "min": 0, "max": 200, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ section.settings.tune == 'phone_photos' and section.settings.mobile_custom }}" },
+    { "type": "range", "id": "mobile_photo_tilt", "label": "Tilt", "min": 0, "max": 200, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ section.settings.tune == 'phone_photos' and section.settings.mobile_custom }}" },
+    { "type": "range", "id": "mobile_tape_size", "label": "Tape size", "min": 50, "max": 200, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ section.settings.tune == 'phone_photos' and section.settings.mobile_custom }}" },
+
+    { "type": "range", "id": "mobile_text_width", "label": "Width", "min": 30, "max": 100, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ section.settings.tune == 'phone_text' and section.settings.mobile_custom }}" },
+    { "type": "range", "id": "mobile_text_scale", "label": "Size", "min": 50, "max": 200, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ section.settings.tune == 'phone_text' and section.settings.mobile_custom }}" },
+    { "type": "range", "id": "mobile_text_x", "label": "Position X", "min": -300, "max": 300, "step": 10, "unit": "px", "default": 0, "visible_if": "{{ section.settings.tune == 'phone_text' and section.settings.mobile_custom }}" },
+    { "type": "range", "id": "mobile_text_y", "label": "Position Y", "min": -300, "max": 300, "step": 10, "unit": "px", "default": 0, "visible_if": "{{ section.settings.tune == 'phone_text' and section.settings.mobile_custom }}" },
+
+    { "type": "range", "id": "mobile_back_boot_size", "label": "Back size", "min": 50, "max": 200, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ section.settings.tune == 'phone_actions' and section.settings.mobile_custom and section.settings.action_style != 'buttons' }}" },
+    { "type": "range", "id": "mobile_back_boot_x", "label": "Back X", "min": -1000, "max": 1000, "step": 20, "unit": "px", "default": 0, "visible_if": "{{ section.settings.tune == 'phone_actions' and section.settings.mobile_custom and section.settings.action_style != 'buttons' }}" },
+    { "type": "range", "id": "mobile_back_boot_y", "label": "Back Y", "min": -1000, "max": 1000, "step": 20, "unit": "px", "default": 0, "visible_if": "{{ section.settings.tune == 'phone_actions' and section.settings.mobile_custom and section.settings.action_style != 'buttons' }}" },
+    { "type": "range", "id": "mobile_boot_width", "label": "Boot width", "min": 80, "max": 300, "step": 5, "unit": "px", "default": 140, "visible_if": "{{ section.settings.tune == 'phone_actions' and section.settings.mobile_custom and section.settings.action_style == 'boots' }}" },
+    { "type": "range", "id": "mobile_boot_string", "label": "Lace length", "min": 100, "max": 3000, "step": 100, "unit": "px", "default": 1500, "visible_if": "{{ section.settings.tune == 'phone_actions' and section.settings.mobile_custom and section.settings.action_style == 'boots' }}" },
+
     {
-      "type": "header",
-      "content": "Mobile – text area",
-      "visible_if": "{{ section.settings.mobile_custom }}"
-    },
-    { "type": "range", "id": "mobile_text_width", "label": "Width", "min": 30, "max": 100, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ section.settings.mobile_custom }}" },
-    { "type": "range", "id": "mobile_text_scale", "label": "Size", "min": 50, "max": 200, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ section.settings.mobile_custom }}" },
-    { "type": "range", "id": "mobile_text_x", "label": "Position X", "min": -300, "max": 300, "step": 10, "unit": "px", "default": 0, "visible_if": "{{ section.settings.mobile_custom }}" },
-    { "type": "range", "id": "mobile_text_y", "label": "Position Y", "min": -300, "max": 300, "step": 10, "unit": "px", "default": 0, "visible_if": "{{ section.settings.mobile_custom }}" },
-    {
-      "type": "header",
-      "content": "Mobile – hanging boots",
-      "visible_if": "{{ section.settings.mobile_custom and section.settings.action_style == 'boots' }}"
-    },
-    { "type": "range", "id": "mobile_boot_width", "label": "Boot width", "min": 80, "max": 300, "step": 5, "unit": "px", "default": 140, "visible_if": "{{ section.settings.mobile_custom and section.settings.action_style == 'boots' }}" },
-    { "type": "range", "id": "mobile_boot_string", "label": "Lace length", "min": 100, "max": 3000, "step": 100, "unit": "px", "default": 1500, "visible_if": "{{ section.settings.mobile_custom and section.settings.action_style == 'boots' }}" },
-    { "type": "range", "id": "mobile_back_boot_size", "label": "Back boot size", "min": 50, "max": 200, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ section.settings.mobile_custom and section.settings.action_style == 'boots' }}" },
-    { "type": "range", "id": "mobile_back_boot_x", "label": "Back boot X", "min": -300, "max": 300, "step": 10, "unit": "px", "default": 0, "visible_if": "{{ section.settings.mobile_custom and section.settings.action_style == 'boots' }}" },
-    { "type": "range", "id": "mobile_back_boot_y", "label": "Back boot Y", "min": -300, "max": 300, "step": 10, "unit": "px", "default": 0, "visible_if": "{{ section.settings.mobile_custom and section.settings.action_style == 'boots' }}" }
+      "type": "checkbox",
+      "id": "reset_layout",
+      "label": "Reset layout to defaults",
+      "info": "Values are kept",
+      "default": false
+    }
   ],
   "blocks": [
     {
@@ -519,14 +584,14 @@
       "name": "Title",
       "limit": 1,
       "settings": [
-        { "type": "range", "id": "size", "label": "Size", "min": 50, "max": 250, "step": 5, "unit": "%", "default": 100 },
-        { "type": "range", "id": "offset_x", "label": "Position X", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 },
-        { "type": "range", "id": "offset_y", "label": "Position Y", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 },
-        { "type": "header", "content": "Mobile" },
-        { "type": "paragraph", "content": "Only used when \"Customise for mobile\" is ticked in the section settings." },
-        { "type": "range", "id": "mobile_size", "label": "Size", "min": 50, "max": 250, "step": 5, "unit": "%", "default": 100 },
-        { "type": "range", "id": "mobile_offset_x", "label": "Position X", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 },
-        { "type": "range", "id": "mobile_offset_y", "label": "Position Y", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 }
+        { "type": "select", "id": "screen", "label": "Screen", "options": [{ "value": "desktop", "label": "Desktop" }, { "value": "phone", "label": "Phone" }], "default": "desktop" },
+        { "type": "range", "id": "size", "label": "Size", "min": 50, "max": 250, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ block.settings.screen == 'desktop' }}" },
+        { "type": "range", "id": "offset_x", "label": "Position X", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0, "visible_if": "{{ block.settings.screen == 'desktop' }}" },
+        { "type": "range", "id": "offset_y", "label": "Position Y", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0, "visible_if": "{{ block.settings.screen == 'desktop' }}" },
+        { "type": "paragraph", "content": "Needs \"Separate phone values\"", "visible_if": "{{ block.settings.screen == 'phone' }}" },
+        { "type": "range", "id": "mobile_size", "label": "Size", "min": 50, "max": 250, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ block.settings.screen == 'phone' }}" },
+        { "type": "range", "id": "mobile_offset_x", "label": "Position X", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0, "visible_if": "{{ block.settings.screen == 'phone' }}" },
+        { "type": "range", "id": "mobile_offset_y", "label": "Position Y", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0, "visible_if": "{{ block.settings.screen == 'phone' }}" }
       ]
     },
     {
@@ -534,14 +599,14 @@
       "name": "Description",
       "limit": 1,
       "settings": [
-        { "type": "range", "id": "size", "label": "Size", "min": 50, "max": 250, "step": 5, "unit": "%", "default": 100 },
-        { "type": "range", "id": "offset_x", "label": "Position X", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 },
-        { "type": "range", "id": "offset_y", "label": "Position Y", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 },
-        { "type": "header", "content": "Mobile" },
-        { "type": "paragraph", "content": "Only used when \"Customise for mobile\" is ticked in the section settings." },
-        { "type": "range", "id": "mobile_size", "label": "Size", "min": 50, "max": 250, "step": 5, "unit": "%", "default": 100 },
-        { "type": "range", "id": "mobile_offset_x", "label": "Position X", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 },
-        { "type": "range", "id": "mobile_offset_y", "label": "Position Y", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 }
+        { "type": "select", "id": "screen", "label": "Screen", "options": [{ "value": "desktop", "label": "Desktop" }, { "value": "phone", "label": "Phone" }], "default": "desktop" },
+        { "type": "range", "id": "size", "label": "Size", "min": 50, "max": 250, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ block.settings.screen == 'desktop' }}" },
+        { "type": "range", "id": "offset_x", "label": "Position X", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0, "visible_if": "{{ block.settings.screen == 'desktop' }}" },
+        { "type": "range", "id": "offset_y", "label": "Position Y", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0, "visible_if": "{{ block.settings.screen == 'desktop' }}" },
+        { "type": "paragraph", "content": "Needs \"Separate phone values\"", "visible_if": "{{ block.settings.screen == 'phone' }}" },
+        { "type": "range", "id": "mobile_size", "label": "Size", "min": 50, "max": 250, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ block.settings.screen == 'phone' }}" },
+        { "type": "range", "id": "mobile_offset_x", "label": "Position X", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0, "visible_if": "{{ block.settings.screen == 'phone' }}" },
+        { "type": "range", "id": "mobile_offset_y", "label": "Position Y", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0, "visible_if": "{{ block.settings.screen == 'phone' }}" }
       ]
     },
     {
@@ -549,14 +614,14 @@
       "name": "Price",
       "limit": 1,
       "settings": [
-        { "type": "range", "id": "size", "label": "Size", "min": 50, "max": 250, "step": 5, "unit": "%", "default": 100 },
-        { "type": "range", "id": "offset_x", "label": "Position X", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 },
-        { "type": "range", "id": "offset_y", "label": "Position Y", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 },
-        { "type": "header", "content": "Mobile" },
-        { "type": "paragraph", "content": "Only used when \"Customise for mobile\" is ticked in the section settings." },
-        { "type": "range", "id": "mobile_size", "label": "Size", "min": 50, "max": 250, "step": 5, "unit": "%", "default": 100 },
-        { "type": "range", "id": "mobile_offset_x", "label": "Position X", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 },
-        { "type": "range", "id": "mobile_offset_y", "label": "Position Y", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 }
+        { "type": "select", "id": "screen", "label": "Screen", "options": [{ "value": "desktop", "label": "Desktop" }, { "value": "phone", "label": "Phone" }], "default": "desktop" },
+        { "type": "range", "id": "size", "label": "Size", "min": 50, "max": 250, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ block.settings.screen == 'desktop' }}" },
+        { "type": "range", "id": "offset_x", "label": "Position X", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0, "visible_if": "{{ block.settings.screen == 'desktop' }}" },
+        { "type": "range", "id": "offset_y", "label": "Position Y", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0, "visible_if": "{{ block.settings.screen == 'desktop' }}" },
+        { "type": "paragraph", "content": "Needs \"Separate phone values\"", "visible_if": "{{ block.settings.screen == 'phone' }}" },
+        { "type": "range", "id": "mobile_size", "label": "Size", "min": 50, "max": 250, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ block.settings.screen == 'phone' }}" },
+        { "type": "range", "id": "mobile_offset_x", "label": "Position X", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0, "visible_if": "{{ block.settings.screen == 'phone' }}" },
+        { "type": "range", "id": "mobile_offset_y", "label": "Position Y", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0, "visible_if": "{{ block.settings.screen == 'phone' }}" }
       ]
     },
     {
@@ -564,14 +629,14 @@
       "name": "Add to cart button",
       "limit": 1,
       "settings": [
-        { "type": "range", "id": "size", "label": "Size", "min": 50, "max": 250, "step": 5, "unit": "%", "default": 100 },
-        { "type": "range", "id": "offset_x", "label": "Position X", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 },
-        { "type": "range", "id": "offset_y", "label": "Position Y", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 },
-        { "type": "header", "content": "Mobile" },
-        { "type": "paragraph", "content": "Only used when \"Customise for mobile\" is ticked in the section settings." },
-        { "type": "range", "id": "mobile_size", "label": "Size", "min": 50, "max": 250, "step": 5, "unit": "%", "default": 100 },
-        { "type": "range", "id": "mobile_offset_x", "label": "Position X", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 },
-        { "type": "range", "id": "mobile_offset_y", "label": "Position Y", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 }
+        { "type": "select", "id": "screen", "label": "Screen", "options": [{ "value": "desktop", "label": "Desktop" }, { "value": "phone", "label": "Phone" }], "default": "desktop" },
+        { "type": "range", "id": "size", "label": "Size", "min": 50, "max": 250, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ block.settings.screen == 'desktop' }}" },
+        { "type": "range", "id": "offset_x", "label": "Position X", "min": -1000, "max": 1000, "step": 20, "unit": "px", "default": 0, "visible_if": "{{ block.settings.screen == 'desktop' }}" },
+        { "type": "range", "id": "offset_y", "label": "Position Y", "min": -1000, "max": 1000, "step": 20, "unit": "px", "default": 0, "visible_if": "{{ block.settings.screen == 'desktop' }}" },
+        { "type": "paragraph", "content": "Needs \"Separate phone values\"", "visible_if": "{{ block.settings.screen == 'phone' }}" },
+        { "type": "range", "id": "mobile_size", "label": "Size", "min": 50, "max": 250, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ block.settings.screen == 'phone' }}" },
+        { "type": "range", "id": "mobile_offset_x", "label": "Position X", "min": -1000, "max": 1000, "step": 20, "unit": "px", "default": 0, "visible_if": "{{ block.settings.screen == 'phone' }}" },
+        { "type": "range", "id": "mobile_offset_y", "label": "Position Y", "min": -1000, "max": 1000, "step": 20, "unit": "px", "default": 0, "visible_if": "{{ block.settings.screen == 'phone' }}" }
       ]
     }
   ],

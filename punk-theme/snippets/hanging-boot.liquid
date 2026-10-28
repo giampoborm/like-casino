@@ -1,21 +1,26 @@
 {% comment %}
-  A boot hanging from a shoestring. It drops in from the top on load, then sways.
+  A boot hanging from a lace. It drops in from the top on load, then sways.
   Renders a link when `href` is set, otherwise a submit button (for use inside a form).
 
   Accepts:
   - src: image URL of the boot
   - label: accessible name
   - href: optional link target
-  - hook_x, hook_y: where the lace is tied, % from the left / top edge of the image
+  - hook_x, hook_y: where the lace leaves the boot, % from the left / top edge of the image
   - delay: seconds before the drop starts
-  - disabled: true greys the boot out and blocks clicks
+  - fixed: true keeps the boot on screen while the page scrolls, at fixed_x / fixed_y (% of the viewport width / height)
+  - disabled: true blocks clicks
+  - dim: true greys the boot out (use with `disabled`; leave off when the image is already a sold-out one)
+  - stamp: optional text stamped across the boot (sold out)
   - modifier: extra BEM modifier, e.g. 'back' or 'buy'
 
-  Size, string length, sway and shadow come from CSS variables set by the parent
-  (--boot-w, --boot-string, --boot-swing, --boot-shadow). Styles live in hanging-boot.css.
+  Size, lace, sway and shadow come from CSS variables set by the parent
+  (--boot-w, --boot-string, --boot-lace-color, --boot-lace-width, --boot-swing, --boot-shadow).
+  Styles live in hanging-boot.css.
 {% endcomment %}
 
 {{ 'hanging-boot.css' | asset_url | stylesheet_tag }}
+{{ 'stamp.css' | asset_url | stylesheet_tag }}
 
 {% capture boot_inner %}
   <span class="hanging-boot__string" aria-hidden="true"></span>
@@ -23,14 +28,17 @@
     {% # theme-check-disable ImgWidthAndHeight, RemoteAsset %}
     <img class="hanging-boot__img" src="{{ src }}" alt="" loading="eager">
     {% # theme-check-enable ImgWidthAndHeight, RemoteAsset %}
+    {% if stamp != blank %}
+      <span class="hanging-boot__stamp stamp stamp--sold-out" aria-hidden="true">{{ stamp }}</span>
+    {% endif %}
   </span>
 {% endcapture %}
 
-{% capture boot_style %}--boot-hook-x: {{ hook_x | default: 50 }}%; --boot-hook-y: {{ hook_y | default: 0 }}%; --boot-delay: {{ delay | default: 0 }}s{% endcapture %}
+{% capture boot_style %}--boot-hook-x: {{ hook_x | default: 50 }}%; --boot-hook-y: {{ hook_y | default: 0 }}%; --boot-delay: {{ delay | default: 0 }}s{% if fixed %}; --boot-fixed-x: {{ fixed_x | default: 0 }}; --boot-fixed-y: {{ fixed_y | default: 0 }}{% endif %}{% endcapture %}
 
 {% if href != blank %}
   <a
-    class="hanging-boot{% if modifier != blank %} hanging-boot--{{ modifier }}{% endif %}"
+    class="hanging-boot{% if modifier != blank %} hanging-boot--{{ modifier }}{% endif %}{% if fixed %} hanging-boot--fixed{% endif %}"
     href="{{ href }}"
     aria-label="{{ label }}"
     style="{{ boot_style }}"
@@ -40,7 +48,7 @@
 {% else %}
   <button
     type="submit"
-    class="hanging-boot{% if modifier != blank %} hanging-boot--{{ modifier }}{% endif %}{% if disabled %} hanging-boot--disabled{% endif %}"
+    class="hanging-boot{% if modifier != blank %} hanging-boot--{{ modifier }}{% endif %}{% if fixed %} hanging-boot--fixed{% endif %}{% if disabled %} hanging-boot--disabled{% endif %}{% if dim %} hanging-boot--dim{% endif %}"
     aria-label="{{ label }}"
     style="{{ boot_style }}"
     {% if disabled %}disabled{% endif %}

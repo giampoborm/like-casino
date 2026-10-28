@@ -24,16 +24,26 @@
   color: var(--color-text-inverse);
 }
 
-/* Hanging-boot mode: the back boot hangs from a zero-height anchor where the back button was */
+/* Hanging-boot mode: the back boot hangs from a zero-height anchor where the back button was,
+   raised to sit beside the logo. --boot-x / --boot-y nudge it from there. */
 .product-boot-back {
+  --pp-back-x: -30px;
+  --pp-back-y: -80px;
+
   position: relative;
   z-index: 30;
   height: 0;
   margin-left: 1rem;
 }
 
+@media (max-width: 640px) {
+  .product-boot-back {
+    --pp-back-y: -90px;
+  }
+}
+
 .product-boot-back .hanging-boot {
-  translate: var(--boot-x, 0px) var(--boot-y, 0px);
+  translate: calc(var(--pp-back-x) + var(--boot-x, 0px)) calc(var(--pp-back-y) + var(--boot-y, 0px));
 }
 
 /* Lift the text column above the photos so the buy boot and its lace hang in front of everything.
@@ -47,12 +57,44 @@
   --boot-size: var(--block-size, 1);
 }
 
-.product-text__sold-out-note {
-  margin: 0.5rem 0 0;
-  text-align: center;
-  font-family: var(--font-stamp--family);
-  color: var(--color-accent);
-  letter-spacing: 0.08em;
+/* Stamp mode: the back stamp sits where the back button used to be */
+.product-stamp-back {
+  position: relative;
+  z-index: 30;
+  margin: 0 0 0 1rem;
+  translate: var(--boot-x, 0px) var(--boot-y, 0px);
+  --block-size: var(--boot-size, 1);
+}
+
+/*
+ * Layout defaults: the grid and spacing a page gets before (or without) any editor value, i.e. what
+ * "Reset layout to defaults" returns to. One set for desktop, one for phones (640px and below).
+ *   --pp-text-cols   columns of the text grid (title | description | action)
+ *   --pp-gap-x/y     gaps between the text elements
+ *   --pp-text-pad-b  space under the text, above the footer
+ *   --pp-wall-pad    padding around the horizontal photo strip (top right bottom left)
+ *   --pp-buy-x/y     where the buy boot hangs, relative to its grid cell (boots only)
+ */
+.product-page {
+  --pp-text-cols: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 0.8fr);
+  --pp-gap-x: 3rem;
+  --pp-gap-y: 0;
+  --pp-text-pad-b: 4rem;
+  --pp-wall-pad: 70px 40px 0;
+  --pp-buy-x: -35px;
+  --pp-buy-y: -25px;
+}
+
+@media (max-width: 640px) {
+  .product-page {
+    --pp-text-cols: minmax(0, 1fr) auto;
+    --pp-gap-x: 1rem;
+    --pp-gap-y: 0.5rem;
+    --pp-text-pad-b: 3rem;
+    --pp-wall-pad: 60px 30px 30px;
+    --pp-buy-x: 0px;
+    --pp-buy-y: 0px;
+  }
 }
 
 /*
@@ -65,17 +107,20 @@
 .product-text {
   width: calc((100% - 10vw) * var(--text-width, 100) / 100);
   margin: 0 auto;
-  padding: 0 1rem;
-  transform: translate(var(--text-x, 0px), var(--text-y, 0px));
+  padding: 0 1rem var(--pp-text-pad-b);
+  /* Offset with left/top, not transform: a transformed ancestor would stop a fixed boot from being fixed */
+  position: relative;
+  left: var(--text-x, 0px);
+  top: var(--text-y, 0px);
   color: var(--color-text);
   text-shadow: var(--text-effect, none);
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: var(--pp-text-cols);
   grid-template-areas:
     "title   desc   actions"
     "price   desc   actions";
-  column-gap: 2rem;
-  row-gap: 0;
+  column-gap: var(--pp-gap-x);
+  row-gap: var(--pp-gap-y);
   align-items: center;
 }
 
@@ -112,7 +157,15 @@
   align-self: start;
   margin-top: 7%;
   justify-self: center;
-  transform: translate(var(--block-x, 0px), var(--block-y, 0px));
+  /* left/top, not transform: keeps the fixed buy boot fixed */
+  position: relative;
+  left: var(--block-x, 0px);
+  top: var(--block-y, 0px);
+}
+
+.product-text__actions:has(.hanging-boot) {
+  left: calc(var(--pp-buy-x) + var(--block-x, 0px));
+  top: calc(var(--pp-buy-y) + var(--block-y, 0px));
 }
 
 .product-text__btn {
@@ -151,8 +204,9 @@
       "actions";
     justify-items: start;
     width: calc((100% - 4rem) * var(--text-width, 100) / 100);
-    margin: 0 2rem;
-    padding: 0;
+    left: auto;
+    margin: var(--text-y, 0px) 2rem 0 calc(2rem + var(--text-x, 0px));
+    padding: 0 0 var(--pp-text-pad-b);
   }
 
   .product-page--vertical .product-text__price {
@@ -173,17 +227,15 @@
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .product-text {
-    grid-template-columns: 1fr auto;
     grid-template-areas:
       "title title"
       "price actions"
       "desc  desc";
-    column-gap: 1rem;
     width: calc((100% - 2rem) * var(--text-width, 100) / 100);
     margin: 0 1rem;
-    padding: 0;
+    padding: 0 0 var(--pp-text-pad-b);
   }
 
   .product-text__actions {
@@ -202,6 +254,19 @@
     margin-top: 1rem;
     align-self: start;
   }
+
+  /* A boot is too tall for the price row: it hangs beside title and price, the description runs full width under it */
+  .product-text:has(.hanging-boot) {
+    grid-template-areas:
+      "title actions"
+      "price actions"
+      "desc  desc";
+  }
+
+  .product-text__actions:has(.hanging-boot) {
+    grid-row: 1 / 3;
+    align-self: start;
+  }
 }
 
 .product-text__btn:hover:not(:disabled) {
@@ -211,13 +276,4 @@
 
 .product-text__btn:disabled {
   cursor: not-allowed;
-}
-
-/* Sold-out stamp: stamp font + accent colour */
-.product-text__btn--sold-out {
-  font-family: var(--font-stamp--family);
-  color: var(--color-accent);
-  font-size: calc(1rem * var(--text-scale, 1) * var(--block-size, 1));
-  letter-spacing: 0.08em;
-  border-color: color-mix(in srgb, var(--color-accent) 35%, transparent);
 }

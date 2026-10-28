@@ -101,6 +101,7 @@ layout/theme.liquid        ← wraps every page (head, header group, footer grou
 - [ ] Rack and its product grid as their own sections, so the editor can order/combine them
 - [x] **Collection floor schema** — done Oct 2026: columns (desktop/mobile), gap, products per page, sort menu toggle, tilt / offset / row spacing, show names/prices, sold-out text/size/angle/shadow, shadow and hover glow; hardcoded values and dead code removed
 - [ ] **Horizontal catalogue row section** (`catalogue-rows`) — section built with schema Oct 2026 (card width, gap, picture ratio, names/prices, row title size, sold-out and "see all" text, shadows); still to do: place it in a template, confirm categories from product type / automated collections (check client's admin data), final visual pass and mobile. Planned as its own step after the product page rework
+- [ ] **Other collection sections — retouch and define exactly** *(user, Oct 28 2026)*: decide what each of `collection-floor` / `collection-wall` is for and where it is used, then do a visual pass on each
 - [ ] Paginated grid for "see all" (`paginate … by 24`), sorting controls (plain typography), hover tilt, sold-out overlay, empty state
 - [x] **`collection-wall` kept** (decided Oct 2026): follows the branding rules like every section, takes each product's **second** image (first is the packshot PNG used on the floor/rack; falls back to the first if it is the only one), and has schema settings for columns, gap, picture shape, products per page, frame choice/thickness/optional frame image pickers, max tilt, straighten on hover and shadow strength. Not yet placed in a template
 - [ ] **"Sold Out" text as a schema setting** — done for collection floor and catalogue rows; still to do: collection wall and product page (the product page with its rework)
@@ -122,8 +123,14 @@ layout/theme.liquid        ← wraps every page (head, header group, footer grou
 - [x] **Hanging-boot action style** (Oct 2026) — "Action buttons → Style" select: Buttons / Hanging boots (`snippets/hanging-boot.liquid` + `hanging-boot.css`, back + buy boots, size/lace/sway/shadow/position settings, image pickers). Boot-as-block / reuse in other sections still to decide (see step 7)
 - [x] **Mobile overrides + reset** (Oct 2026) — "Customise for mobile" checkbox: mobile photo, text-area and boot values, plus a Mobile group on each text block. "Reset layout to defaults" checkbox ignores every size/spacing/position value (keeps them saved). Values are emitted as scoped CSS variables in a `<style>` block in `product.liquid`
 
+- [x] **Ink stamps + sold out + layout defaults** (Oct 2026, written from code, **not yet checked in a browser**) — Style select has a third value, **Ink stamps** (`assets/stamp.css`, SVG `#stamp-ink` distress filter in `product.liquid`): back and add-to-cart as stamps. **Sold out** is its own "Sold out" group (text, stamp size, tilt): red Accent stamp in all three styles; on boots it is stamped across the boot, with an optional "Sold out boot image" (empty = buy boot greyed). **Lace**: colour + thickness settings, and per-boot lace points (X/Y %) so a new boot PNG with laces emerging from the silhouette can be aligned. **Layout defaults** now live as `--pp-*` tokens at the top of `product-text.css`, one set for desktop and one for ≤640px (what "Reset layout to defaults" returns to)
+
+- [x] **Fixed boots** (Oct 2026) — "Fixed boots" group: each boot has its own checkbox + position as % of the screen. Needs no transformed ancestor, so `.product-text` and `.product-text__actions` are now offset with `left/top` (and margins in the vertical layout) instead of `transform`. Sold-out boot defaults to the bundled `soldoutboot.png` (no stamp on it, it already says SOLD OUT). Back / buy X-Y ranges widened to ±1000 (step 20, the editor allows at most 101 steps)
+
 **To do next time:**
-- [ ] **Set the final defaults from the editor (do at the very end)** — once all schemas are built and tuned in the editor: `shopify theme pull` the product template into a scratch folder (don't overwrite local files), read the saved values from `templates/product.json`, write them in as schema `default`s in `product.liquid`, and update the CSS `var(--x, fallback)` fallbacks so "Reset layout to defaults" matches (currently 1 for scales, 55% gallery width, 140px boot width, 1500px lace). Same idea for the other sections tuned in the editor
+- [ ] **Check the above in a browser** (desktop + phone): stamp look/filter strength, sold-out stamp on the boot, new defaults; then tune the `--pp-*` tokens and the filter
+- [ ] **New boot PNG** *(user)*: laces left on the boot, emerging from the silhouette; then set the lace points and lace colour in the editor
+- [x] **Defaults from the editor + schema tidy-up** (Oct 28 2026, checked in a browser at 1440 and 390 px) — tuned editor values pulled and made the defaults. Position compensations moved into the CSS layout (`--pp-wall-pad`, `--pp-buy-x/y`, `--pp-back-x/y`), so every offset slider defaults to 0. Boots on phones get their own grid (boot beside title + price, description full width below). Schema: everyday choices on top (Layout, Style), every slider behind one **"Fine-tune → Show settings for"** select that works like tabs (incl. "Phone: …" groups); text blocks have a Desktop/Phone "Screen" select. `templates/product.json` reset to defaults. Same approach still to do for the other sections tuned in the editor
 - [ ] **Non-gallery view — "product basic showcase" section** *(potential)*: a simpler product page with more editing power through blocks. Decide if it is needed at all, then scope it
 - [ ] **Alternative buttons: boot or stamp** — "Add to cart" and "Sold out" as a stamp (ink-stamp look, sold-out = different stamp, disabled state) **or** a hanging boot. Decide which (or make it an editor select), then build; may reuse the decor block (step 2)
 - [ ] **Resize tape PNGs** — masking/clear tape files are 1568–1792 px wide, ~1 MB each; the tape draws at ~60 px, so downscale to ~300 px (the black ones are ~250 px, ~50 KB). Also part of step 8
@@ -153,15 +160,23 @@ layout/theme.liquid        ← wraps every page (head, header group, footer grou
 - [ ] Slow-connection test on every page (no empty-box flashes, sensible placeholders)
 
 ### 9. Cart — ~2 sessions
+> **Full redo** of the cart page (confirmed Oct 28 2026), not a retouch of the current one.
 - [ ] Rope across full width, polaroid items hanging by clips, horizontal scroll on overflow
 - [ ] Subtotal + checkout on paper, remove interaction, empty state, mobile
 
-### 10. Launch checklist — 1–2 sessions
+### 10. Details — polish pass *(user wants to spend real time here)*
+- [ ] **Add-to-cart animation** — something physical happens when an item is added (e.g. a polaroid flies to / drops onto the cart rope, boot swings, stamp thud). Decide the idea, then build; respect `prefers-reduced-motion`
+- [ ] **Boots and similar objects — more work** — more detail and life on the hanging boots and other hanging/decor objects (motion, laces, shadows, reactions), beyond the product-page items in step 5
+
+### 11. Launch checklist — 1–2 sessions
+- [ ] **Thorough review of the whole theme** — every page and section, desktop + phone
+- [ ] **Right defaults everywhere** — tune each section in the editor, then make those values the schema defaults and reset the templates (as done for the product page, step 5)
 - [ ] **Editability check** — every section: all content/colors/links/positions are schema settings (the MVP principle)
 - [ ] **Check the leftover hardcoded colours** (decide per item: variable, schema setting, or leave): button bevel greys (`rgb(190,187,175)`/`rgb(145,142,130)` in product-text + cart, `rgb(143)`/`rgb(97)` in collection floor + wall); `--rack-paper: #efe6d2` (the cardboard sign at the end of the rack rail; maybe link to Negative or give it a setting); placeholder garment colours/strokes in `clothing-rack-garment.liquid`; placeholder fills (`#ddd9cc` in cart, catalogue and floor placeholders); lightbox overlay/controls in `product-wall.css`; header glow filters and black glow default
 - [ ] Mobile pass on every page
 - [ ] `theme-check` clean; test install on a fresh store with default content
 - [ ] Short client guide: how to edit each section (include the rack: Window collection + `custom.rack_image` metafield and the rack image spec above)
+- [ ] **Ship** — `shopify theme pull`, then push and publish on the client's store
 
 ---
 
