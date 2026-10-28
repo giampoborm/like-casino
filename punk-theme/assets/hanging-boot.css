@@ -1,0 +1,122 @@
+/*
+ * Hanging boot: image on a lace tied at the instep, drops from the top then sways.
+ * Set by the parent: --boot-w (px), --boot-string (px), --boot-swing (deg),
+ * --boot-shadow (0-1), --boot-size (multiplier). Set per boot inline: --boot-hook-x / --boot-hook-y
+ * (% of the image, where the lace is tied) and --boot-delay.
+ * The lace runs straight up from the tie point, long enough to leave the screen. The drop animates
+ * the wrapper (boot and lace together); the sway rotates only the boot, around the tie point.
+ */
+.hanging-boot {
+  display: block;
+  position: relative;
+  width: calc(var(--boot-w, 140px) * var(--boot-size, 1));
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  pointer-events: auto;
+  animation: hanging-boot-drop 2s var(--boot-delay, 0s) backwards;
+}
+
+/*
+ * Motion in three layers, all pivoting on the tie point so they never fight over transform:
+ * the wrapper is lowered on the lace, __swing is the damped swing after it lands,
+ * __img keeps a very small idle sway once it has come to rest.
+ */
+.hanging-boot__swing {
+  display: block;
+  position: relative;
+  transform-origin: var(--boot-hook-x, 50%) var(--boot-hook-y, 0%);
+  animation: hanging-boot-settle 8s calc(0.76s + var(--boot-delay, 0s)) linear backwards;
+}
+
+/* The lace goes straight up from the tie point; the boot image sits in front of it. */
+.hanging-boot__string {
+  position: absolute;
+  left: var(--boot-hook-x, 50%);
+  bottom: calc(100% - var(--boot-hook-y, 0%));
+  width: 3px;
+  height: var(--boot-string, 1500px);
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, #1a1612, #4a3f33);
+}
+
+.hanging-boot__img {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(4px 8px 6px rgba(0, 0, 0, var(--boot-shadow, 0.5)));
+  transition: filter 0.2s;
+  transform-origin: var(--boot-hook-x, 50%) var(--boot-hook-y, 0%);
+  animation: hanging-boot-idle 7s calc(8s + var(--boot-delay, 0s)) ease-in-out infinite alternate;
+}
+
+.hanging-boot:hover:not(:disabled) .hanging-boot__img,
+.hanging-boot:focus-visible .hanging-boot__img {
+  filter:
+    drop-shadow(5px 10px 8px rgba(0, 0, 0, calc(var(--boot-shadow, 0.5) * 1.4)))
+    brightness(1.12);
+}
+
+.hanging-boot:active:not(:disabled) .hanging-boot__swing {
+  animation-play-state: paused;
+  transform: rotate(0deg) translateY(2px);
+}
+
+.hanging-boot--disabled {
+  cursor: not-allowed;
+}
+
+.hanging-boot--disabled .hanging-boot__img {
+  filter: grayscale(1) brightness(0.7) drop-shadow(4px 8px 6px rgba(0, 0, 0, var(--boot-shadow, 0.5)));
+}
+
+/*
+ * Free fall, then the lace goes taut: accelerates all the way down (38% = full lace length, at top speed),
+ * stretches a little, springs back and rebounds in smaller and smaller bounces. Each step is about
+ * half the last, so it reads as a stiff lace, not rubber.
+ */
+@keyframes hanging-boot-drop {
+  0%   { transform: translateY(-110vh); animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  38%  { transform: translateY(0); animation-timing-function: ease-out; }
+  45%  { transform: translateY(16px); animation-timing-function: ease-in-out; }
+  57%  { transform: translateY(-13px); animation-timing-function: ease-in-out; }
+  67%  { transform: translateY(7px); animation-timing-function: ease-in-out; }
+  76%  { transform: translateY(-3px); animation-timing-function: ease-in-out; }
+  85%  { transform: translateY(1.5px); animation-timing-function: ease-in-out; }
+  100% { transform: translateY(0); }
+}
+
+/* Damped pendulum: each swing is smaller than the last, then it rests */
+@keyframes hanging-boot-settle {
+  0%   { transform: rotate(0deg); animation-timing-function: ease-out; }
+  12%  { transform: rotate(calc(var(--boot-swing, 2.5deg) * 1.8)); animation-timing-function: ease-in-out; }
+  30%  { transform: rotate(calc(var(--boot-swing, 2.5deg) * -1.3)); animation-timing-function: ease-in-out; }
+  47%  { transform: rotate(calc(var(--boot-swing, 2.5deg) * 0.9)); animation-timing-function: ease-in-out; }
+  63%  { transform: rotate(calc(var(--boot-swing, 2.5deg) * -0.55)); animation-timing-function: ease-in-out; }
+  78%  { transform: rotate(calc(var(--boot-swing, 2.5deg) * 0.3)); animation-timing-function: ease-in-out; }
+  90%  { transform: rotate(calc(var(--boot-swing, 2.5deg) * -0.12)); animation-timing-function: ease-in-out; }
+  100% { transform: rotate(0deg); }
+}
+
+@keyframes hanging-boot-idle {
+  from { transform: rotate(calc(var(--boot-swing, 2.5deg) * -0.12)); }
+  to   { transform: rotate(calc(var(--boot-swing, 2.5deg) * 0.12)); }
+}
+
+@media (max-width: 600px) {
+  .hanging-boot {
+    width: calc(min(var(--boot-w, 140px), 28vw) * var(--boot-size, 1));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hanging-boot,
+  .hanging-boot__swing,
+  .hanging-boot__img {
+    animation: none;
+  }
+}

@@ -30,18 +30,115 @@
     {% assign tape_files = 'tape1.png,tape2.png' | split: ',' %}
 {% endcase %}
 
-<a class="product-breadcrumb" href="{{ collection.url | default: '/collections/all' }}">&#8592;</a>
+{% assign s = section.settings %}
+{% assign action_style = s.action_style | default: 'buttons' %}
+{% assign back_url = collection.url | default: '/collections/all' %}
+
+{% comment %}
+  Numeric tweaks (sizes, spacing, positions) are emitted as CSS variables in a
+  scoped <style> block. "Reset layout to defaults" skips them all, so the CSS
+  fallbacks (the schema defaults) apply while the saved values are kept.
+  The mobile values only apply when "Customise for mobile" is on.
+{% endcomment %}
+{% unless s.reset_layout %}
+  <style>
+    #shopify-section-{{ section.id }} .product-page,
+    #shopify-section-{{ section.id }} .product-boot-back {
+      --boot-w: {{ s.boot_width }}px;
+      --boot-string: {{ s.boot_string }}px;
+      --boot-swing: {{ s.boot_swing | times: 0.025 }}deg;
+      --boot-shadow: {{ s.boot_shadow | divided_by: 100.0 }};
+    }
+    #shopify-section-{{ section.id }} .product-page {
+      --gallery-width: {{ s.gallery_width }}%;
+      --photo-scale: {{ s.photo_size | divided_by: 100.0 }};
+      --photo-gap: {{ s.photo_spacing }}px;
+      --scatter-scale: {{ s.photo_scatter | divided_by: 100.0 }};
+      --rotation-scale: {{ s.photo_tilt | divided_by: 100.0 }};
+      --tape-scale: {{ s.tape_size | divided_by: 100.0 }};
+    }
+    #shopify-section-{{ section.id }} .product-text {
+      --text-width: {{ s.text_width }};
+      --text-scale: {{ s.text_scale | divided_by: 100.0 }};
+      --text-x: {{ s.text_x }}px;
+      --text-y: {{ s.text_y }}px;
+    }
+    #shopify-section-{{ section.id }} .product-boot-back {
+      --boot-size: {{ s.back_boot_size | divided_by: 100.0 }};
+      --boot-x: {{ s.back_boot_x }}px;
+      --boot-y: {{ s.back_boot_y }}px;
+    }
+    {% for block in section.blocks %}
+      #product-block-{{ block.id }} {
+        --block-size: {{ block.settings.size | divided_by: 100.0 }};
+        --block-x: {{ block.settings.offset_x }}px;
+        --block-y: {{ block.settings.offset_y }}px;
+      }
+    {% endfor %}
+    {% if s.mobile_custom %}
+      @media (max-width: 640px) {
+        #shopify-section-{{ section.id }} .product-page,
+        #shopify-section-{{ section.id }} .product-boot-back {
+          --boot-w: {{ s.mobile_boot_width }}px;
+          --boot-string: {{ s.mobile_boot_string }}px;
+        }
+        #shopify-section-{{ section.id }} .product-page {
+          --photo-scale: {{ s.mobile_photo_size | divided_by: 100.0 }};
+          --photo-gap: {{ s.mobile_photo_spacing }}px;
+          --scatter-scale: {{ s.mobile_photo_scatter | divided_by: 100.0 }};
+          --rotation-scale: {{ s.mobile_photo_tilt | divided_by: 100.0 }};
+          --tape-scale: {{ s.mobile_tape_size | divided_by: 100.0 }};
+        }
+        #shopify-section-{{ section.id }} .product-text {
+          --text-width: {{ s.mobile_text_width }};
+          --text-scale: {{ s.mobile_text_scale | divided_by: 100.0 }};
+          --text-x: {{ s.mobile_text_x }}px;
+          --text-y: {{ s.mobile_text_y }}px;
+        }
+        #shopify-section-{{ section.id }} .product-boot-back {
+          --boot-size: {{ s.mobile_back_boot_size | divided_by: 100.0 }};
+          --boot-x: {{ s.mobile_back_boot_x }}px;
+          --boot-y: {{ s.mobile_back_boot_y }}px;
+        }
+        {% for block in section.blocks %}
+          #product-block-{{ block.id }} {
+            --block-size: {{ block.settings.mobile_size | divided_by: 100.0 }};
+            --block-x: {{ block.settings.mobile_offset_x }}px;
+            --block-y: {{ block.settings.mobile_offset_y }}px;
+          }
+        {% endfor %}
+      }
+    {% endif %}
+  </style>
+{% endunless %}
+
+{% if action_style == 'boots' %}
+  {% assign back_boot_src = 'backboot.png' | asset_url %}
+  {% if s.back_boot_image != blank %}
+    {% assign back_boot_src = s.back_boot_image | image_url: width: 600 %}
+  {% endif %}
+  {% assign buy_boot_src = 'buyboot.png' | asset_url %}
+  {% if s.buy_boot_image != blank %}
+    {% assign buy_boot_src = s.buy_boot_image | image_url: width: 600 %}
+  {% endif %}
+  {% assign back_label = 'products.boot_back' | t %}
+  {% comment %} Zero-height anchor where the back button used to be: the boot hangs down from it. {% endcomment %}
+  <div class="product-boot-back">
+    {% render 'hanging-boot',
+      src: back_boot_src,
+      href: back_url,
+      label: back_label,
+      hook_x: 57,
+      hook_y: 52,
+      modifier: 'back'
+    %}
+  </div>
+{% else %}
+  <a class="product-breadcrumb" href="{{ back_url }}">&#8592;</a>
+{% endif %}
 
 <div
   class="product-page product-page--{{ desktop_layout }}{% if desktop_layout == 'vertical' %} product-page--text-{{ text_side }}{% endif %} full-width"
-  style="
-    --gallery-width: {{ section.settings.gallery_width }}%;
-    --photo-scale: {{ section.settings.photo_size | divided_by: 100.0 }};
-    --photo-gap: {{ section.settings.photo_spacing }}px;
-    --scatter-scale: {{ section.settings.photo_scatter | divided_by: 100.0 }};
-    --rotation-scale: {{ section.settings.photo_tilt | divided_by: 100.0 }};
-    --tape-scale: {{ section.settings.tape_size | divided_by: 100.0 }};
-  "
 >
   <div class="product-wall-scroll{% if mobile_layout == 'vertical' %} product-wall-scroll--vertical{% endif %}">
     <div class="product-wall{% if mobile_layout == 'vertical' %} product-wall--vertical{% endif %}">
@@ -116,46 +213,59 @@
     </div>
   </div>
 
-  {% assign s = section.settings %}
-  <div
-    class="product-text"
-    style="
-      --text-width: {{ s.text_width }};
-      --text-scale: {{ s.text_scale | divided_by: 100.0 }};
-      --text-x: {{ s.text_x }}px; --text-y: {{ s.text_y }}px;
-    "
-  >
+  <div class="product-text">
     {% for block in section.blocks %}
-      {% assign b = block.settings %}
-      {% capture block_style %}--block-size: {{ b.size | divided_by: 100.0 }}; --block-x: {{ b.offset_x }}px; --block-y: {{ b.offset_y }}px{% endcapture %}
 
       {% case block.type %}
         {% when 'title' %}
-          <h1 class="product-text__title" style="{{ block_style }}" {{ block.shopify_attributes }}>{{ product.title }}</h1>
+          <h1 class="product-text__title" id="product-block-{{ block.id }}" {{ block.shopify_attributes }}>{{ product.title }}</h1>
 
         {% when 'description' %}
           {% if product.description != blank %}
-            <div class="product-text__description" style="{{ block_style }}" {{ block.shopify_attributes }}>{{ product.description }}</div>
+            <div class="product-text__description" id="product-block-{{ block.id }}" {{ block.shopify_attributes }}>{{ product.description }}</div>
           {% endif %}
 
         {% when 'price' %}
-          <div class="product-text__price" style="{{ block_style }}" {{ block.shopify_attributes }}>{{ product.price | money }}</div>
+          <div class="product-text__price" id="product-block-{{ block.id }}" {{ block.shopify_attributes }}>{{ product.price | money }}</div>
 
         {% when 'button' %}
-          <div class="product-text__actions" style="{{ block_style }}" {{ block.shopify_attributes }}>
+          <div class="product-text__actions" id="product-block-{{ block.id }}" {{ block.shopify_attributes }}>
             {% form 'product', product %}
               <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
-              <button
-                type="submit"
-                class="product-text__btn{% unless product.available %} product-text__btn--sold-out{% endunless %}"
-                {% unless product.available %}disabled{% endunless %}
-              >
-                {% if product.available %}
-                  {{ 'products.add_to_cart' | t }}
-                {% else %}
-                  {{ 'products.sold_out' | t }}
-                {% endif %}
-              </button>
+              {% if s.sold_out_text != blank %}
+                {% assign sold_out_label = s.sold_out_text %}
+              {% else %}
+                {% assign sold_out_label = 'products.sold_out' | t %}
+              {% endif %}
+              {% if action_style == 'boots' %}
+                {% assign buy_label = 'products.add_to_cart' | t %}
+                {% assign buy_disabled = false %}
+                {% unless product.available %}{% assign buy_disabled = true %}{% endunless %}
+                {% render 'hanging-boot',
+                  src: buy_boot_src,
+                  label: buy_label,
+                  hook_x: 42,
+                  hook_y: 53,
+                  delay: 0.35,
+                  disabled: buy_disabled,
+                  modifier: 'buy'
+                %}
+                {% unless product.available %}
+                  <p class="product-text__sold-out-note">{{ sold_out_label }}</p>
+                {% endunless %}
+              {% else %}
+                <button
+                  type="submit"
+                  class="product-text__btn{% unless product.available %} product-text__btn--sold-out{% endunless %}"
+                  {% unless product.available %}disabled{% endunless %}
+                >
+                  {% if product.available %}
+                    {{ 'products.add_to_cart' | t }}
+                  {% else %}
+                    {{ sold_out_label }}
+                  {% endif %}
+                </button>
+              {% endif %}
             {% endform %}
           </div>
       {% endcase %}
@@ -247,7 +357,25 @@
   "settings": [
     {
       "type": "header",
-      "content": "Desktop"
+      "content": "Reset"
+    },
+    {
+      "type": "checkbox",
+      "id": "reset_layout",
+      "label": "Reset layout to defaults",
+      "info": "Ignores every size, spacing and position value below (including the text blocks). Your values are kept: untick to bring them back.",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "mobile_custom",
+      "label": "Customise for mobile",
+      "info": "Off: phones use the same values as desktop. On: phones use the Mobile fields (bottom of this section and inside each text block).",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Desktop layout"
     },
     {
       "type": "select",
@@ -283,6 +411,10 @@
       "type": "header",
       "content": "Photos"
     },
+    {
+      "type": "paragraph",
+      "content": "Applies to desktop and mobile. Mobile can have its own values under \"Mobile\"."
+    },
     { "type": "range", "id": "photo_size", "label": "Photo size", "min": 50, "max": 200, "step": 5, "unit": "%", "default": 100 },
     { "type": "range", "id": "photo_spacing", "label": "Spacing", "min": -100, "max": 100, "step": 5, "unit": "px", "default": 0 },
     { "type": "range", "id": "photo_scatter", "label": "Scatter", "min": 0, "max": 200, "step": 5, "unit": "%", "default": 100 },
@@ -315,6 +447,30 @@
     { "type": "range", "id": "text_y", "label": "Position Y", "min": -300, "max": 300, "step": 10, "unit": "px", "default": 0 },
     {
       "type": "header",
+      "content": "Action buttons"
+    },
+    {
+      "type": "select",
+      "id": "action_style",
+      "label": "Style",
+      "options": [
+        { "value": "buttons", "label": "Buttons" },
+        { "value": "boots", "label": "Hanging boots" }
+      ],
+      "default": "buttons"
+    },
+    { "type": "text", "id": "sold_out_text", "label": "Sold out text", "info": "Empty = default" },
+    { "type": "range", "id": "boot_width", "label": "Boot width", "min": 80, "max": 300, "step": 5, "unit": "px", "default": 140, "visible_if": "{{ section.settings.action_style == 'boots' }}" },
+    { "type": "range", "id": "boot_string", "label": "Lace length", "info": "Long = leaves the screen", "min": 100, "max": 3000, "step": 100, "unit": "px", "default": 1500, "visible_if": "{{ section.settings.action_style == 'boots' }}" },
+    { "type": "range", "id": "boot_swing", "label": "Sway", "min": 0, "max": 200, "step": 10, "unit": "%", "default": 100, "visible_if": "{{ section.settings.action_style == 'boots' }}" },
+    { "type": "range", "id": "boot_shadow", "label": "Boot shadow", "min": 0, "max": 100, "step": 5, "unit": "%", "default": 50, "visible_if": "{{ section.settings.action_style == 'boots' }}" },
+    { "type": "range", "id": "back_boot_size", "label": "Back boot size", "min": 50, "max": 200, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ section.settings.action_style == 'boots' }}" },
+    { "type": "range", "id": "back_boot_x", "label": "Back boot X", "min": -300, "max": 300, "step": 10, "unit": "px", "default": 0, "visible_if": "{{ section.settings.action_style == 'boots' }}" },
+    { "type": "range", "id": "back_boot_y", "label": "Back boot Y", "min": -300, "max": 300, "step": 10, "unit": "px", "default": 0, "visible_if": "{{ section.settings.action_style == 'boots' }}" },
+    { "type": "image_picker", "id": "back_boot_image", "label": "Back boot image", "info": "Empty = default", "visible_if": "{{ section.settings.action_style == 'boots' }}" },
+    { "type": "image_picker", "id": "buy_boot_image", "label": "Buy boot image", "info": "Empty = default", "visible_if": "{{ section.settings.action_style == 'boots' }}" },
+    {
+      "type": "header",
       "content": "Mobile"
     },
     {
@@ -326,7 +482,36 @@
         { "value": "vertical", "label": "Vertical (stack downward)" }
       ],
       "default": "vertical"
-    }
+    },
+    {
+      "type": "header",
+      "content": "Mobile – photos",
+      "visible_if": "{{ section.settings.mobile_custom }}"
+    },
+    { "type": "range", "id": "mobile_photo_size", "label": "Photo size", "min": 50, "max": 200, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ section.settings.mobile_custom }}" },
+    { "type": "range", "id": "mobile_photo_spacing", "label": "Spacing", "min": -100, "max": 100, "step": 5, "unit": "px", "default": 0, "visible_if": "{{ section.settings.mobile_custom }}" },
+    { "type": "range", "id": "mobile_photo_scatter", "label": "Scatter", "min": 0, "max": 200, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ section.settings.mobile_custom }}" },
+    { "type": "range", "id": "mobile_photo_tilt", "label": "Tilt", "min": 0, "max": 200, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ section.settings.mobile_custom }}" },
+    { "type": "range", "id": "mobile_tape_size", "label": "Tape size", "min": 50, "max": 200, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ section.settings.mobile_custom }}" },
+    {
+      "type": "header",
+      "content": "Mobile – text area",
+      "visible_if": "{{ section.settings.mobile_custom }}"
+    },
+    { "type": "range", "id": "mobile_text_width", "label": "Width", "min": 30, "max": 100, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ section.settings.mobile_custom }}" },
+    { "type": "range", "id": "mobile_text_scale", "label": "Size", "min": 50, "max": 200, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ section.settings.mobile_custom }}" },
+    { "type": "range", "id": "mobile_text_x", "label": "Position X", "min": -300, "max": 300, "step": 10, "unit": "px", "default": 0, "visible_if": "{{ section.settings.mobile_custom }}" },
+    { "type": "range", "id": "mobile_text_y", "label": "Position Y", "min": -300, "max": 300, "step": 10, "unit": "px", "default": 0, "visible_if": "{{ section.settings.mobile_custom }}" },
+    {
+      "type": "header",
+      "content": "Mobile – hanging boots",
+      "visible_if": "{{ section.settings.mobile_custom and section.settings.action_style == 'boots' }}"
+    },
+    { "type": "range", "id": "mobile_boot_width", "label": "Boot width", "min": 80, "max": 300, "step": 5, "unit": "px", "default": 140, "visible_if": "{{ section.settings.mobile_custom and section.settings.action_style == 'boots' }}" },
+    { "type": "range", "id": "mobile_boot_string", "label": "Lace length", "min": 100, "max": 3000, "step": 100, "unit": "px", "default": 1500, "visible_if": "{{ section.settings.mobile_custom and section.settings.action_style == 'boots' }}" },
+    { "type": "range", "id": "mobile_back_boot_size", "label": "Back boot size", "min": 50, "max": 200, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ section.settings.mobile_custom and section.settings.action_style == 'boots' }}" },
+    { "type": "range", "id": "mobile_back_boot_x", "label": "Back boot X", "min": -300, "max": 300, "step": 10, "unit": "px", "default": 0, "visible_if": "{{ section.settings.mobile_custom and section.settings.action_style == 'boots' }}" },
+    { "type": "range", "id": "mobile_back_boot_y", "label": "Back boot Y", "min": -300, "max": 300, "step": 10, "unit": "px", "default": 0, "visible_if": "{{ section.settings.mobile_custom and section.settings.action_style == 'boots' }}" }
   ],
   "blocks": [
     {
@@ -336,7 +521,12 @@
       "settings": [
         { "type": "range", "id": "size", "label": "Size", "min": 50, "max": 250, "step": 5, "unit": "%", "default": 100 },
         { "type": "range", "id": "offset_x", "label": "Position X", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 },
-        { "type": "range", "id": "offset_y", "label": "Position Y", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 }
+        { "type": "range", "id": "offset_y", "label": "Position Y", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 },
+        { "type": "header", "content": "Mobile" },
+        { "type": "paragraph", "content": "Only used when \"Customise for mobile\" is ticked in the section settings." },
+        { "type": "range", "id": "mobile_size", "label": "Size", "min": 50, "max": 250, "step": 5, "unit": "%", "default": 100 },
+        { "type": "range", "id": "mobile_offset_x", "label": "Position X", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 },
+        { "type": "range", "id": "mobile_offset_y", "label": "Position Y", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 }
       ]
     },
     {
@@ -346,7 +536,12 @@
       "settings": [
         { "type": "range", "id": "size", "label": "Size", "min": 50, "max": 250, "step": 5, "unit": "%", "default": 100 },
         { "type": "range", "id": "offset_x", "label": "Position X", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 },
-        { "type": "range", "id": "offset_y", "label": "Position Y", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 }
+        { "type": "range", "id": "offset_y", "label": "Position Y", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 },
+        { "type": "header", "content": "Mobile" },
+        { "type": "paragraph", "content": "Only used when \"Customise for mobile\" is ticked in the section settings." },
+        { "type": "range", "id": "mobile_size", "label": "Size", "min": 50, "max": 250, "step": 5, "unit": "%", "default": 100 },
+        { "type": "range", "id": "mobile_offset_x", "label": "Position X", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 },
+        { "type": "range", "id": "mobile_offset_y", "label": "Position Y", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 }
       ]
     },
     {
@@ -356,7 +551,12 @@
       "settings": [
         { "type": "range", "id": "size", "label": "Size", "min": 50, "max": 250, "step": 5, "unit": "%", "default": 100 },
         { "type": "range", "id": "offset_x", "label": "Position X", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 },
-        { "type": "range", "id": "offset_y", "label": "Position Y", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 }
+        { "type": "range", "id": "offset_y", "label": "Position Y", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 },
+        { "type": "header", "content": "Mobile" },
+        { "type": "paragraph", "content": "Only used when \"Customise for mobile\" is ticked in the section settings." },
+        { "type": "range", "id": "mobile_size", "label": "Size", "min": 50, "max": 250, "step": 5, "unit": "%", "default": 100 },
+        { "type": "range", "id": "mobile_offset_x", "label": "Position X", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 },
+        { "type": "range", "id": "mobile_offset_y", "label": "Position Y", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 }
       ]
     },
     {
@@ -366,7 +566,12 @@
       "settings": [
         { "type": "range", "id": "size", "label": "Size", "min": 50, "max": 250, "step": 5, "unit": "%", "default": 100 },
         { "type": "range", "id": "offset_x", "label": "Position X", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 },
-        { "type": "range", "id": "offset_y", "label": "Position Y", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 }
+        { "type": "range", "id": "offset_y", "label": "Position Y", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 },
+        { "type": "header", "content": "Mobile" },
+        { "type": "paragraph", "content": "Only used when \"Customise for mobile\" is ticked in the section settings." },
+        { "type": "range", "id": "mobile_size", "label": "Size", "min": 50, "max": 250, "step": 5, "unit": "%", "default": 100 },
+        { "type": "range", "id": "mobile_offset_x", "label": "Position X", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 },
+        { "type": "range", "id": "mobile_offset_y", "label": "Position Y", "min": -200, "max": 200, "step": 5, "unit": "px", "default": 0 }
       ]
     }
   ],

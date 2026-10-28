@@ -61,6 +61,7 @@
   },
   "products": {
     "add_to_cart": "Add to cart",
+    "boot_back": "Back to the collection",
     "sold_out": "Sold out"
   },
   "search": {

@@ -24,6 +24,37 @@
   color: var(--color-text-inverse);
 }
 
+/* Hanging-boot mode: the back boot hangs from a zero-height anchor where the back button was */
+.product-boot-back {
+  position: relative;
+  z-index: 30;
+  height: 0;
+  margin-left: 1rem;
+}
+
+.product-boot-back .hanging-boot {
+  translate: var(--boot-x, 0px) var(--boot-y, 0px);
+}
+
+/* Lift the text column above the photos so the buy boot and its lace hang in front of everything.
+   Placed before the sticky rule of the vertical layout so that one still wins on position. */
+.product-text:has(.hanging-boot) {
+  position: relative;
+  z-index: 30;
+}
+
+.product-text__actions .hanging-boot {
+  --boot-size: var(--block-size, 1);
+}
+
+.product-text__sold-out-note {
+  margin: 0.5rem 0 0;
+  text-align: center;
+  font-family: var(--font-stamp--family);
+  color: var(--color-accent);
+  letter-spacing: 0.08em;
+}
+
 /*
  * Editor-driven variables.
  * Set inline on .product-text by the section: --text-width (%), --text-scale,

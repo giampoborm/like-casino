@@ -1,0 +1,50 @@
+{% comment %}
+  A boot hanging from a shoestring. It drops in from the top on load, then sways.
+  Renders a link when `href` is set, otherwise a submit button (for use inside a form).
+
+  Accepts:
+  - src: image URL of the boot
+  - label: accessible name
+  - href: optional link target
+  - hook_x, hook_y: where the lace is tied, % from the left / top edge of the image
+  - delay: seconds before the drop starts
+  - disabled: true greys the boot out and blocks clicks
+  - modifier: extra BEM modifier, e.g. 'back' or 'buy'
+
+  Size, string length, sway and shadow come from CSS variables set by the parent
+  (--boot-w, --boot-string, --boot-swing, --boot-shadow). Styles live in hanging-boot.css.
+{% endcomment %}
+
+{{ 'hanging-boot.css' | asset_url | stylesheet_tag }}
+
+{% capture boot_inner %}
+  <span class="hanging-boot__string" aria-hidden="true"></span>
+  <span class="hanging-boot__swing">
+    {% # theme-check-disable ImgWidthAndHeight, RemoteAsset %}
+    <img class="hanging-boot__img" src="{{ src }}" alt="" loading="eager">
+    {% # theme-check-enable ImgWidthAndHeight, RemoteAsset %}
+  </span>
+{% endcapture %}
+
+{% capture boot_style %}--boot-hook-x: {{ hook_x | default: 50 }}%; --boot-hook-y: {{ hook_y | default: 0 }}%; --boot-delay: {{ delay | default: 0 }}s{% endcapture %}
+
+{% if href != blank %}
+  <a
+    class="hanging-boot{% if modifier != blank %} hanging-boot--{{ modifier }}{% endif %}"
+    href="{{ href }}"
+    aria-label="{{ label }}"
+    style="{{ boot_style }}"
+  >
+    {{ boot_inner }}
+  </a>
+{% else %}
+  <button
+    type="submit"
+    class="hanging-boot{% if modifier != blank %} hanging-boot--{{ modifier }}{% endif %}{% if disabled %} hanging-boot--disabled{% endif %}"
+    aria-label="{{ label }}"
+    style="{{ boot_style }}"
+    {% if disabled %}disabled{% endif %}
+  >
+    {{ boot_inner }}
+  </button>
+{% endif %}

@@ -119,7 +119,11 @@ layout/theme.liquid        ← wraps every page (head, header group, footer grou
 - [x] **Price colour** follows the theme text colour (opacity removed)
 - [x] Rack image exclusion — nothing to do: the rack PNG is a metafield, not in `product.images`; first image already skipped
 
+- [x] **Hanging-boot action style** (Oct 2026) — "Action buttons → Style" select: Buttons / Hanging boots (`snippets/hanging-boot.liquid` + `hanging-boot.css`, back + buy boots, size/lace/sway/shadow/position settings, image pickers). Boot-as-block / reuse in other sections still to decide (see step 7)
+- [x] **Mobile overrides + reset** (Oct 2026) — "Customise for mobile" checkbox: mobile photo, text-area and boot values, plus a Mobile group on each text block. "Reset layout to defaults" checkbox ignores every size/spacing/position value (keeps them saved). Values are emitted as scoped CSS variables in a `<style>` block in `product.liquid`
+
 **To do next time:**
+- [ ] **Set the final defaults from the editor (do at the very end)** — once all schemas are built and tuned in the editor: `shopify theme pull` the product template into a scratch folder (don't overwrite local files), read the saved values from `templates/product.json`, write them in as schema `default`s in `product.liquid`, and update the CSS `var(--x, fallback)` fallbacks so "Reset layout to defaults" matches (currently 1 for scales, 55% gallery width, 140px boot width, 1500px lace). Same idea for the other sections tuned in the editor
 - [ ] **Non-gallery view — "product basic showcase" section** *(potential)*: a simpler product page with more editing power through blocks. Decide if it is needed at all, then scope it
 - [ ] **Alternative buttons: boot or stamp** — "Add to cart" and "Sold out" as a stamp (ink-stamp look, sold-out = different stamp, disabled state) **or** a hanging boot. Decide which (or make it an editor select), then build; may reuse the decor block (step 2)
 - [ ] **Resize tape PNGs** — masking/clear tape files are 1568–1792 px wide, ~1 MB each; the tape draws at ~60 px, so downscale to ~300 px (the black ones are ~250 px, ~50 KB). Also part of step 8
