@@ -23,5 +23,8 @@
     {% unless request.page_type == 'index' %}
       {% sections 'footer-group' %}
     {% endunless %}
+
+    {% # Cookie banner and other fixed overlays: every page, home included %}
+    {% sections 'overlay-group' %}
   </body>
 </html>

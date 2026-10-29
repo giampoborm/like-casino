@@ -1,0 +1,19 @@
+{
+  "type": "custom.overlay",
+  "name": "Overlays",
+  "sections": {
+    "cookie_banner": {
+      "type": "cookie-banner",
+      "settings": {}
+    },
+    "cookie_bar": {
+      "type": "cookie-bar",
+      "disabled": true,
+      "settings": {}
+    }
+  },
+  "order": [
+    "cookie_banner",
+    "cookie_bar"
+  ]
+}

@@ -1,0 +1,33 @@
+{%- comment -%}
+  Font for the cookie banner sections: sets --cb-font on the given selector and loads the font.
+  Params: settings (section.settings with font_source / font / font_file), selector.
+  Sources: main / stamp (theme fonts), library (font picker), upload (link to a file in Content → Files).
+{%- endcomment -%}
+{%- case settings.font_source -%}
+  {%- when 'stamp' -%}
+    {%- assign cb_font = 'var(--font-stamp--family)' -%}
+  {%- when 'library' -%}
+    {%- assign cb_font = settings.font.family | append: ', ' | append: settings.font.fallback_families -%}
+  {%- when 'upload' -%}
+    {%- if settings.font_file != blank -%}
+      {%- assign cb_font = "'CookieBannerFont', var(--font-main--family)" -%}
+    {%- else -%}
+      {%- assign cb_font = 'var(--font-main--family)' -%}
+    {%- endif -%}
+  {%- else -%}
+    {%- assign cb_font = 'var(--font-main--family)' -%}
+{%- endcase -%}
+<style>
+  {%- if settings.font_source == 'library' %}
+  {{ settings.font | font_face: font_display: 'swap' }}
+  {%- elsif settings.font_source == 'upload' and settings.font_file != blank %}
+  @font-face {
+    font-family: 'CookieBannerFont';
+    src: url('{{ settings.font_file }}');
+    font-display: swap;
+  }
+  {%- endif %}
+  {{ selector }} {
+    --cb-font: {{ cb_font }};
+  }
+</style>

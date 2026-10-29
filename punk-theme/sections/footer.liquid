@@ -9,6 +9,11 @@
     {% for link in section.settings.menu.links %}
       {{ link.title | link_to: link.url }}
     {% endfor %}
+    {% if section.settings.cookie_settings_label != blank %}
+      <button type="button" class="footer__cookie-settings" data-cookie-settings>
+        {{- section.settings.cookie_settings_label -}}
+      </button>
+    {% endif %}
   </div>
 
   <div class="footer__payment">
@@ -26,9 +31,17 @@
     justify-content: space-between;
     margin-top: 2rem;
   }
-  footer a {
+  footer a,
+  footer .footer__cookie-settings {
     text-decoration: none;
     color: var(--color-foreground);
+  }
+  footer .footer__cookie-settings {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    cursor: pointer;
   }
   footer .footer__links,
   footer .footer__payment {
@@ -45,6 +58,13 @@
       "type": "link_list",
       "id": "menu",
       "label": "t:labels.menu"
+    },
+    {
+      "type": "text",
+      "id": "cookie_settings_label",
+      "label": "Cookie settings link",
+      "info": "Reopens the cookie banner. Required by law; empty = hidden",
+      "default": "Cookie settings"
     },
     {
       "type": "checkbox",

@@ -1,0 +1,171 @@
+/* Cookie bar — plain alternative to the bust banner: a small panel at the bottom of the screen.
+   Same texts and logic (cookie-banner.js); colours, size and font come from section settings. */
+
+.cookie-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 12px;
+  z-index: 900;
+  width: min(960px, calc(100% - 24px));
+  box-sizing: border-box;
+  padding: 14px 20px;
+  transform: translateX(-50%);
+  background: var(--cbar-bg);
+  color: var(--cbar-text);
+  border: 1px solid var(--cbar-text);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  font-family: var(--cb-font, var(--font-main--family));
+  font-size: var(--cbar-size);
+  line-height: 1.25;
+}
+
+.cookie-bar[hidden],
+.cookie-bar__layer[hidden] {
+  display: none;
+}
+
+.cookie-bar__layer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 24px;
+}
+
+.cookie-bar__text {
+  flex: 1 1 140px;
+}
+
+.cookie-bar__title {
+  margin: 0;
+  font-size: 1.5em;
+}
+
+.cookie-bar__message {
+  font-size: 0.85em;
+}
+
+.cookie-bar__message p {
+  margin: 2px 0 0;
+}
+
+.cookie-bar__message a {
+  color: inherit;
+}
+
+/* yes / maybe / no: one style and one width for all three */
+.cookie-bar__choices {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.cookie-bar__options {
+  display: flex;
+  gap: 8px;
+}
+
+.cookie-bar__choice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 90px;
+  padding: 6px 12px;
+  border: 1px solid currentColor;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.cookie-bar__choice:hover,
+.cookie-bar__choice:focus-visible {
+  background: var(--cbar-text);
+  color: var(--cbar-bg);
+}
+
+.cookie-bar__choice-label {
+  font-size: 1.1em;
+}
+
+.cookie-bar__choice-note {
+  font-size: 0.8em;
+}
+
+.cookie-bar__option {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 6px;
+  align-items: center;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.cookie-bar__option .cookie-bar__choice-note {
+  grid-column: 2;
+}
+
+.cookie-bar__option input {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: var(--cbar-text);
+}
+
+.cookie-bar__option input:disabled {
+  cursor: not-allowed;
+}
+
+.cookie-bar__links {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.cookie-bar__link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 0.9em;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.cookie-bar__choice:focus-visible,
+.cookie-bar__link:focus-visible {
+  outline: 2px dashed currentColor;
+  outline-offset: 2px;
+}
+
+/* Phones: stacked, the three answers share the width */
+@media (max-width: 640px) {
+  .cookie-bar {
+    bottom: 8px;
+    width: calc(100% - 16px);
+    padding: 12px 14px;
+  }
+
+  .cookie-bar__layer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .cookie-bar__text {
+    flex: none;
+  }
+
+  .cookie-bar__options {
+    flex-wrap: wrap;
+  }
+
+  .cookie-bar__choice {
+    min-width: 0;
+    padding: 6px 4px;
+  }
+
+  .cookie-bar__links {
+    justify-content: center;
+  }
+}

@@ -1,0 +1,305 @@
+{{ 'cookie-bar.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'cookie-banner.js' | asset_url }}" defer></script>
+
+{%- assign s = section.settings -%}
+{%- assign policy_url = s.policy_link | default: shop.privacy_policy.url -%}
+{%- capture cb_selector -%}#cookie-bar-{{ section.id }}{%- endcapture -%}
+{% render 'cookie-font', settings: s, selector: cb_selector %}
+
+<style>
+  #cookie-bar-{{ section.id }} {
+    --cbar-bg: {{ s.background }};
+    --cbar-text: {{ s.text_color }};
+    --cbar-size: {{ s.text_size }}px;
+  }
+</style>
+
+{%- comment -%} Plain alternative to the bust banner: a small panel at the bottom, same texts and logic (cookie-banner.js). {%- endcomment -%}
+<div
+  id="cookie-bar-{{ section.id }}"
+  class="cookie-bar"
+  data-cookie-banner
+  data-show-when="{{ s.show_when }}"
+  role="region"
+  aria-label="{{ s.aria_label | escape }}"
+  hidden
+>
+  {%- comment -%} Layer 1: yes / maybe / no, all the same style {%- endcomment -%}
+  <div class="cookie-bar__layer" data-cookie-layer="notice">
+    <div class="cookie-bar__text">
+      <p class="cookie-bar__title">{{ s.heading }}</p>
+      {%- if s.message != blank -%}
+        <div class="cookie-bar__message">{{ s.message }}</div>
+      {%- endif -%}
+    </div>
+    <div class="cookie-bar__choices">
+      <button type="button" class="cookie-bar__choice" data-cookie-answer="yes">
+        <span class="cookie-bar__choice-label">{{ s.yes_label }}</span>
+        {%- if s.yes_note != blank -%}<span class="cookie-bar__choice-note">{{ s.yes_note }}</span>{%- endif -%}
+      </button>
+      <button type="button" class="cookie-bar__choice" data-cookie-answer="maybe">
+        <span class="cookie-bar__choice-label">{{ s.maybe_label }}</span>
+        {%- if s.maybe_note != blank -%}<span class="cookie-bar__choice-note">{{ s.maybe_note }}</span>{%- endif -%}
+      </button>
+      <button type="button" class="cookie-bar__choice" data-cookie-answer="no">
+        <span class="cookie-bar__choice-label">{{ s.no_label }}</span>
+        {%- if s.no_note != blank -%}<span class="cookie-bar__choice-note">{{ s.no_note }}</span>{%- endif -%}
+      </button>
+    </div>
+    <div class="cookie-bar__links">
+      <button type="button" class="cookie-bar__link" data-cookie-choose>{{ s.choose_label }}</button>
+      {%- if policy_url != blank and s.policy_label != blank -%}
+        <a class="cookie-bar__link" href="{{ policy_url }}">{{ s.policy_label }}</a>
+      {%- endif -%}
+    </div>
+  </div>
+
+  {%- comment -%} Layer 2: per-purpose choice. Toggles start off; Shopify's stored choice fills them in when reopened. {%- endcomment -%}
+  <div class="cookie-bar__layer" data-cookie-layer="choices" hidden>
+    <div class="cookie-bar__text">
+      <p class="cookie-bar__title">{{ s.choices_heading }}</p>
+    </div>
+    <div class="cookie-bar__options">
+      <label class="cookie-bar__option">
+        <input type="checkbox" checked disabled>
+        <span class="cookie-bar__choice-label">{{ s.necessary_title }}</span>
+        {%- if s.necessary_text != blank -%}<span class="cookie-bar__choice-note">{{ s.necessary_text }}</span>{%- endif -%}
+      </label>
+      <label class="cookie-bar__option">
+        <input type="checkbox" data-cookie-purpose="analytics">
+        <span class="cookie-bar__choice-label">{{ s.analytics_title }}</span>
+        {%- if s.analytics_text != blank -%}<span class="cookie-bar__choice-note">{{ s.analytics_text }}</span>{%- endif -%}
+      </label>
+      <label class="cookie-bar__option">
+        <input type="checkbox" data-cookie-purpose="marketing">
+        <span class="cookie-bar__choice-label">{{ s.marketing_title }}</span>
+        {%- if s.marketing_text != blank -%}<span class="cookie-bar__choice-note">{{ s.marketing_text }}</span>{%- endif -%}
+      </label>
+    </div>
+    <div class="cookie-bar__links">
+      <button type="button" class="cookie-bar__choice" data-cookie-save>
+        <span class="cookie-bar__choice-label">{{ s.save_label }}</span>
+      </button>
+      <button type="button" class="cookie-bar__link" data-cookie-back>{{ s.back_label }}</button>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Cookie bar",
+  "class": "cookie-bar-section",
+  "enabled_on": { "groups": ["custom.overlay"] },
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Plain alternative to the Cookie banner with the bust: use one of the two, not both. Turn off Shopify's own banner in Settings → Customer privacy. Add a footer or menu link to #cookie-settings to reopen it."
+    },
+    {
+      "type": "select",
+      "id": "show_when",
+      "label": "Show banner",
+      "default": "required",
+      "options": [
+        { "value": "required", "label": "Where the law requires it" },
+        { "value": "always", "label": "To every visitor until they choose" }
+      ]
+    },
+    {
+      "type": "header",
+      "content": "Look"
+    },
+    {
+      "type": "color",
+      "id": "background",
+      "label": "Background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text and lines",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "text_size",
+      "min": 12,
+      "max": 22,
+      "step": 1,
+      "unit": "px",
+      "label": "Text size",
+      "default": 15
+    },
+    {
+      "type": "select",
+      "id": "font_source",
+      "label": "Font",
+      "default": "main",
+      "options": [
+        { "value": "main", "label": "Theme main font" },
+        { "value": "stamp", "label": "Theme stamp font" },
+        { "value": "library", "label": "Choose from Shopify fonts" },
+        { "value": "upload", "label": "Uploaded font file" }
+      ]
+    },
+    {
+      "type": "font_picker",
+      "id": "font",
+      "label": "Shopify font",
+      "default": "assistant_n4",
+      "visible_if": "{{ section.settings.font_source == 'library' }}"
+    },
+    {
+      "type": "url",
+      "id": "font_file",
+      "label": "Font file link",
+      "info": "Upload a .woff2 / .otf / .ttf in Content → Files, copy its link and paste it here",
+      "visible_if": "{{ section.settings.font_source == 'upload' }}"
+    },
+    {
+      "type": "header",
+      "content": "Question"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "cookies"
+    },
+    {
+      "type": "richtext",
+      "id": "message",
+      "label": "Message",
+      "info": "Optional. Shown small under the heading"
+    },
+    {
+      "type": "text",
+      "id": "yes_label",
+      "label": "Yes",
+      "default": "yes"
+    },
+    {
+      "type": "text",
+      "id": "yes_note",
+      "label": "Yes note",
+      "default": "(all)"
+    },
+    {
+      "type": "text",
+      "id": "maybe_label",
+      "label": "Maybe",
+      "default": "maybe"
+    },
+    {
+      "type": "text",
+      "id": "maybe_note",
+      "label": "Maybe note",
+      "default": "(analytics, no ads)"
+    },
+    {
+      "type": "text",
+      "id": "no_label",
+      "label": "No",
+      "default": "no"
+    },
+    {
+      "type": "text",
+      "id": "no_note",
+      "label": "No note",
+      "default": "(only necessary)"
+    },
+    {
+      "type": "text",
+      "id": "choose_label",
+      "label": "Choose link",
+      "default": "choose"
+    },
+    {
+      "type": "url",
+      "id": "policy_link",
+      "label": "Policy page",
+      "info": "Empty = the store's privacy policy"
+    },
+    {
+      "type": "text",
+      "id": "policy_label",
+      "label": "Policy link",
+      "default": "policy"
+    },
+    {
+      "type": "header",
+      "content": "Choose"
+    },
+    {
+      "type": "text",
+      "id": "choices_heading",
+      "label": "Heading",
+      "default": "your choice"
+    },
+    {
+      "type": "text",
+      "id": "necessary_title",
+      "label": "Necessary",
+      "default": "necessary"
+    },
+    {
+      "type": "text",
+      "id": "necessary_text",
+      "label": "Necessary note",
+      "default": "(always on)"
+    },
+    {
+      "type": "text",
+      "id": "analytics_title",
+      "label": "Analytics",
+      "default": "analytics"
+    },
+    {
+      "type": "text",
+      "id": "analytics_text",
+      "label": "Analytics note",
+      "default": "(visit stats)"
+    },
+    {
+      "type": "text",
+      "id": "marketing_title",
+      "label": "Ads",
+      "default": "ads"
+    },
+    {
+      "type": "text",
+      "id": "marketing_text",
+      "label": "Ads note",
+      "default": "(on other sites)"
+    },
+    {
+      "type": "text",
+      "id": "save_label",
+      "label": "Save",
+      "default": "save"
+    },
+    {
+      "type": "text",
+      "id": "back_label",
+      "label": "Back",
+      "default": "back"
+    },
+    {
+      "type": "header",
+      "content": "Accessibility"
+    },
+    {
+      "type": "text",
+      "id": "aria_label",
+      "label": "Banner name for screen readers",
+      "default": "Cookie consent"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Cookie bar"
+    }
+  ]
+}
+{% endschema %}

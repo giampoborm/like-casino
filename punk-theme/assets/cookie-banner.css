@@ -1,0 +1,213 @@
+/* Cookie banner — one fixed composition: tilted bust bottom-left, hand-drawn bubble beside it,
+   words scattered inside the bubble. Everything is measured in --cb-u (= the bust's width),
+   so the whole scene scales as one piece and the tail always stays on the mouth.
+
+   Geometry (bust.png 594 × 1268, so its height is 2.135u; mouth 35% from the top, its corner
+   at 58% of the width). The bust turns -6deg around its bottom centre, which puts the mouth
+   corner at x 0.654u, 1.315u above the scene's bottom. The drawn tail tip sits at the bubble's
+   left edge, 37.4% up from its bottom (snippets/speech-bubble.liquid). */
+
+.cookie-banner {
+  --cb-gap: 16px;
+  /* 140px × the Size setting on desktop; shrinks to fit narrow or short screens */
+  --cb-u: min(calc(140px * var(--cb-scale, 1)), calc((100vw - 2 * var(--cb-gap)) / 4.25), calc((100vh - 24px) / 2.86));
+  /* Text unit: follows the scene, times the Text size setting */
+  --cb-t: calc(var(--cb-u) * var(--cb-text-scale, 1));
+  position: fixed;
+  left: var(--cb-gap);
+  bottom: 0;
+  z-index: 900;
+  pointer-events: none;
+}
+
+.cookie-banner[hidden] {
+  display: none;
+}
+
+.cookie-banner__scene {
+  position: relative;
+  width: calc(4.25 * var(--cb-u));
+  height: calc(2.86 * var(--cb-u));
+}
+
+/* ---------- Bust ---------- */
+
+.cookie-banner__bust {
+  position: absolute;
+  left: calc(0.22 * var(--cb-u));
+  bottom: calc(-0.08 * var(--cb-u));
+  width: var(--cb-u);
+  transform: rotate(-6deg);
+  transform-origin: 50% 100%;
+}
+
+.cookie-banner__bust-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(4px 6px 8px rgba(0, 0, 0, var(--cb-bust-shadow)));
+}
+
+/* ---------- Bubble ---------- */
+
+.cookie-banner__bubble {
+  position: absolute;
+  left: calc(0.74 * var(--cb-u));
+  bottom: calc(0.395 * var(--cb-u));
+  width: calc(3.5 * var(--cb-u));
+  /* The drawing's proportions: 2060 × 1448 */
+  height: calc(2.46 * var(--cb-u));
+  isolation: isolate;
+  color: #000;
+  font-family: var(--cb-font, var(--font-main--family));
+  font-size: max(11px, calc(0.15 * var(--cb-t)));
+  line-height: 1.2;
+  pointer-events: auto;
+}
+
+.speech-bubble {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* Always a white bubble with a black line, whatever the theme colours */
+.speech-bubble path {
+  fill: #fff;
+  stroke: #000;
+  stroke-width: max(1.5px, calc(0.021 * var(--cb-u)));
+  stroke-linejoin: round;
+}
+
+/* ---------- Words: fixed spots inside the bubble, each a little skewed ---------- */
+
+.cookie-banner__layer[hidden] {
+  display: none;
+}
+
+.cookie-banner__spot {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  /* max-content: otherwise a spot far right only gets the space left of the edge */
+  width: max-content;
+  max-width: var(--w, 30%);
+  margin: 0;
+  transform: translate(-50%, -50%) rotate(var(--r));
+  text-align: center;
+}
+
+.cookie-banner__spot--title   { --x: 58%; --y: 15%; --r: -3deg; --w: 70%; }
+.cookie-banner__spot--message { --x: 57%; --y: 27%; --r: -2deg; --w: 58%; }
+.cookie-banner__spot--a       { --x: 26%; --y: 39%; --r: -6deg; --w: 25%; }
+.cookie-banner__spot--b       { --x: 53%; --y: 47%; --r: 3deg; --w: 27%; }
+.cookie-banner__spot--c       { --x: 81%; --y: 51%; --r: 6deg; --w: 25%; }
+.cookie-banner__spot--d       { --x: 30%; --y: 75%; --r: -4deg; }
+.cookie-banner__spot--e       { --x: 70%; --y: 80%; --r: 5deg; }
+
+.cookie-banner__title {
+  font-size: calc(0.34 * var(--cb-t));
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Layer 2 carries checkboxes and longer words: a size down */
+[data-cookie-layer='choices'] {
+  font-size: 0.9em;
+}
+
+[data-cookie-layer='choices'] .cookie-banner__title {
+  font-size: calc(0.26 * var(--cb-t));
+}
+
+.cookie-banner__message {
+  font-size: 0.85em;
+}
+
+.cookie-banner__message p {
+  margin: 0;
+}
+
+.cookie-banner__message a {
+  color: inherit;
+}
+
+/* yes / maybe / no (and the choices on layer 2): one style for all */
+.cookie-banner__choice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2px 4px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.cookie-banner__choice-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  font-size: 1.15em;
+  text-decoration: underline transparent 2px;
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.15s;
+}
+
+.cookie-banner__choice-note {
+  margin-top: 1px;
+  font-size: max(10.5px, 0.85em);
+}
+
+/* Layer 2: checkbox above its word, so the columns stay narrow */
+[data-cookie-layer='choices'] .cookie-banner__choice-label {
+  flex-direction: column;
+}
+
+button.cookie-banner__choice:hover .cookie-banner__choice-label,
+button.cookie-banner__choice:focus-visible .cookie-banner__choice-label {
+  text-decoration-color: currentColor;
+}
+
+.cookie-banner__choice input {
+  width: max(12px, calc(0.1 * var(--cb-u)));
+  height: max(12px, calc(0.1 * var(--cb-u)));
+  margin: 0;
+  accent-color: #000;
+}
+
+.cookie-banner__choice input:disabled {
+  cursor: not-allowed;
+}
+
+.cookie-banner__link {
+  padding: 2px 4px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 1.1em;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.cookie-banner__link:hover,
+.cookie-banner__link:focus-visible {
+  text-decoration: underline;
+}
+
+.cookie-banner__choice:focus-visible,
+.cookie-banner__link:focus-visible {
+  outline: 2px dashed #000;
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .cookie-banner {
+    --cb-gap: 8px;
+  }
+}

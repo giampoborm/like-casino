@@ -15,6 +15,7 @@
       "type": "footer",
       "settings": {
         "menu": "",
+        "cookie_settings_label": "Cookie settings",
         "show_payment_icons": true
       }
     }
