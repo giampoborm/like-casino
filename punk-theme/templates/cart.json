@@ -11,7 +11,20 @@
   "sections": {
     "main": {
       "type": "cart",
-      "settings": {}
+      "settings": {
+        "leg_entrance": true,
+        "leg_width": 250,
+        "leg_top": 4,
+        "leg_inset": 1,
+        "leg_width_mobile": 170,
+        "leg_top_mobile": 20,
+        "lamp_size": 85,
+        "lamp_sink": 28,
+        "lamp_right": 180,
+        "lamp_size_mobile": 50,
+        "lamp_sink_mobile": 49,
+        "lamp_right_mobile": 36
+      }
     }
   },
   "order": [

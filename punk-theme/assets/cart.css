@@ -1,13 +1,77 @@
 /* Cart page */
 
+/*
+ * Two styles, picked in the section settings: .cart-page--images (leg out
+ * of the wall + checkout lamp) and .cart-page--buttons (bevelled back
+ * arrow + checkout button in a sidebar).
+ *
+ * Section settings arrive as inline custom properties on .cart-page:
+ * --leg-w-d / --leg-top-d / --leg-w-m / --leg-top-m / --leg-inset and
+ * --lamp-h-d / --lamp-sink-d / --lamp-right-d (+ -m mobile twins).
+ * The un-suffixed vars below pick the right one per breakpoint.
+ */
 .cart-page {
   padding: 40px 32px 100px;
   color: var(--color-text);
 }
 
-/* ── Back arrow (top-left) ───────────────────── */
+.cart-page--images {
+  --leg-width: var(--leg-w-d, 250px);
+  --leg-top: var(--leg-top-d, 4px);
 
+  /* Top padding reserves the space the (absolutely positioned) leg covers */
+  padding-top: calc(var(--leg-top) + var(--leg-width) * 0.3 + 32px);
+}
+
+/* ── Back leg, sticking out of the left screen edge ── */
+
+/* Positioned against .shopify-section (full viewport width, left: 0), so
+   left: 0 is the edge of the screen; --leg-inset buries the thigh in it. */
 .cart-back {
+  position: absolute;
+  z-index: 20;
+  top: var(--leg-top);
+  left: 0;
+  width: var(--leg-width);
+  line-height: 0;
+  transform: translateX(calc(var(--leg-inset, 4%) * -1));
+}
+
+/* Slides out of the wall on load, overshooting a touch before settling.
+   fill-mode backwards keeps it hidden during the delay, then releases the
+   transform so the resting style above takes over. */
+.cart-back--enter {
+  animation: cart-leg-enter 0.75s cubic-bezier(0.2, 0.8, 0.3, 1) 0.2s backwards;
+}
+
+@keyframes cart-leg-enter {
+  0%   { transform: translateX(-105%); }
+  70%  { transform: translateX(calc(var(--leg-inset, 4%) * -1 + 3%)); }
+  100% { transform: translateX(calc(var(--leg-inset, 4%) * -1)); }
+}
+
+.cart-back__img {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* Hinge where the thigh meets the wall */
+  transform-origin: 4% 55%;
+  transition: transform 0.3s ease-out;
+}
+
+/* Small lift from the wall */
+.cart-back:hover .cart-back__img,
+.cart-back:focus-visible .cart-back__img {
+  transform: rotate(-2deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cart-back--enter { animation: none; }
+}
+
+/* ── Back arrow button (buttons style) ───────── */
+
+.cart-back-button {
   --btn-border-light: rgb(190, 187, 175);
   --btn-border-dark:  rgb(145, 142, 130);
 
@@ -29,7 +93,7 @@
   margin-bottom: 32px;
 }
 
-.cart-back:hover {
+.cart-back-button:hover {
   background: var(--color-text);
   color: var(--color-text-inverse);
 }
@@ -50,61 +114,83 @@
   text-transform: uppercase;
 }
 
-/* ── Two-column layout ───────────────────────── */
+/* ── Layout ──────────────────────────────────── */
 
-.cart-layout {
+/* Images style: the lamp is fixed, so the list has the page to itself.
+   Buttons style: list on the left, summary sidebar on the right. */
+.cart-page--buttons .cart-layout {
   display: flex;
   align-items: flex-start;
   gap: 60px;
 }
 
-/* ── Item list (left) ────────────────────────── */
-
-.cart-items {
+.cart-layout__main {
   flex: 1;
+  min-width: 0;
+}
+
+/* ── Item list ───────────────────────────────── */
+
+/* One continuous list on desktop; on mobile it becomes a horizontal
+   strip of pages (see Responsive). */
+.cart-items {
+  display: flex;
+  flex-direction: column;
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
 }
 
+/*
+ * Card grid. The 1fr spacer rows above and below centre the text block
+ * against the image; the × sits right after the title (desktop) or in
+ * its own column left of the image (mobile, see Responsive).
+ */
 .cart-item {
-  display: flex;
+  --card-h: var(--card-h-d, 90px);
+  /* Picture column fits the widest photo in the cart (--card-ratio, set
+     inline by the section), so the text lines up with no extra gap */
+  --card-col: calc(var(--card-h) * var(--card-ratio, 1.3));
+
+  display: grid;
+  grid-template-columns: var(--card-col) max-content max-content;
+  grid-template-rows: 1fr auto auto auto 1fr;
+  grid-template-areas:
+    "img .       ."
+    "img title   remove"
+    "img variant ."
+    "img price   ."
+    "img .       .";
+  column-gap: 0;
   align-items: center;
-  gap: 24px;
-  padding: 24px 0;
+  padding: 3px 0;
 }
 
+/* Every picture gets the same height whatever its proportions; width
+   follows, and the column is sized so none of them has to shrink */
 .cart-item__img {
-  width: 130px;
-  height: 130px;
+  grid-area: img;
+  justify-self: center;
+  width: auto;
+  max-width: 100%;
+  height: var(--card-h);
   object-fit: contain;
-  flex-shrink: 0;
 }
 
 .cart-item__img--placeholder {
+  width: var(--card-h);
   background: #ddd9cc;
 }
 
-.cart-item__details {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
 .cart-item__title {
+  grid-area: title;
+  margin-left: 16px;
   font-size: 15px;
   font-weight: bold;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--color-text);
   text-decoration: none;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .cart-item__title:hover {
@@ -112,28 +198,28 @@
 }
 
 .cart-item__variant {
+  grid-area: variant;
+  margin: 4px 0 0 16px;
   font-size: 12px;
   opacity: 0.7;
   letter-spacing: 0.04em;
 }
 
 .cart-item__price {
+  grid-area: price;
+  margin: 4px 0 0 16px;
   font-size: 15px;
   letter-spacing: 0.04em;
 }
 
-.cart-item__qty {
-  font-size: 12px;
-  letter-spacing: 0.06em;
-}
-
 .cart-item__remove {
-  font-size: 26px;
+  grid-area: remove;
+  margin-left: 8px;
+  padding: 0 4px;
+  font-size: 22px;
   line-height: 1;
   color: var(--color-text);
   text-decoration: none;
-  flex-shrink: 0;
-  padding: 4px 8px;
   transition: color 0.15s;
 }
 
@@ -141,7 +227,13 @@
   color: var(--color-accent);
 }
 
-/* ── Summary sidebar (right) ─────────────────── */
+/* ── Pager (mobile only) ─────────────────────── */
+
+.cart-pager {
+  display: none;
+}
+
+/* ── Summary sidebar (buttons style) ─────────── */
 
 .cart-summary {
   width: 300px;
@@ -200,15 +292,380 @@
   color: var(--color-text-inverse);
 }
 
+/* ── Total, riding with the lamp ─────────────── */
+
+/* Fixed like the lamp and placed from the same vars: centred just above
+   the top of the shade (the visible part is lamp height × (1 − sink)). */
+.cart-total {
+  position: fixed;
+  z-index: 6;
+  right: var(--lamp-right);
+  bottom: calc(var(--lamp-h) * (1 - var(--lamp-sink)) + 10px);
+  width: var(--lamp-w);
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 0.5em;
+  margin: 0;
+  font-size: 18px;
+  font-weight: bold;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ── Checkout lamp ───────────────────────────── */
+
+/*
+ * Geometry (percent of the lamp image): shade spans y 0–30%, its
+ * bottom opening sits around y 29%, the bulb at ~(50%, 22%).
+ *
+ * Switching on: the deep-red "ember" layer comes up first (filament
+ * still cold), the warmer orange layer follows a beat later, plus one
+ * small flicker. Switching off: the orange drops fast and the red
+ * ember lingers, like a cooling filament.
+ *
+ * Placement: fixed to the screen's bottom edge, --lamp-right from the
+ * right, with --lamp-sink of its height below the screen so the pole
+ * runs off the bottom. The glow is a separate fixed layer behind the
+ * lamp that shares its box.
+ */
+.cart-lamp-stage {
+  --lamp-h: var(--lamp-h-d, 85svh);
+  --lamp-w: calc(var(--lamp-h) * 896 / 2624);
+  --lamp-sink: var(--lamp-sink-d, 0.28);
+  --lamp-right: var(--lamp-right-d, 180px);
+  --lamp-on-dur: 0.18s;
+}
+
+.cart-lamp,
+.cart-lamp-glow {
+  position: fixed;
+  right: var(--lamp-right);
+  bottom: calc(var(--lamp-h) * var(--lamp-sink) * -1);
+  width: var(--lamp-w);
+  height: var(--lamp-h);
+}
+
+.cart-lamp {
+  z-index: 5;
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  line-height: 0;
+  /* Hit area follows the lamp silhouette (shade, pole, base; traced from
+     the PNG's alpha with a little slack) instead of the mostly transparent
+     image rectangle. clip-path also clips hit-testing. */
+  clip-path: polygon(
+    33% 0, 66% 0, 73% 2%, 77% 12%, 85% 17%, 93% 19.5%, 100% 22%,
+    100% 31%, 58% 31%, 58% 91%, 75% 92%, 75% 100%,
+    34% 100%, 34% 92%, 42% 91%, 42% 31%,
+    0 31%, 0 22%, 9% 19.5%, 15% 17%, 20% 12%, 20% 2%
+  );
+}
+
+/* Focus ring would be clipped; keyboard focus lights the lamp instead
+   (see ON states below) */
+.cart-lamp:focus-visible {
+  outline: none;
+}
+
+.cart-lamp__img,
+.cart-lamp__ember,
+.cart-lamp__lit {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.cart-lamp__light,
+.cart-lamp__ember,
+.cart-lamp__lit,
+.cart-lamp__hotspot {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Lit layers only cover the shade, fading out down the brass stem */
+.cart-lamp__light {
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 29%, rgba(0, 0, 0, 0.35) 34%, transparent 42%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 29%, rgba(0, 0, 0, 0.35) 34%, transparent 42%);
+}
+
+/* Backlit fabric, cold-filament phase: deep red, dim */
+.cart-lamp__ember {
+  opacity: 0;
+  filter: sepia(1) saturate(7) hue-rotate(-48deg) brightness(0.72);
+  transition: opacity 0.9s ease-out;
+}
+
+/* Backlit fabric, full brightness: brightened greyscale (weave stays
+   visible), coloured by the multiply tint below */
+.cart-lamp__lit {
+  opacity: 0;
+  filter: grayscale(1) brightness(1.22) contrast(1.4);
+  transition: opacity 0.22s ease-in;
+}
+
+/* Colour of the light through the fabric: amber at the bulb, deepening
+   to red toward the shade's edges */
+.cart-lamp__tint {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    ellipse 70% 22% at 50% 22%,
+    rgb(255, 195, 135) 0%,
+    rgb(250, 125, 75) 45%,
+    rgb(205, 60, 38) 100%
+  );
+  -webkit-mask: var(--lamp-src) center / 100% 100% no-repeat;
+  mask: var(--lamp-src) center / 100% 100% no-repeat;
+  mix-blend-mode: multiply;
+  transition: opacity 0.22s ease-in;
+}
+
+/* Bulb hot-spot glowing through the fabric, clipped to the lamp silhouette */
+.cart-lamp__hotspot {
+  opacity: 0;
+  background: radial-gradient(
+    ellipse 45% 11% at 50% 23%,
+    rgba(255, 200, 140, 0.75) 0%,
+    rgba(255, 110, 60, 0.4) 40%,
+    rgba(220, 50, 30, 0.12) 75%,
+    transparent 100%
+  );
+  -webkit-mask: var(--lamp-src) center / 100% 100% no-repeat;
+  mask: var(--lamp-src) center / 100% 100% no-repeat;
+  mix-blend-mode: screen;
+  transition: opacity 0.2s ease-in;
+}
+
+/* Light falling on the page. Normal blending on purpose: Chrome won't
+   multiply a fixed layer into the body's fixed background image (the glow
+   just disappears), so the gradients stay translucent instead. */
+.cart-lamp-glow {
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.6s ease-out;
+}
+
+/* Warm wash on the wall around the shade */
+.cart-lamp-glow__halo {
+  position: absolute;
+  left: -110%;
+  right: -110%;
+  top: -12%;
+  height: 58%;
+  background: radial-gradient(
+    ellipse 50% 50% at 50% 30%,
+    rgba(255, 120, 70, 0.42) 0%,
+    rgba(240, 90, 55, 0.22) 35%,
+    rgba(210, 70, 40, 0.07) 65%,
+    transparent 100%
+  );
+  filter: blur(8px);
+}
+
+/* Light pouring down out of the shade's open bottom */
+.cart-lamp-glow__cone {
+  position: absolute;
+  left: -45%;
+  right: -45%;
+  top: 25%;
+  bottom: 0;
+  /* Ellipse anchored at the shade opening, spreading and fading downward */
+  background: radial-gradient(
+    ellipse 55% 115% at 50% 0%,
+    rgba(255, 115, 65, 0.4) 0%,
+    rgba(245, 95, 55, 0.2) 30%,
+    rgba(225, 75, 45, 0.07) 65%,
+    transparent 100%
+  );
+  /* Soften the top edge where it peeks out past the fringe */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 12%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 12%);
+}
+
+/* ON */
+.cart-lamp:hover .cart-lamp__ember,
+.cart-lamp:focus-visible .cart-lamp__ember {
+  opacity: 1;
+  transition: opacity 0.08s ease-out;
+}
+
+.cart-lamp:hover .cart-lamp__lit,
+.cart-lamp:focus-visible .cart-lamp__lit,
+.cart-lamp:hover .cart-lamp__tint,
+.cart-lamp:focus-visible .cart-lamp__tint {
+  opacity: 1;
+  transition: opacity var(--lamp-on-dur) ease-in 0.07s;
+}
+
+.cart-lamp:hover .cart-lamp__hotspot,
+.cart-lamp:focus-visible .cart-lamp__hotspot,
+.cart-lamp-stage:has(.cart-lamp:hover, .cart-lamp:focus-visible) .cart-lamp-glow {
+  opacity: 1;
+  transition: opacity var(--lamp-on-dur) ease-in 0.1s;
+}
+
+.cart-lamp:hover .cart-lamp__light,
+.cart-lamp:focus-visible .cart-lamp__light {
+  animation: cart-lamp-flicker 0.45s linear;
+}
+
+@keyframes cart-lamp-flicker {
+  0%   { filter: brightness(0.7); }
+  18%  { filter: brightness(1.1); }
+  26%  { filter: brightness(0.8); }
+  34%  { filter: brightness(1.05); }
+  100% { filter: brightness(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cart-lamp__light { animation: none !important; }
+}
+
+.cart-lamp__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
 /* ── Responsive ──────────────────────────────── */
 
 @media (max-width: 760px) {
-  .cart-layout {
+  .cart-page--images {
+    --leg-width: var(--leg-w-m, 170px);
+    --leg-top: var(--leg-top-m, 20px);
+
+    /* Cards use the full content width; the pager keeps the list short
+       enough to stay clear of the lamp, so no bottom reserve is needed */
+    padding-inline: 0;
+    padding-bottom: 16px;
+  }
+
+  /* Buttons style: summary drops below the list */
+  .cart-page--buttons .cart-layout {
     flex-direction: column;
+    align-items: stretch;
+    gap: 32px;
   }
 
   .cart-summary {
     width: 100%;
     position: static;
+  }
+
+  /* Images style: --per-page rows (set inline from the section setting)
+     flowing into full-width columns = pages side by side. Every card snaps
+     to its column's left edge, so swipes land on pages. */
+  .cart-page--images .cart-items {
+    display: grid;
+    grid-template-rows: repeat(var(--per-page, 5), auto);
+    grid-auto-flow: column;
+    grid-auto-columns: 100%;
+    align-content: start;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .cart-items::-webkit-scrollbar {
+    display: none;
+  }
+
+  .cart-page--images .cart-item {
+    scroll-snap-align: start;
+  }
+
+  .cart-pager {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 0.08em;
+  }
+
+  .cart-pager__btn {
+    padding: 0 6px;
+    border: 0;
+    background: none;
+    color: var(--color-text);
+    font: inherit;
+    font-size: 28px;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  /* cart.js hides it when everything fits on one page */
+  .cart-pager[hidden] {
+    display: none;
+  }
+
+  .cart-pager__btn:disabled {
+    opacity: 0.25;
+    cursor: default;
+  }
+
+  /* Mobile card: × | image | text, spanning the full width */
+  .cart-item {
+    --card-h: var(--card-h-m, 60px);
+
+    grid-template-columns: 32px var(--card-col) minmax(0, 1fr);
+    grid-template-areas:
+      "remove img ."
+      "remove img title"
+      "remove img variant"
+      "remove img price"
+      "remove img .";
+  }
+
+  .cart-item__title,
+  .cart-item__variant,
+  .cart-item__price {
+    margin-left: 12px;
+  }
+
+  .cart-item__remove {
+    justify-self: start;
+    margin-left: 0;
+  }
+
+  .cart-item__title {
+    font-size: 14px;
+    overflow-wrap: anywhere;
+  }
+
+  .cart-item__price {
+    font-size: 14px;
+  }
+
+  /* Lamp in the bottom-right corner, sunk further so only the shade and a
+     bit of pole poke up */
+  .cart-lamp-stage {
+    --lamp-h: var(--lamp-h-m, 50svh);
+    --lamp-sink: var(--lamp-sink-m, 0.49);
+    --lamp-right: var(--lamp-right-m, 36px);
+  }
+
+  /* Total sits left of the lamp, level with the middle of the shade
+     (shade = top 30% of the lamp) */
+  .cart-total {
+    right: calc(var(--lamp-right) + var(--lamp-w) + 12px);
+    bottom: calc(var(--lamp-h) * (1 - var(--lamp-sink) - 0.15));
+    width: auto;
+    font-size: 16px;
   }
 }

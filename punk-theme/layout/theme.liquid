@@ -20,7 +20,8 @@
 
     {{ content_for_layout }}
 
-    {% unless request.page_type == 'index' %}
+    {% # No footer on cart: the fixed checkout lamp owns the bottom edge %}
+    {% unless request.page_type == 'index' or request.page_type == 'cart' %}
       {% sections 'footer-group' %}
     {% endunless %}
 

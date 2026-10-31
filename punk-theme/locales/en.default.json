@@ -25,6 +25,9 @@
     "item_plural": "items",
     "quantity_label": "QTY",
     "subtotal": "Subtotal",
+    "total_short": "Tot.",
+    "previous_page": "Previous items",
+    "next_page": "Next items",
     "tax_note": "Tax incl. if applicable",
     "continue_shopping": "← continue shopping",
     "void": "Void"

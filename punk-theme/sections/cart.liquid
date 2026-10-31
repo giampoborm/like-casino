@@ -1,8 +1,58 @@
 {{ 'cart.css' | asset_url | stylesheet_tag }}
 
-<div class="cart-page">
+{%- liquid
+  # Two looks for the back link and checkout: the leg + lamp images, or
+  # the plain bevelled buttons the cart started with
+  assign images = true
+  if section.settings.cart_style == 'buttons'
+    assign images = false
+  endif
 
-  <a class="cart-back" href="{{ routes.all_products_collection_url }}">&#8592;</a>
+  assign leg_class = 'cart-back'
+  if section.settings.leg_entrance
+    assign leg_class = 'cart-back cart-back--enter'
+  endif
+-%}
+
+{%- comment -%}
+  Mobile variants are separate vars so the stylesheet can pick per breakpoint
+{%- endcomment -%}
+<div
+  class="cart-page {% if images %}cart-page--images{% else %}cart-page--buttons{% endif %}"
+  style="
+    --leg-w-d: {{ section.settings.leg_width }}px;
+    --leg-top-d: {{ section.settings.leg_top }}px;
+    --leg-w-m: {{ section.settings.leg_width_mobile }}px;
+    --leg-top-m: {{ section.settings.leg_top_mobile }}px;
+    --leg-inset: {{ section.settings.leg_inset }}%;
+    --lamp-h-d: {{ section.settings.lamp_size }}svh;
+    --lamp-sink-d: {{ section.settings.lamp_sink | divided_by: 100.0 }};
+    --lamp-right-d: {{ section.settings.lamp_right }}px;
+    --lamp-h-m: {{ section.settings.lamp_size_mobile }}svh;
+    --lamp-sink-m: {{ section.settings.lamp_sink_mobile | divided_by: 100.0 }};
+    --lamp-right-m: {{ section.settings.lamp_right_mobile }}px;
+    --card-h-d: {{ section.settings.card_image_height }}px;
+    --card-h-m: {{ section.settings.card_image_height_mobile }}px;
+  "
+>
+
+  {% if images %}
+    <a class="{{ leg_class }}" href="{{ routes.all_products_collection_url }}">
+      <img
+        src="{{ 'legs.png' | asset_url }}"
+        alt="{{ 'cart.back_to_shop' | t | escape }}"
+        class="cart-back__img"
+        width="963"
+        height="288"
+      >
+    </a>
+  {% else %}
+    <a
+      class="cart-back-button"
+      href="{{ routes.all_products_collection_url }}"
+      aria-label="{{ 'cart.back_to_shop' | t | escape }}"
+    >&#8592;</a>
+  {% endif %}
 
   {% if cart.item_count == 0 %}
 
@@ -12,52 +62,126 @@
 
   {% else %}
 
+    {%- comment -%}
+      Desktop: one continuous list. Mobile (images style): the list becomes
+      a grid of --per-page rows flowing into columns, each column a
+      full-width page in a horizontal scroll-snap strip (swipe or the ‹ ›
+      pager), so the list never runs down into the fixed lamp. The buttons
+      style has nothing fixed to dodge, so it stays a plain list.
+      Each card is a small grid: the remove × is placed beside the title on
+      desktop and left of the image on mobile purely via grid areas.
+    {%- endcomment -%}
+    {%- liquid
+      # Picture column = widest photo in the cart at the shared picture
+      # height, so every picture keeps that height and the text still lines
+      # up without extra gap
+      assign max_ratio = 1.0
+      for item in cart.items
+        if item.image and item.image.aspect_ratio > max_ratio
+          assign max_ratio = item.image.aspect_ratio
+        endif
+      endfor
+    -%}
     <div class="cart-layout">
+      <div class="cart-layout__main">
+        <ul
+          class="cart-items"
+          {% if images %}
+            data-cart-pages
+            data-per-page="{{ section.settings.items_per_page_mobile }}"
+          {% endif %}
+          style="--per-page: {{ section.settings.items_per_page_mobile }}; --card-ratio: {{ max_ratio | round: 3 }};"
+        >
+          {%- for item in cart.items %}
+            <li class="cart-item" data-key="{{ item.key }}">
+              <a href="{{ item.url_to_remove }}" class="cart-item__remove" aria-label="{{ 'cart.remove' | t }}">&times;</a>
 
-      <ul class="cart-items">
-        {% for item in cart.items %}
-          <li class="cart-item" data-key="{{ item.key }}">
+              {% if item.image %}
+                <img
+                  src="{{ item.image | image_url: height: 240 }}"
+                  alt="{{ item.product.title | escape }}"
+                  class="cart-item__img"
+                  loading="lazy"
+                  width="{{ item.image.width }}"
+                  height="{{ item.image.height }}"
+                >
+              {% else %}
+                <div class="cart-item__img cart-item__img--placeholder"></div>
+              {% endif %}
 
-            {% if item.image %}
-              <img
-                src="{{ item.image | image_url: width: 160 }}"
-                alt="{{ item.product.title | escape }}"
-                class="cart-item__img"
-                loading="lazy"
-                width="130"
-                height="130"
-              >
-            {% else %}
-              <div class="cart-item__img cart-item__img--placeholder"></div>
-            {% endif %}
-
-            <div class="cart-item__details">
               <a href="{{ item.url }}" class="cart-item__title">{{ item.product.title }}</a>
               {% unless item.variant.title == 'Default Title' %}
                 <span class="cart-item__variant">{{ item.variant.title }}</span>
               {% endunless %}
               <span class="cart-item__price">{{ item.line_price | money }}</span>
-              <span class="cart-item__qty">{{ 'cart.quantity_label' | t }}: {{ item.quantity }}</span>
-            </div>
+            </li>
+          {%- endfor %}
+        </ul>
 
-            <a href="{{ item.url_to_remove }}" class="cart-item__remove" aria-label="{{ 'cart.remove' | t }}">
-              &times;
-            </a>
-
-          </li>
-        {% endfor %}
-      </ul>
-
-      <div class="cart-summary">
-        <div class="cart-summary__row">
-          <span>{{ 'cart.subtotal' | t }}</span>
-          <span class="cart-summary__total">{{ cart.total_price | money }}</span>
-        </div>
-        <form action="{{ routes.cart_url }}" method="post" class="cart-summary__form">
-          <button type="submit" name="checkout" class="cart-summary__checkout">{{ 'cart.checkout' | t }}</button>
-        </form>
+        {%- if images -%}
+          {%- comment -%}
+            Rendered whenever there are items: on short phones even a few
+            items may not fit above the lamp. cart.js decides how many fit
+            per page (capped by the setting) and hides the pager when all
+            fit on one.
+          {%- endcomment -%}
+          <nav class="cart-pager" data-cart-pager aria-label="{{ 'cart.title' | t }}" hidden>
+            <button type="button" class="cart-pager__btn" data-cart-pager-prev aria-label="{{ 'cart.previous_page' | t }}">&lsaquo;</button>
+            <span class="cart-pager__count"><span data-cart-pager-current>1</span> / <span data-cart-pager-total>1</span></span>
+            <button type="button" class="cart-pager__btn" data-cart-pager-next aria-label="{{ 'cart.next_page' | t }}">&rsaquo;</button>
+          </nav>
+          <script src="{{ 'cart.js' | asset_url }}" defer></script>
+        {%- endif -%}
       </div>
 
+      {% if images %}
+        <form action="{{ routes.cart_url }}" method="post" id="cart-form" hidden></form>
+
+        {%- comment -%}
+          Checkout lamp, fixed to the bottom edge of the screen; the button
+          submits #cart-form via form="". The total floats with it: above
+          the shade on desktop, beside it on mobile.
+          Glow (halo + light cone) is a separate fixed layer behind the lamp;
+          lamp layers, bottom to top: the photo, a deep-red ember copy, a
+          greyscale copy coloured by a multiply tint, and a bulb hot-spot.
+        {%- endcomment -%}
+        <div class="cart-lamp-stage" style="--lamp-src: url('{{ 'lampbuy.png' | asset_url }}');">
+          <p class="cart-total">
+            <span class="cart-total__label">{{ 'cart.total_short' | t }}</span>
+            <span class="cart-total__price">{{ cart.total_price | money }}</span>
+          </p>
+          <span class="cart-lamp-glow" aria-hidden="true">
+            <span class="cart-lamp-glow__halo"></span>
+            <span class="cart-lamp-glow__cone"></span>
+          </span>
+          <button type="submit" name="checkout" form="cart-form" class="cart-lamp">
+            <img
+              src="{{ 'lampbuy.png' | asset_url }}"
+              alt=""
+              class="cart-lamp__img"
+              width="896"
+              height="2624"
+            >
+            <span class="cart-lamp__light" aria-hidden="true">
+              <img src="{{ 'lampbuy.png' | asset_url }}" alt="" class="cart-lamp__ember" width="896" height="2624">
+              <img src="{{ 'lampbuy.png' | asset_url }}" alt="" class="cart-lamp__lit" width="896" height="2624">
+              <span class="cart-lamp__tint"></span>
+              <span class="cart-lamp__hotspot"></span>
+            </span>
+            <span class="cart-lamp__label">{{ 'cart.checkout' | t }}</span>
+          </button>
+        </div>
+      {% else %}
+        <div class="cart-summary">
+          <div class="cart-summary__row">
+            <span>{{ 'cart.subtotal' | t }}</span>
+            <span class="cart-summary__total">{{ cart.total_price | money }}</span>
+          </div>
+          <form action="{{ routes.cart_url }}" method="post" class="cart-summary__form">
+            <button type="submit" name="checkout" class="cart-summary__checkout">{{ 'cart.checkout' | t }}</button>
+          </form>
+        </div>
+      {% endif %}
     </div>
 
   {% endif %}
@@ -67,6 +191,191 @@
 {% schema %}
 {
   "name": "t:general.cart",
-  "settings": []
+  "settings": [
+    {
+      "type": "select",
+      "id": "cart_style",
+      "label": "Back link and checkout style",
+      "options": [
+        { "value": "images", "label": "Images (leg and lamp)" },
+        { "value": "buttons", "label": "Buttons" }
+      ],
+      "default": "images",
+      "info": "Images: a leg out of the wall takes you back to the shop and a lamp is the checkout. Buttons: a plain back arrow and a checkout button beside the list."
+    },
+    {
+      "type": "header",
+      "content": "Back leg",
+      "visible_if": "{{ section.settings.cart_style == 'images' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "leg_entrance",
+      "label": "Slide in on page load",
+      "default": true,
+      "visible_if": "{{ section.settings.cart_style == 'images' }}"
+    },
+    {
+      "type": "range",
+      "id": "leg_width",
+      "min": 150,
+      "max": 600,
+      "step": 10,
+      "unit": "px",
+      "label": "Width",
+      "default": 250,
+      "visible_if": "{{ section.settings.cart_style == 'images' }}"
+    },
+    {
+      "type": "range",
+      "id": "leg_top",
+      "min": 0,
+      "max": 300,
+      "step": 4,
+      "unit": "px",
+      "label": "Distance from top",
+      "default": 4,
+      "visible_if": "{{ section.settings.cart_style == 'images' }}"
+    },
+    {
+      "type": "range",
+      "id": "leg_inset",
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "unit": "%",
+      "label": "Hidden inside the left edge",
+      "default": 1,
+      "visible_if": "{{ section.settings.cart_style == 'images' }}"
+    },
+    {
+      "type": "range",
+      "id": "leg_width_mobile",
+      "min": 100,
+      "max": 400,
+      "step": 10,
+      "unit": "px",
+      "label": "Width (mobile)",
+      "default": 170,
+      "visible_if": "{{ section.settings.cart_style == 'images' }}"
+    },
+    {
+      "type": "range",
+      "id": "leg_top_mobile",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "Distance from top (mobile)",
+      "default": 20,
+      "visible_if": "{{ section.settings.cart_style == 'images' }}"
+    },
+    {
+      "type": "header",
+      "content": "Checkout lamp",
+      "visible_if": "{{ section.settings.cart_style == 'images' }}"
+    },
+    {
+      "type": "range",
+      "id": "lamp_size",
+      "min": 30,
+      "max": 150,
+      "step": 5,
+      "unit": "%",
+      "label": "Height (relative to screen height)",
+      "default": 85,
+      "visible_if": "{{ section.settings.cart_style == 'images' }}"
+    },
+    {
+      "type": "range",
+      "id": "lamp_sink",
+      "min": 0,
+      "max": 70,
+      "step": 1,
+      "unit": "%",
+      "label": "Hidden below the bottom edge",
+      "default": 28,
+      "visible_if": "{{ section.settings.cart_style == 'images' }}"
+    },
+    {
+      "type": "range",
+      "id": "lamp_right",
+      "min": 0,
+      "max": 600,
+      "step": 10,
+      "unit": "px",
+      "label": "Distance from right edge",
+      "default": 180,
+      "visible_if": "{{ section.settings.cart_style == 'images' }}"
+    },
+    {
+      "type": "range",
+      "id": "lamp_size_mobile",
+      "min": 20,
+      "max": 100,
+      "step": 2,
+      "unit": "%",
+      "label": "Height (mobile, relative to screen height)",
+      "default": 50,
+      "visible_if": "{{ section.settings.cart_style == 'images' }}"
+    },
+    {
+      "type": "range",
+      "id": "lamp_sink_mobile",
+      "min": 0,
+      "max": 80,
+      "step": 1,
+      "unit": "%",
+      "label": "Hidden below the bottom edge (mobile)",
+      "default": 49,
+      "visible_if": "{{ section.settings.cart_style == 'images' }}"
+    },
+    {
+      "type": "range",
+      "id": "lamp_right_mobile",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "Distance from right edge (mobile)",
+      "default": 36,
+      "visible_if": "{{ section.settings.cart_style == 'images' }}"
+    },
+    {
+      "type": "header",
+      "content": "Product cards"
+    },
+    {
+      "type": "range",
+      "id": "card_image_height",
+      "min": 40,
+      "max": 200,
+      "step": 5,
+      "unit": "px",
+      "label": "Picture height",
+      "default": 90
+    },
+    {
+      "type": "range",
+      "id": "card_image_height_mobile",
+      "min": 30,
+      "max": 120,
+      "step": 2,
+      "unit": "px",
+      "label": "Picture height (mobile)",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "items_per_page_mobile",
+      "min": 2,
+      "max": 10,
+      "step": 1,
+      "label": "Items per page (mobile)",
+      "info": "On mobile, more items than this are split into pages you swipe or arrow through, so the list never reaches the lamp.",
+      "default": 5,
+      "visible_if": "{{ section.settings.cart_style == 'images' }}"
+    }
+  ]
 }
 {% endschema %}
