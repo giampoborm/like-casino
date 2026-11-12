@@ -168,6 +168,15 @@
   top: calc(var(--pp-buy-y) + var(--block-y, 0px));
 }
 
+/* Add-to-cart failure (sold out meanwhile, quantity limit...), from product-add.js */
+.product-text__error {
+  margin: 0.5rem 0 0;
+  max-width: 14rem;
+  font-size: calc(0.8rem * var(--text-scale, 1));
+  line-height: 1.3;
+  text-align: center;
+}
+
 .product-text__btn {
   /* bevel border — edit these two values to tune the 3D effect */
   --btn-border-light: rgb(190, 187, 175);

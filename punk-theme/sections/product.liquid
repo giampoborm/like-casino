@@ -135,6 +135,7 @@
     {% assign buy_boot_src = s.buy_boot_image | image_url: width: 600 %}
   {% endif %}
   {% assign back_label = 'products.boot_back' | t %}
+  {% assign boot_hover_sway = s.hover_sway | default: 100 | divided_by: 100.0 %}
   {% comment %} Fixed boots hang from the viewport, not the page: X in % of the width, Y in % of the height. {% endcomment %}
   {% assign back_fx = s.back_fixed_x %}
   {% assign back_fy = s.back_fixed_y %}
@@ -157,9 +158,11 @@
       fixed: s.back_boot_fixed,
       fixed_x: back_fx,
       fixed_y: back_fy,
+      hover_sway: boot_hover_sway,
       modifier: 'back'
     %}
   </div>
+  <script src="{{ 'hanging-boot.js' | asset_url }}" defer></script>
 {% elsif action_style == 'stamps' %}
   <a class="stamp product-stamp-back" href="{{ back_url }}" aria-label="{{ 'products.boot_back' | t }}"><svg class="stamp__arrow" viewBox="0 0 48 32" aria-hidden="true" focusable="false"><polygon points="0,16 18,0 18,10 48,10 48,22 18,22 18,32" fill="currentColor"></polygon></svg></a>
 {% else %}
@@ -258,7 +261,18 @@
           <div class="product-text__price" id="product-block-{{ block.id }}" {{ block.shopify_attributes }}>{{ product.price | money }}</div>
 
         {% when 'button' %}
-          <div class="product-text__actions" id="product-block-{{ block.id }}" {{ block.shopify_attributes }}>
+          {% comment %} product-add.js adds in place: shake + cart fill, then the same button goes to the cart. {% endcomment %}
+          <div
+            class="product-text__actions"
+            id="product-block-{{ block.id }}"
+            data-cart-add
+            data-cart-url="{{ routes.cart_url }}"
+            data-swing="{{ s.add_swing | default: 100 | divided_by: 100.0 }}"
+            data-added-label="{{ 'products.added_to_cart' | t }}"
+            data-go-label="{{ 'products.go_to_cart' | t }}"
+            data-error-label="{{ 'products.add_error' | t }}"
+            {{ block.shopify_attributes }}
+          >
             {% form 'product', product %}
               <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
               {% if s.sold_out_text != blank %}
@@ -279,6 +293,7 @@
                     fixed_x: buy_fx,
                     fixed_y: buy_fy,
                     delay: 0.35,
+                    hover_sway: boot_hover_sway,
                     modifier: 'buy'
                   %}
                 {% else %}
@@ -296,6 +311,7 @@
                     fixed_y: buy_fy,
                     delay: 0.35,
                     disabled: true,
+                    hover_sway: boot_hover_sway,
                     modifier: 'buy'
                   %}
                 {% endif %}
@@ -310,11 +326,15 @@
                 <button type="submit" class="stamp stamp--sold-out" disabled>{{ sold_out_label }}</button>
               {% endif %}
             {% endform %}
+            <p class="visually-hidden" role="status" data-add-status></p>
+            <p class="product-text__error" role="alert" data-add-error hidden></p>
           </div>
       {% endcase %}
     {% endfor %}
   </div>
 </div>
+
+<script src="{{ 'product-add.js' | asset_url }}" defer></script>
 
 <dialog class="product-wall-lightbox">
   <button class="product-wall-lightbox__btn product-wall-lightbox__close" aria-label="Close">×</button>
@@ -506,7 +526,8 @@
     { "type": "range", "id": "text_x", "label": "Position X", "min": -300, "max": 300, "step": 10, "unit": "px", "default": 0, "visible_if": "{{ section.settings.tune == 'text' }}" },
     { "type": "range", "id": "text_y", "label": "Position Y", "min": -300, "max": 300, "step": 10, "unit": "px", "default": 0, "visible_if": "{{ section.settings.tune == 'text' }}" },
 
-    { "type": "paragraph", "content": "Nothing to adjust for buttons", "visible_if": "{{ section.settings.tune == 'actions' and section.settings.action_style == 'buttons' }}" },
+    { "type": "range", "id": "add_swing", "label": "Swing after adding", "info": "Plays once the cart has filled. 0 = no swing", "min": 0, "max": 200, "step": 10, "unit": "%", "default": 100, "visible_if": "{{ section.settings.tune == 'actions' }}" },
+    { "type": "range", "id": "hover_sway", "label": "Sway on mouse over", "info": "The mouse pushes boot and lace the way it moves, then they swing back. 0 = off", "min": 0, "max": 200, "step": 10, "unit": "%", "default": 100, "visible_if": "{{ section.settings.tune == 'actions' and section.settings.action_style == 'boots' }}" },
     { "type": "range", "id": "back_boot_size", "label": "Back size", "min": 50, "max": 200, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ section.settings.tune == 'actions' and section.settings.action_style != 'buttons' }}" },
     { "type": "range", "id": "back_boot_x", "label": "Back X", "min": -1000, "max": 1000, "step": 20, "unit": "px", "default": 0, "visible_if": "{{ section.settings.tune == 'actions' and section.settings.action_style != 'buttons' }}" },
     { "type": "range", "id": "back_boot_y", "label": "Back Y", "min": -1000, "max": 1000, "step": 20, "unit": "px", "default": 0, "visible_if": "{{ section.settings.tune == 'actions' and section.settings.action_style != 'buttons' }}" },
@@ -517,7 +538,7 @@
     { "type": "range", "id": "boot_string", "label": "Lace length","min": 100, "max": 3000, "step": 100, "unit": "px", "default": 1500, "visible_if": "{{ section.settings.tune == 'actions' and section.settings.action_style == 'boots' }}" },
     { "type": "color", "id": "boot_lace_color", "label": "Lace colour", "default": "#14110e", "visible_if": "{{ section.settings.tune == 'actions' and section.settings.action_style == 'boots' }}" },
     { "type": "range", "id": "boot_lace_width", "label": "Lace thickness", "min": 1, "max": 10, "step": 1, "unit": "px", "default": 2, "visible_if": "{{ section.settings.tune == 'actions' and section.settings.action_style == 'boots' }}" },
-    { "type": "range", "id": "boot_swing", "label": "Sway", "min": 0, "max": 200, "step": 10, "unit": "%", "default": 100, "visible_if": "{{ section.settings.tune == 'actions' and section.settings.action_style == 'boots' }}" },
+    { "type": "range", "id": "boot_swing", "label": "Sway", "info": "Swing after the drop and the idle breeze", "min": 0, "max": 200, "step": 10, "unit": "%", "default": 100, "visible_if": "{{ section.settings.tune == 'actions' and section.settings.action_style == 'boots' }}" },
     { "type": "range", "id": "boot_shadow", "label": "Boot shadow", "min": 0, "max": 100, "step": 5, "unit": "%", "default": 50, "visible_if": "{{ section.settings.tune == 'actions' and section.settings.action_style == 'boots' }}" },
 
     { "type": "paragraph", "content": "Hanging boots only", "visible_if": "{{ section.settings.tune contains 'boot_' and section.settings.action_style != 'boots' }}" },

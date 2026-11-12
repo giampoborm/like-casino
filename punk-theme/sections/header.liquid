@@ -43,30 +43,68 @@
   </a>
 {%- endcapture -%}
 
+{%- comment -%}
+  The cart icon is a sprite strip of equal frames, from empty to full: object-fit cover makes one
+  frame fill the box and object-position picks which. Frame 1 is the empty cart; the settings say
+  which frame shows 1, 2 and 3+ items. On an add, header-cart.js steps from the current frame to
+  the next level's, through the frames in between (clothes falling in). Each frame has empty space
+  above the basket for the fall, and the icon's top edge sits on the top of the screen, so the
+  clothes come in from the screen edge. Bundled strip: 17 frames of 180×280, levels at 7 / 12 / 17.
+{%- endcomment -%}
+{%- liquid
+  assign cart_frames = section.settings.cart_sprite_frames | default: 17
+  assign cart_frame_1 = section.settings.cart_frame_1 | default: 7 | at_most: cart_frames
+  assign cart_frame_2 = section.settings.cart_frame_2 | default: 12 | at_most: cart_frames
+  assign cart_frame_3 = section.settings.cart_frame_3 | default: 17 | at_most: cart_frames
+  if section.settings.cart_sprite != blank
+    assign cart_sprite = section.settings.cart_sprite | image_url: width: 5760
+    assign cart_frame_w = section.settings.cart_sprite.width | divided_by: cart_frames
+    assign cart_frame_h = section.settings.cart_sprite.height
+  else
+    assign cart_sprite = 'cart-fill-sprite.png' | asset_url
+    assign cart_frame_w = 180
+    assign cart_frame_h = 280
+  endif
+  case cart.item_count
+    when 0
+      assign cart_frame = 1
+    when 1
+      assign cart_frame = cart_frame_1
+    when 2
+      assign cart_frame = cart_frame_2
+    else
+      assign cart_frame = cart_frame_3
+  endcase
+  assign cart_steps = cart_frames | minus: 1
+  assign cart_frame_pos = cart_frame | minus: 1 | times: 100.0 | divided_by: cart_steps
+  if cart.item_count == 1
+    assign cart_item_word = 'cart.item_singular' | t
+  else
+    assign cart_item_word = 'cart.item_plural' | t
+  endif
+-%}
 {%- capture header_cart -%}
-  <a href="{{ routes.cart_url }}" class="header__cart-link">
-    {% if cart.item_count > 0 %}
-      {% if cart.item_count == 1 %}
-        {% assign cart_item_word = 'cart.item_singular' | t %}
-      {% else %}
-        {% assign cart_item_word = 'cart.item_plural' | t %}
-      {% endif %}
-      <img
-        src="{{ 'full-cart.png' | asset_url }}"
-        alt="{{ 'cart.title' | t }} ({{ cart.item_count }} {{ cart_item_word }})"
-        class="header__cart-icon"
-        width="131"
-        height="101"
-      >
-    {% else %}
-      <img
-        src="{{ 'empty-cart.png' | asset_url }}"
-        alt="{{ 'cart.title' | t }}"
-        class="header__cart-icon"
-        width="131"
-        height="99"
-      >
-    {% endif %}
+  <a
+    href="{{ routes.cart_url }}"
+    class="header__cart-link"
+    data-frames="{{ cart_frames }}"
+    data-levels="1,{{ cart_frame_1 }},{{ cart_frame_2 }},{{ cart_frame_3 }}"
+    data-count="{{ cart.item_count }}"
+    data-frame-ms="{{ section.settings.cart_frame_ms | default: 90 }}"
+    data-label="{{ 'cart.title' | t }}"
+    data-item-one="{{ 'cart.item_singular' | t }}"
+    data-item-many="{{ 'cart.item_plural' | t }}"
+  >
+    {% # theme-check-disable RemoteAsset %}
+    <img
+      src="{{ cart_sprite }}"
+      alt="{{ 'cart.title' | t }}{% if cart.item_count > 0 %} ({{ cart.item_count }} {{ cart_item_word }}){% endif %}"
+      class="header__cart-icon"
+      style="aspect-ratio: {{ cart_frame_w }} / {{ cart_frame_h }}; object-position: {{ cart_frame_pos }}% 0"
+      width="{{ cart_frame_w }}"
+      height="{{ cart_frame_h }}"
+    >
+    {% # theme-check-enable RemoteAsset %}
   </a>
 {%- endcapture -%}
 
@@ -81,6 +119,7 @@
     --header-shadow-blur: {{ section.settings.shadow_blur }}px;
     --header-shadow-lift: {{ section.settings.shadow_lift }}px;
     --header-shadow-color: rgba({{ shadow_color.red }}, {{ shadow_color.green }}, {{ shadow_color.blue }}, {{ shadow_alpha }});
+    --header-cart-y: {{ section.settings.cart_offset_y | default: -10 }}px;
   "
 >
   {%- assign header_positions = 'left,center,right' | split: ',' -%}
@@ -95,6 +134,7 @@
     </div>
   {%- endfor -%}
 </header>
+<script src="{{ 'header-cart.js' | asset_url }}" defer></script>
 
 {% stylesheet %}
   .header {
@@ -105,7 +145,9 @@
     column-gap: 1rem;
     padding: 0 1.5rem 1rem;
   }
+  /* Slots fill the row's height so the cart can sit at its top (the logo stays centred) */
   .header__slot {
+    align-self: stretch;
     display: flex;
     align-items: center;
     gap: 1.5rem;
@@ -143,14 +185,20 @@
   .header__logo--custom {
     margin-top: 10px;
   }
+  /* Top of the header = top of the screen: the empty space above the basket is where clothes fall from */
   .header__cart-link {
     position: relative;
     flex-shrink: 0;
+    align-self: flex-start;
+    /* Up (negative) pushes the empty top of the frame past the screen edge; the clothes still enter from it */
+    margin-top: var(--header-cart-y, -10px);
   }
+  /* Sprite strip: aspect-ratio (inline) is one frame, so cover shows exactly one; object-position picks it. */
   .header__cart-icon {
     display: block;
-    padding-top: 0.7rem;
     width: 60px;
+    height: auto;
+    object-fit: cover;
   }
   /* glow: logo + cart; brightens on hover */
   .header--glow .header__logo,
@@ -253,6 +301,69 @@
         { "value": "right", "label": "t:options.alignment.right" }
       ],
       "default": "right"
+    },
+    {
+      "type": "image_picker",
+      "id": "cart_sprite",
+      "label": "Cart sprite",
+      "info": "One horizontal strip of equal frames (180×280px each), empty cart first. Empty = bundled basket"
+    },
+    {
+      "type": "range",
+      "id": "cart_sprite_frames",
+      "label": "Frames in the strip",
+      "min": 2,
+      "max": 24,
+      "step": 1,
+      "default": 17
+    },
+    {
+      "type": "range",
+      "id": "cart_frame_1",
+      "label": "Frame for 1 item",
+      "min": 1,
+      "max": 24,
+      "step": 1,
+      "default": 7
+    },
+    {
+      "type": "range",
+      "id": "cart_frame_2",
+      "label": "Frame for 2 items",
+      "min": 1,
+      "max": 24,
+      "step": 1,
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "cart_frame_3",
+      "label": "Frame for 3+ items",
+      "min": 1,
+      "max": 24,
+      "step": 1,
+      "default": 17
+    },
+    {
+      "type": "range",
+      "id": "cart_frame_ms",
+      "label": "Frame length",
+      "min": 40,
+      "max": 300,
+      "step": 10,
+      "unit": "ms",
+      "default": 90
+    },
+    {
+      "type": "range",
+      "id": "cart_offset_y",
+      "label": "Cart position up/down",
+      "info": "Negative = up",
+      "min": -40,
+      "max": 20,
+      "step": 2,
+      "unit": "px",
+      "default": -10
     },
     {
       "type": "header",
