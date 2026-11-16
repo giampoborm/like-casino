@@ -168,6 +168,34 @@
   top: calc(var(--pp-buy-y) + var(--block-y, 0px));
 }
 
+/* Option picker (size, colour...): only rendered for products with more than one variant */
+.product-text__variants {
+  --btn-border-light: rgb(190, 187, 175);
+  --btn-border-dark:  rgb(145, 142, 130);
+
+  display: block;
+  max-width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.35em 0.6em;
+  background: none;
+  border-top:    2px solid var(--btn-border-light);
+  border-left:   2px solid var(--btn-border-light);
+  border-bottom: 2px solid var(--btn-border-dark);
+  border-right:  2px solid var(--btn-border-dark);
+  border-radius: 0;
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: 0.8em;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.product-text__variants option {
+  background: var(--color-text-inverse);
+  color: var(--color-text);
+}
+
 /* Add-to-cart failure (sold out meanwhile, quantity limit...), from product-add.js */
 .product-text__error {
   margin: 0.5rem 0 0;

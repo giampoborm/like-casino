@@ -1,10 +1,27 @@
+{%- comment -%}
+  Theme fonts, colours and the site-wide background, as CSS variables on :root.
+  The bundled fonts are declared here (not in critical.css) so their URLs are the versioned
+  asset URLs: the same ones the layout preloads, and they refresh when a font file is replaced.
+{%- endcomment -%}
 {% style %}
-  {%- unless settings.font_main_bundled %}
+  {%- if settings.font_main_bundled %}
+  @font-face {
+    font-family: 'MainFont';
+    src: url('{{ 'cella.regular.otf' | asset_url }}') format('opentype');
+    font-display: swap;
+  }
+  {%- else %}
   {{ settings.font_main | font_face: font_display: 'swap' }}
-  {%- endunless %}
-  {%- unless settings.font_stamp_bundled %}
+  {%- endif %}
+  {%- if settings.font_stamp_bundled %}
+  @font-face {
+    font-family: 'StampFont';
+    src: url('{{ 'octin-spraypaint.otf' | asset_url }}') format('opentype');
+    font-display: swap;
+  }
+  {%- else %}
   {{ settings.font_stamp | font_face: font_display: 'swap' }}
-  {%- endunless %}
+  {%- endif %}
   :root {
     {%- if settings.font_main_bundled %}
     --font-main--family: 'MainFont', serif;
@@ -48,19 +65,48 @@
     --page-margin: {{ settings.min_page_margin }}px;
     --color-background: {{ settings.background_color }};
     {%- comment -%} GLOBAL SITE BACKGROUND — all values come from Theme settings → Site background. {%- endcomment -%}
-    {%- if settings.background_preset == 'custom' and settings.background_image -%}
-      {%- assign bg_url = settings.background_image | image_url: width: 2400 -%}
-    {%- elsif settings.background_preset == 'custom' -%}
-      {%- assign bg_url = 'sfondoprova6.png' | asset_url -%}
-    {%- elsif settings.background_preset contains 'wallbackground' -%}
-      {%- assign bg_file = settings.background_preset | append: '.png' -%}
-      {%- assign bg_url = bg_file | asset_url -%}
-    {%- else -%}
-      {%- assign bg_file = 'sfondoprova' | append: settings.background_preset | append: '.png' -%}
-      {%- assign bg_url = bg_file | asset_url -%}
-    {%- endif -%}
+    {%- comment -%}
+      The image is requested in three widths (phone / default / wide screen, see the media queries
+      under :root) so a phone never downloads the desktop file. A landscape image is cropped to a
+      tall phone screen by its height, so it needs more pixels there than a portrait one.
+    {%- endcomment -%}
+    {%- liquid
+      assign bg_file = 'sfondoprova6.png'
+      assign bg_landscape = false
+      if settings.background_preset == 'custom'
+        if settings.background_image and settings.background_image.aspect_ratio > 1
+          assign bg_landscape = true
+        endif
+      elsif settings.background_preset contains 'wallbackground'
+        assign bg_file = settings.background_preset | append: '.png'
+        assign bg_landscape = true
+      else
+        assign bg_file = 'sfondoprova' | append: settings.background_preset | append: '.png'
+      endif
+
+      assign bg_w_small = 1200
+      if bg_landscape
+        assign bg_w_small = 1600
+      endif
+      assign bg_w = 1600
+      assign bg_w_large = 2400
+
+      if settings.background_preset == 'custom' and settings.background_image
+        assign bg_url_small = settings.background_image | image_url: width: bg_w_small
+        assign bg_url = settings.background_image | image_url: width: bg_w
+        assign bg_url_large = settings.background_image | image_url: width: bg_w_large
+      else
+        assign bg_size_small = bg_w_small | append: 'x'
+        assign bg_size = bg_w | append: 'x'
+        assign bg_size_large = bg_w_large | append: 'x'
+        assign bg_url_small = bg_file | asset_img_url: bg_size_small
+        assign bg_url = bg_file | asset_img_url: bg_size
+        assign bg_url_large = bg_file | asset_img_url: bg_size_large
+      endif
+    -%}
     {%- assign bg_overlay = settings.background_overlay | divided_by: 100.0 %}
-    --site-background-image: linear-gradient(rgba(0, 0, 0, {{ bg_overlay }}), rgba(0, 0, 0, {{ bg_overlay }})), url({{ bg_url }});
+    {%- capture bg_gradient -%}linear-gradient(rgba(0, 0, 0, {{ bg_overlay }}), rgba(0, 0, 0, {{ bg_overlay }})){%- endcapture %}
+    --site-background-image: {{ bg_gradient }}, url({{ bg_url }});
     {%- if settings.background_fit == 'zoom' %}
     --site-background-size: {{ settings.background_zoom }}% auto;
     {%- else %}
@@ -71,5 +117,15 @@
     --site-background-attachment: {{ settings.background_attachment }};
     --color-foreground: var(--color-text);
     --style-border-radius-inputs: {{ settings.input_corner_radius }}px;
+  }
+  @media (max-width: 700px) {
+    :root {
+      --site-background-image: {{ bg_gradient }}, url({{ bg_url_small }});
+    }
+  }
+  @media (min-width: 1700px), (min-width: 1000px) and (min-resolution: 1.5dppx) {
+    :root {
+      --site-background-image: {{ bg_gradient }}, url({{ bg_url_large }});
+    }
   }
 {% endstyle %}

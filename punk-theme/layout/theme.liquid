@@ -4,6 +4,11 @@
     {% # Inlined CSS Variables %}
     {% render 'css-variables' %}
 
+    {% # The main font is used by all text: fetch it with the page instead of after the CSS is parsed %}
+    {% if settings.font_main_bundled %}
+      {{ 'cella.regular.otf' | asset_url | preload_tag: as: 'font', type: 'font/otf', crossorigin: 'anonymous' }}
+    {% endif %}
+
     {% # Load and preload the critical CSS %}
     {{ 'critical.css' | asset_url | stylesheet_tag: preload: true }}
 
@@ -14,11 +19,15 @@
   </head>
 
   <body>
+    <a class="skip-link visually-hidden" href="#MainContent">Skip to content</a>
+
     {% unless request.page_type == 'index' %}
       {% sections 'header-group' %}
     {% endunless %}
 
-    {{ content_for_layout }}
+    <main id="MainContent" tabindex="-1">
+      {{ content_for_layout }}
+    </main>
 
     {% # No footer on cart: the fixed checkout lamp owns the bottom edge %}
     {% unless request.page_type == 'index' or request.page_type == 'cart' %}

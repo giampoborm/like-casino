@@ -1,0 +1,51 @@
+{% doc %}
+  Renders a bundled theme image (a file in assets/) as a responsive <img>.
+
+  The Shopify CDN resizes the file to each width in `widths` (and serves WebP/AVIF where the
+  browser supports it); the browser then picks the smallest one that fits `sizes`. Without this,
+  the full-size file is downloaded however small it is drawn.
+
+  @param {string} file - File name in assets/, e.g. 'leftcurtain.png'
+  @param {string} widths - Widths to offer, comma-separated, smallest first, none wider than the file, e.g. '400,800,1200'
+  @param {string} sizes - The `sizes` attribute: how wide the image is drawn, e.g. '(max-width: 768px) 90vw, 950px'
+  @param {number} width - Pixel width of the file (gives the browser the aspect ratio)
+  @param {number} height - Pixel height of the file
+  @param {string} [class] - Class for the <img>
+  @param {string} [alt] - Alt text; leave out for decorative images
+  @param {string} [loading] - 'lazy' (default) or 'eager' for images visible when the page opens
+  @param {string} [fetchpriority] - 'high' for the main image of the page
+
+  @example
+  {% render 'asset-image', file: 'legs.png', widths: '300,500,963', sizes: '250px', width: 963, height: 288 %}
+{% enddoc %}
+
+{%- liquid
+  assign width_list = widths | split: ','
+  assign fallback_size = width_list | last | strip | append: 'x'
+-%}
+{%- capture srcset -%}
+  {%- for w in width_list -%}
+    {%- assign w_px = w | strip -%}
+    {%- assign w_size = w_px | append: 'x' -%}
+    {{ file | asset_img_url: w_size }} {{ w_px }}w
+    {%- unless forloop.last %}, {% endunless -%}
+  {%- endfor -%}
+{%- endcapture -%}
+<img
+  src="{{ file | asset_img_url: fallback_size }}"
+  srcset="{{ srcset | strip }}"
+  sizes="{{ sizes }}"
+  alt="{{ alt | escape }}"
+  {% if alt == blank %}
+    role="presentation"
+  {% endif %}
+  {% if class != blank %}
+    class="{{ class }}"
+  {% endif %}
+  width="{{ width }}"
+  height="{{ height }}"
+  loading="{{ loading | default: 'lazy' }}"
+  {% if fetchpriority != blank %}
+    fetchpriority="{{ fetchpriority }}"
+  {% endif %}
+>

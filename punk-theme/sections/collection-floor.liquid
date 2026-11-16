@@ -19,6 +19,14 @@
   endif
 
   assign cols = section.settings.columns
+
+  # How wide a card is drawn at each breakpoint of the stylesheet below, so the browser picks a
+  # picture of that width (without it, it assumes the full screen width and downloads the largest)
+  assign cols_md = cols | at_most: 3
+  assign card_vw = 100 | divided_by: cols
+  assign card_vw_md = 100 | divided_by: cols_md
+  assign card_vw_sm = 100 | divided_by: section.settings.columns_mobile
+  assign card_sizes = '(max-width: 720px) ' | append: card_vw_sm | append: 'vw, (max-width: 980px) ' | append: card_vw_md | append: 'vw, ' | append: card_vw | append: 'vw'
 -%}
 
 <section
@@ -49,6 +57,17 @@
           assign mb_off = mb_offsets[offset_index] | times: row_scale
           assign x_off = x_offsets[offset_index] | times: x_scale
           assign rot_off = rot_offsets[offset_index] | times: rot_scale
+
+          # The first cards are on screen when the page opens; the rest load as they scroll into view
+          assign card_loading = 'lazy'
+          assign card_priority = 'auto'
+          if forloop.index <= cols
+            assign card_loading = 'eager'
+          endif
+          if forloop.first
+            assign card_priority = 'high'
+          endif
+          assign card_alt = product.featured_image.alt | default: product.title
         -%}
         <article class="collection-floor-card" style="margin-bottom: {{ mb_off }}px; --x-off: {{ x_off }}px;">
           <a class="collection-floor-card__media" href="{{ product.url }}" style="--rot: {{ rot_off }}deg;">
@@ -57,10 +76,12 @@
                 product.featured_image
                 | image_url: width: 900
                 | image_tag:
-                  loading: 'lazy',
-                  widths: '400,600,800,900',
+                  loading: card_loading,
+                  fetchpriority: card_priority,
+                  widths: '200,300,400,600,800,900',
+                  sizes: card_sizes,
                   class: 'collection-floor-card__img',
-                  alt: product.featured_image.alt | default: product.title
+                  alt: card_alt
               }}
             {% else %}
               <div class="collection-floor-card__placeholder"></div>
@@ -205,7 +226,8 @@
 
   .collection-floor-card__placeholder {
     width: 100%;
-    height: 100%;
+    /* A product without a picture still takes up a card's space (height: 100% of nothing was 0) */
+    aspect-ratio: 3 / 4;
     background: rgba(26, 16, 8, 0.08);
   }
 

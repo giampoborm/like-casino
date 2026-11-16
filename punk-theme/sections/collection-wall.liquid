@@ -10,6 +10,23 @@
   assign tilt_pattern = '1,-2,3,-1,2,-3,1,3,-2,2' | split: ','
   assign cols = section.settings.columns
   assign shadow_alpha = section.settings.shadow_strength | divided_by: 100.0
+
+  if section.settings.sold_out_text != blank
+    assign sold_out_text = section.settings.sold_out_text
+  else
+    assign sold_out_text = 'products.sold_out' | t
+  endif
+
+  # How wide a card is drawn at each breakpoint of the stylesheet below, so the browser picks a
+  # picture of that width (without it, it assumes the full screen width and downloads the largest)
+  assign cols_lg = cols | at_most: 4
+  assign cols_md = cols | at_most: 3
+  assign cols_sm = cols | at_most: 2
+  assign card_vw = 100 | divided_by: cols
+  assign card_vw_lg = 100 | divided_by: cols_lg
+  assign card_vw_md = 100 | divided_by: cols_md
+  assign card_vw_sm = 100 | divided_by: cols_sm
+  assign card_sizes = '(max-width: 520px) 100vw, (max-width: 720px) ' | append: card_vw_sm | append: 'vw, (max-width: 980px) ' | append: card_vw_md | append: 'vw, (max-width: 1200px) ' | append: card_vw_lg | append: 'vw, ' | append: card_vw | append: 'vw'
 -%}
 
 <section
@@ -72,7 +89,8 @@
             if frame_picker
               assign frame_url = frame_picker | image_url: width: 900
             else
-              assign frame_url = frame_assets[frame_index] | asset_url
+              # Bundled frames are ~1000px wide; 700px covers a card at 2x
+              assign frame_url = frame_assets[frame_index] | asset_img_url: '700x'
             endif
           endif
 
@@ -84,6 +102,17 @@
             takes the second one — unless the product only has one image.
           endcomment
           assign wall_image = product.images[1] | default: product.featured_image
+
+          # The first row is on screen when the page opens; the rest load as they scroll into view
+          assign card_loading = 'lazy'
+          assign card_priority = 'auto'
+          if forloop.index <= cols
+            assign card_loading = 'eager'
+          endif
+          if forloop.first
+            assign card_priority = 'high'
+          endif
+          assign card_alt = wall_image.alt | default: product.title
         -%}
 
         <article class="collection-frame-card" style="--tilt: {{ tilt }}deg;">
@@ -97,16 +126,18 @@
                   wall_image
                   | image_url: width: 900
                   | image_tag:
-                    loading: 'lazy',
-                    widths: '400,600,800,900',
+                    loading: card_loading,
+                    fetchpriority: card_priority,
+                    widths: '200,300,400,600,800,900',
+                    sizes: card_sizes,
                     class: 'collection-frame-card__img',
-                    alt: wall_image.alt | default: product.title
+                    alt: card_alt
                 }}
               {% else %}
                 <div class="collection-frame-card__placeholder"></div>
               {% endif %}
               {% unless product.available %}
-                <span class="collection-frame-card__sold-out">Sold Out</span>
+                <span class="collection-frame-card__sold-out">{{ sold_out_text | escape }}</span>
               {% endunless %}
             </a>
           </div>
@@ -389,6 +420,12 @@
       "id": "show_sort",
       "label": "Show sort menu",
       "default": true
+    },
+    {
+      "type": "text",
+      "id": "sold_out_text",
+      "label": "Sold out text",
+      "info": "Empty = default"
     },
     {
       "type": "header",

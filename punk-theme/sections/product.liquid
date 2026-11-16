@@ -33,7 +33,7 @@
 
 {% assign s = section.settings %}
 {% assign action_style = s.action_style | default: 'boots' %}
-{% assign back_url = collection.url | default: '/collections/all' %}
+{% assign back_url = collection.url | default: routes.all_products_collection_url %}
 
 {% comment %}
   Numeric tweaks (sizes, spacing, positions) are emitted as CSS variables in a
@@ -126,11 +126,12 @@
 {% endunless %}
 
 {% if action_style == 'boots' %}
-  {% assign back_boot_src = 'backboot.png' | asset_url %}
+  {{ 'hanging-boot.css' | asset_url | stylesheet_tag }}
+  {% assign back_boot_src = 'backboot.png' | asset_img_url: '600x' %}
   {% if s.back_boot_image != blank %}
     {% assign back_boot_src = s.back_boot_image | image_url: width: 600 %}
   {% endif %}
-  {% assign buy_boot_src = 'buyboot.png' | asset_url %}
+  {% assign buy_boot_src = 'buyboot.png' | asset_img_url: '600x' %}
   {% if s.buy_boot_image != blank %}
     {% assign buy_boot_src = s.buy_boot_image | image_url: width: 600 %}
   {% endif %}
@@ -172,6 +173,21 @@
 <div
   class="product-page product-page--{{ desktop_layout }}{% if desktop_layout == 'vertical' %} product-page--text-{{ text_side }}{% endif %} full-width"
 >
+  {% comment %}
+    A photo is 260-320px wide times the Photo size setting. `sizes` tells the browser, so it picks
+    a file of that width instead of one as wide as the screen.
+  {% endcomment %}
+  {% liquid
+    assign photo_pct = s.photo_size
+    if s.mobile_custom and s.mobile_photo_size > photo_pct
+      assign photo_pct = s.mobile_photo_size
+    endif
+    if s.reset_layout
+      assign photo_pct = 100
+    endif
+    assign photo_sizes = 320 | times: photo_pct | divided_by: 100 | append: 'px'
+    assign photos_shown = 0
+  %}
   <div class="product-wall-scroll{% if mobile_layout == 'vertical' %} product-wall-scroll--vertical{% endif %}">
     <div class="product-wall{% if mobile_layout == 'vertical' %} product-wall--vertical{% endif %}">
       {% comment %}
@@ -206,7 +222,7 @@
 
         {% assign rng = rng | times: 1664525 | plus: 1013904223 | modulo: 65536 %}
         {% assign tape_variant = rng | modulo: 2 %}
-        {% assign tape_url = tape_files[tape_variant] | asset_url %}
+        {% assign tape_url = tape_files[tape_variant] | asset_img_url: '240x' %}
         {% if tape_variant == 0 %}
           {% assign tape_suffix = 'a' %}
         {% else %}
@@ -230,20 +246,91 @@
         {% assign rng = rng | times: 1664525 | plus: 1013904223 | modulo: 65536 %}
         {% assign img_hoffset = rng | modulo: 26 | plus: 10 %}
 
+        {% liquid
+          # The first photos are on screen straight away; the rest load as they scroll into view
+          assign photos_shown = photos_shown | plus: 1
+          assign photo_loading = 'lazy'
+          assign photo_priority = 'auto'
+          if photos_shown <= 4
+            assign photo_loading = 'eager'
+          endif
+          if photos_shown == 1
+            assign photo_priority = 'high'
+          endif
+          assign photo_alt = image.alt | default: product.title
+        %}
         <div
           class="product-wall__photo"
+          role="button"
+          tabindex="0"
+          aria-label="Enlarge photo {{ photos_shown }}"
           data-full-src="{{ image | image_url: width: 2000 }}"
+          data-alt="{{ photo_alt | escape }}"
           style="--img-rotation: {{ img_rotation }}deg; --img-offset: {{ img_offset }}px; --img-overlap: {{ img_overlap }}px; --img-z: {{ img_z }}; --img-hoffset: {{ img_hoffset }}px; --tape-url: url('{{ tape_url }}'); --tape-tl-rot: {{ tape_tl_rot }}deg; --tape-tr-rot: {{ tape_tr_rot }}deg; --tape-bl-rot: {{ tape_bl_rot }}deg; --tape-br-rot: {{ tape_br_rot }}deg"
         >
           <div class="product-wall__tape product-wall__tape--tl"></div>
           <div class="product-wall__tape product-wall__tape--tr"></div>
           <div class="product-wall__tape product-wall__tape--bl"></div>
           <div class="product-wall__tape product-wall__tape--br"></div>
-          {% render 'image', image: image, class: 'product-wall__img' %}
+          <div class="image product-wall__img">
+            {{
+              image
+              | image_url: width: 1280
+              | image_tag:
+                widths: '260, 400, 520, 640, 800, 1040, 1280',
+                sizes: photo_sizes,
+                loading: photo_loading,
+                fetchpriority: photo_priority,
+                alt: photo_alt
+            }}
+          </div>
         </div>
       {% endfor %}
     </div>
   </div>
+
+  {% comment %}
+    Products with options (size, colour...) get a plain picker under the price, tied to the
+    add-to-cart form by its id. One-of-a-kind products (a single variant) show nothing extra.
+  {% endcomment %}
+  {% liquid
+    assign form_id = 'product-form-' | append: section.id
+    assign current_variant = product.selected_or_first_available_variant
+
+    assign pick_variant = false
+    if product.available and product.has_only_default_variant == false
+      assign pick_variant = true
+    endif
+
+    assign has_price_block = false
+    for block in section.blocks
+      if block.type == 'price'
+        assign has_price_block = true
+      endif
+    endfor
+
+    if s.sold_out_text != blank
+      assign sold_out_label = s.sold_out_text
+    else
+      assign sold_out_label = 'products.sold_out' | t
+    endif
+  %}
+  {% capture variant_picker %}
+    {% if pick_variant %}
+      <select class="product-text__variants" name="id" form="{{ form_id }}" aria-label="Options" data-variant-select>
+        {% for variant in product.variants %}
+          <option
+            value="{{ variant.id }}"
+            data-price="{{ variant.price | money | strip_html | escape }}"
+            {% if variant.id == current_variant.id %}selected{% endif %}
+            {% unless variant.available %}disabled{% endunless %}
+          >
+            {{ variant.title }}{% unless variant.available %} ({{ sold_out_label | escape }}){% endunless %}
+          </option>
+        {% endfor %}
+      </select>
+    {% endif %}
+  {% endcapture %}
 
   <div class="product-text">
     {% for block in section.blocks %}
@@ -258,7 +345,10 @@
           {% endif %}
 
         {% when 'price' %}
-          <div class="product-text__price" id="product-block-{{ block.id }}" {{ block.shopify_attributes }}>{{ product.price | money }}</div>
+          <div class="product-text__price" id="product-block-{{ block.id }}" {{ block.shopify_attributes }}>
+            <span data-product-price>{% if pick_variant %}{{ current_variant.price | money }}{% else %}{{ product.price | money }}{% endif %}</span>
+            {{ variant_picker }}
+          </div>
 
         {% when 'button' %}
           {% comment %} product-add.js adds in place: shake + cart fill, then the same button goes to the cart. {% endcomment %}
@@ -273,12 +363,11 @@
             data-error-label="{{ 'products.add_error' | t }}"
             {{ block.shopify_attributes }}
           >
-            {% form 'product', product %}
-              <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
-              {% if s.sold_out_text != blank %}
-                {% assign sold_out_label = s.sold_out_text %}
-              {% else %}
-                {% assign sold_out_label = 'products.sold_out' | t %}
+            {% form 'product', product, id: form_id %}
+              {% if pick_variant == false %}
+                <input type="hidden" name="id" value="{{ current_variant.id }}">
+              {% elsif has_price_block == false %}
+                {{ variant_picker }}
               {% endif %}
               {% if action_style == 'boots' %}
                 {% comment %} Sold out: the boot is disabled and swaps to the sold-out boot image (bundled, or the picker). {% endcomment %}
@@ -297,7 +386,7 @@
                     modifier: 'buy'
                   %}
                 {% else %}
-                  {% assign sold_boot_src = 'soldoutboot.png' | asset_url %}
+                  {% assign sold_boot_src = 'soldoutboot.png' | asset_img_url: '600x' %}
                   {% if s.sold_out_boot_image != blank %}
                     {% assign sold_boot_src = s.sold_out_boot_image | image_url: width: 600 %}
                   {% endif %}
@@ -387,6 +476,7 @@
     function openAt(index) {
       currentIndex = index;
       dialogImg.src = photos[currentIndex].dataset.fullSrc;
+      dialogImg.alt = photos[currentIndex].dataset.alt || '';
       btnPrev.hidden = currentIndex === 0;
       btnNext.hidden = currentIndex === photos.length - 1;
       if (!dialog.open) dialog.showModal();
@@ -395,6 +485,11 @@
     photos.forEach((photo, i) => {
       photo.addEventListener('click', () => {
         if (hasDragged) return;
+        openAt(i);
+      });
+      photo.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        e.preventDefault();
         openAt(i);
       });
     });

@@ -197,6 +197,12 @@
   text-decoration: underline;
 }
 
+/* "× 2" after the name when the same piece is in the cart more than once */
+.cart-item__qty {
+  font-weight: normal;
+  white-space: nowrap;
+}
+
 .cart-item__variant {
   grid-area: variant;
   margin: 4px 0 0 16px;

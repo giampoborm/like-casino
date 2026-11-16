@@ -18,6 +18,9 @@
   else
     assign see_all_text = 'catalogue.see_all' | t
   endif
+
+  # Cards are 60vw on phones and at most the Card width setting elsewhere
+  assign card_sizes = '(max-width: 720px) 60vw, ' | append: section.settings.card_width | append: 'px'
 -%}
 
 <section
@@ -48,15 +51,16 @@
               <a class="product-card" href="{{ product.url }}">
                 <span class="product-card__media">
                   {% if product.featured_image %}
+                    {% assign card_alt = product.featured_image.alt | default: product.title %}
                     {{
                       product.featured_image
                       | image_url: width: 800
                       | image_tag:
                         loading: 'lazy',
                         widths: '300,400,600,800',
-                        sizes: '(max-width: 720px) 60vw, 260px',
+                        sizes: card_sizes,
                         class: 'product-card__img',
-                        alt: product.featured_image.alt | default: product.title
+                        alt: card_alt
                     }}
                   {% else %}
                     {{ 'product-1' | placeholder_svg_tag: 'product-card__img product-card__img--placeholder' }}

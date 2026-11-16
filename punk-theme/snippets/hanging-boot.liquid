@@ -18,11 +18,9 @@
 
   Size, lace, sway and shadow come from CSS variables set by the parent
   (--boot-w, --boot-string, --boot-lace-color, --boot-lace-width, --boot-swing, --boot-shadow).
-  Styles live in hanging-boot.css.
+  Styles live in hanging-boot.css (and stamp.css for the stamp): the section that renders boots loads
+  them once, so several boots on a page don't each repeat the stylesheet tags.
 {% endcomment %}
-
-{{ 'hanging-boot.css' | asset_url | stylesheet_tag }}
-{{ 'stamp.css' | asset_url | stylesheet_tag }}
 
 {% capture boot_inner %}
   <span class="hanging-boot__swing">

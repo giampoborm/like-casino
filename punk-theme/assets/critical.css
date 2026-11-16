@@ -1,17 +1,6 @@
 /** Critical CSS for the theme. This file is included on every page. */
 
-/* Theme fonts — declared once here; URLs are relative to this file on the assets CDN. */
-@font-face {
-  font-family: 'MainFont';
-  src: url('cella.regular.otf') format('opentype');
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'StampFont';
-  src: url('octin-spraypaint.otf') format('opentype');
-  font-display: swap;
-}
+/* Theme fonts (MainFont / StampFont) are declared in snippets/css-variables.liquid. */
 
 /* Reset styles inspired by https://www.joshwcomeau.com/css/custom-css-reset/ */
 * {
@@ -132,6 +121,31 @@ body {
 /* Child elements that use the full-width utility class span the entire viewport. */
 .shopify-section > .full-width {
   grid-column: 1 / -1;
+}
+
+/* Links take the text colour unless a component sets its own (no browser blue on the wall) */
+a {
+  color: inherit;
+}
+
+/* Keyboard users: first Tab stop on every page, jumps past the header */
+.skip-link:focus {
+  position: fixed !important;
+  top: 8px;
+  left: 8px;
+  z-index: 1000;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0.5rem 0.9rem;
+  clip: auto;
+  background: var(--color-negative);
+  color: var(--color-positive);
+}
+
+/* Target of the skip link: takes focus without drawing a ring around the whole page */
+#MainContent:focus {
+  outline: none;
 }
 
 /* Read by screen readers, not shown */

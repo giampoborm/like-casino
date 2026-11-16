@@ -135,6 +135,16 @@
         "unit": "px",
         "label": "t:labels.page_margin",
         "default": 20
+      },
+      {
+        "type": "range",
+        "id": "input_corner_radius",
+        "min": 0,
+        "max": 10,
+        "step": 1,
+        "unit": "px",
+        "label": "t:labels.input_corner_radius",
+        "default": 4
       }
     ]
   },
@@ -243,21 +253,6 @@
           { "value": "scroll", "label": "Scrolls with the page" }
         ],
         "default": "fixed"
-      }
-    ]
-  },
-  {
-    "name": "t:general.colors",
-    "settings": [
-      {
-        "type": "range",
-        "id": "input_corner_radius",
-        "min": 0,
-        "max": 10,
-        "step": 1,
-        "unit": "px",
-        "label": "t:labels.input_corner_radius",
-        "default": 4
       }
     ]
   }

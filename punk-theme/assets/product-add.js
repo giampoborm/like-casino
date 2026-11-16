@@ -38,6 +38,22 @@
     let busy = false;
     let added = false;
 
+    // Products with options: the picker sits outside the form (tied to it by its `form` attribute).
+    // Picking another option shows its price and makes the button add again instead of going to the cart.
+    const picker = form.elements.namedItem('id');
+    if (picker && picker.tagName === 'SELECT') {
+      const price = document.querySelector('[data-product-price]');
+      const addLabel = button.getAttribute('aria-label');
+      picker.addEventListener('change', () => {
+        const option = picker.selectedOptions[0];
+        if (price && option && option.dataset.price) price.textContent = option.dataset.price;
+        added = false;
+        if (addLabel) button.setAttribute('aria-label', addLabel);
+        status.textContent = '';
+        error.hidden = true;
+      });
+    }
+
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
       if (added) {
@@ -57,11 +73,19 @@
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw { message: data.description || data.message };
 
-        const cart = await fetch(`${cartUrl}.js`).then((r) => r.json());
+        // The piece is in the cart from here on, whatever happens next.
         added = true;
         // Boots have no visible text, so their accessible name can follow what the click now does.
         if (button.hasAttribute('aria-label')) button.setAttribute('aria-label', goLabel);
         status.textContent = addedLabel;
+
+        // Item count for the header basket. If this second request fails the add still stands:
+        // skip the fill rather than report an error for something that worked.
+        const cart = await fetch(`${cartUrl}.js`, { headers: { Accept: 'application/json' } })
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null);
+        if (!cart) return;
+
         // The header sets detail.finished when it plays the fill; no header, no wait.
         const detail = { itemCount: cart.item_count, finished: null };
         document.dispatchEvent(new CustomEvent('cart:added', { detail }));

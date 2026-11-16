@@ -7,88 +7,128 @@
     --hero-btn-glow: {{ section.settings.button_glow | divided_by: 100.0 }};
   "
 >
-  <img class="home-hero__curtain home-hero__curtain--left" src="{{ 'leftcurtain.png' | asset_url }}" alt="" role="presentation" loading="eager" width="1433" height="2994">
-  <img class="home-hero__curtain home-hero__curtain--right" src="{{ 'rightcurtain.png' | asset_url }}" alt="" role="presentation" loading="eager" width="1445" height="3000">
+  {% # The only heading on the home page: the logo is an image, so the shop name is given to search engines and screen readers here %}
+  <h1 class="visually-hidden">{{ shop.name }}</h1>
+
+  {% comment %}
+    Every picture in the hero is on screen when the page opens, so none is lazy-loaded and the logo
+    (the biggest one) is fetched first. Each is offered in several widths; `sizes` says how wide it
+    is drawn, so a phone doesn't download the desktop file.
+    Curtains are cropped to the screen height, so they are drawn about 48% of that height wide.
+  {% endcomment %}
+  {% render 'asset-image',
+    file: 'leftcurtain.png',
+    class: 'home-hero__curtain home-hero__curtain--left',
+    widths: '400,600,800,1200',
+    sizes: '48vh',
+    width: 1433,
+    height: 2994,
+    loading: 'eager'
+  %}
+  {% render 'asset-image',
+    file: 'rightcurtain.png',
+    class: 'home-hero__curtain home-hero__curtain--right',
+    widths: '400,600,800,1200',
+    sizes: '48vh',
+    width: 1445,
+    height: 3000,
+    loading: 'eager'
+  %}
   <div class="home-hero__inner">
 
-    {% if logo_style == 'sign' %}
-      {% assign logo_src = 'logosign2.png' | asset_url %}
-      {% assign logo_width = 3149 %}
-      {% assign logo_height = 954 %}
-    {% elsif logo_style == 'composite2' %}
-      {% assign logo_src = 'logocomposite2.png' | asset_url %}
-      {% assign logo_width = 2000 %}
-      {% assign logo_height = 1110 %}
-    {% else %}
-      {% assign logo_src = 'biglogofinal.png' | asset_url %}
-      {% assign logo_width = 2885 %}
-      {% assign logo_height = 3788 %}
-    {% endif %}
+    {% liquid
+      # Bundled logo per style, and how wide the stylesheet below draws it (also used for an uploaded logo)
+      if logo_style == 'sign'
+        assign logo_file = 'logosign2.png'
+        assign logo_width = 3149
+        assign logo_height = 954
+        assign logo_widths = '400,800,1000,1500,2000'
+        assign logo_sizes = '(max-width: 768px) min(90vw, 400px), min(80vw, 1000px)'
+      elsif logo_style == 'composite2'
+        assign logo_file = 'logocomposite2.png'
+        assign logo_width = 2000
+        assign logo_height = 1110
+        assign logo_widths = '420,700,950,1400,1900'
+        assign logo_sizes = '(max-width: 768px) min(90vw, 420px), min(75vw, 950px)'
+      else
+        assign logo_file = 'biglogofinal.png'
+        assign logo_width = 2885
+        assign logo_height = 3788
+        assign logo_widths = '380,600,800,1100,1600'
+        assign logo_sizes = '(max-width: 768px) min(70vw, 380px), 73vh'
+      endif
+      assign logo_alt = section.settings.logo_alt | default: shop.name
+    %}
     <div class="home-hero__logo home-hero__logo--{{ logo_style }}">
       {% if section.settings.logo != blank %}
         {{
           section.settings.logo
-          | image_url: width: 1600
+          | image_url: width: 2000
           | image_tag:
-            loading: 'lazy',
-            widths: '400,600,800,1000,1200,1600',
-            alt: section.settings.logo_alt | default: shop.name,
-            class: 'home-hero__logo-img',
-            width: section.settings.logo.width,
-            height: section.settings.logo.height
+            loading: 'eager',
+            fetchpriority: 'high',
+            widths: '400,600,800,1000,1200,1600,2000',
+            sizes: logo_sizes,
+            alt: logo_alt,
+            class: 'home-hero__logo-img'
         }}
       {% else %}
-        {% # logo_src is built with asset_url above %}
-        {% # theme-check-disable RemoteAsset %}
-        <img
-          src="{{ logo_src }}"
-          alt="{{ section.settings.logo_alt | default: shop.name }}"
-          class="home-hero__logo-img"
-          loading="lazy"
-          width="{{ logo_width }}"
-          height="{{ logo_height }}"
-        >
-        {% # theme-check-enable RemoteAsset %}
+        {% render 'asset-image',
+          file: logo_file,
+          class: 'home-hero__logo-img',
+          alt: logo_alt,
+          widths: logo_widths,
+          sizes: logo_sizes,
+          width: logo_width,
+          height: logo_height,
+          loading: 'eager',
+          fetchpriority: 'high'
+        %}
       {% endif %}
     </div>
 
     {% assign products_href = section.settings.products_link | default: routes.all_products_collection_url %}
     {% assign btn_style = section.settings.button_style | default: 'rat' %}
-    {% if btn_style == 'shoe' %}
-      {% assign btn_default_src = 'shoerope.png' | asset_url %}
-      {% assign btn_width = 767 %}
-      {% assign btn_height = 3873 %}
-    {% else %}
-      {% assign btn_default_src = 'products_button1.png' | asset_url %}
-      {% assign btn_hover_src = 'products_button1_hover.png' | asset_url %}
-      {% assign btn_width = 1184 %}
-      {% assign btn_height = 880 %}
-    {% endif %}
-    <a class="home-hero__products-btn home-hero__products-btn--{{ btn_style }}" href="{{ products_href }}">
-      {% # btn srcs are built with asset_url above %}
-      {% # theme-check-disable RemoteAsset %}
-      <img
-        class="home-hero__products-btn-img home-hero__products-btn-img--default"
-        src="{{ btn_default_src }}"
-        alt=""
-        role="presentation"
-        loading="lazy"
-        width="{{ btn_width }}"
-        height="{{ btn_height }}"
-      >
-      {% if btn_style == 'rat' %}
-        <img
-          class="home-hero__products-btn-img home-hero__products-btn-img--hover"
-          src="{{ btn_hover_src }}"
-          alt=""
-          role="presentation"
-          loading="lazy"
-          width="{{ btn_width }}"
-          height="{{ btn_height }}"
-        >
-        {% # theme-check-enable RemoteAsset %}
+    {% assign products_label = section.settings.products_label | default: 'Products' %}
+    <a
+      class="home-hero__products-btn home-hero__products-btn--{{ btn_style }}"
+      href="{{ products_href }}"
+      {% if btn_style == 'shoe' %}
+        aria-label="{{ products_label | escape }}"
+      {% endif %}
+    >
+      {% if btn_style == 'shoe' %}
+        {% # 80% of the screen height tall (60% on phones), so about 16% / 12% of that height wide %}
+        {% render 'asset-image',
+          file: 'shoerope.png',
+          class: 'home-hero__products-btn-img home-hero__products-btn-img--default',
+          widths: '200,300,400,767',
+          sizes: '(max-width: 768px) 12vh, 16vh',
+          width: 767,
+          height: 3873,
+          loading: 'eager'
+        %}
+      {% else %}
+        {% render 'asset-image',
+          file: 'products_button1.png',
+          class: 'home-hero__products-btn-img home-hero__products-btn-img--default',
+          widths: '280,560,840,1184',
+          sizes: '(max-width: 768px) min(70vw, 400px), 280px',
+          width: 1184,
+          height: 880,
+          loading: 'eager'
+        %}
+        {% render 'asset-image',
+          file: 'products_button1_hover.png',
+          class: 'home-hero__products-btn-img home-hero__products-btn-img--hover',
+          widths: '280,560,840,1184',
+          sizes: '(max-width: 768px) min(70vw, 400px), 280px',
+          width: 1184,
+          height: 880,
+          loading: 'eager'
+        %}
         <span class="home-hero__products-btn-label">
-          {{ section.settings.products_label | default: 'Products' }}
+          {{ products_label }}
         </span>
       {% endif %}
     </a>
@@ -255,6 +295,13 @@
   .home-hero__curtain--right {
     right: 0;
     object-position: left center;
+  }
+
+  /* Visitors who ask for less motion get a still shoe */
+  @media (prefers-reduced-motion: reduce) {
+    .home-hero__products-btn--shoe {
+      animation: none;
+    }
   }
 
   /* ── Mobile ── */

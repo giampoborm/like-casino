@@ -37,14 +37,20 @@
 >
 
   {% if images %}
+    {%- comment -%} The leg is drawn at the Width settings (phone / desktop); the browser picks a file to match {%- endcomment -%}
+    {%- capture leg_sizes -%}(max-width: 760px) {{ section.settings.leg_width_mobile }}px, {{ section.settings.leg_width }}px{%- endcapture -%}
+    {%- assign leg_alt = 'cart.back_to_shop' | t -%}
     <a class="{{ leg_class }}" href="{{ routes.all_products_collection_url }}">
-      <img
-        src="{{ 'legs.png' | asset_url }}"
-        alt="{{ 'cart.back_to_shop' | t | escape }}"
-        class="cart-back__img"
-        width="963"
-        height="288"
-      >
+      {% render 'asset-image',
+        file: 'legs.png',
+        class: 'cart-back__img',
+        alt: leg_alt,
+        widths: '340,500,700,963',
+        sizes: leg_sizes,
+        width: 963,
+        height: 288,
+        loading: 'eager'
+      %}
     </a>
   {% else %}
     <a
@@ -109,7 +115,11 @@
                 <div class="cart-item__img cart-item__img--placeholder"></div>
               {% endif %}
 
-              <a href="{{ item.url }}" class="cart-item__title">{{ item.product.title }}</a>
+              {%- comment -%} The cart has no quantity control, but the same piece can still be added twice: say so, the line price already counts both {%- endcomment -%}
+              <a href="{{ item.url }}" class="cart-item__title">
+                {{- item.product.title -}}
+                {%- if item.quantity > 1 %} <span class="cart-item__qty">&times;&nbsp;{{ item.quantity }}</span>{% endif -%}
+              </a>
               {% unless item.variant.title == 'Default Title' %}
                 <span class="cart-item__variant">{{ item.variant.title }}</span>
               {% endunless %}
