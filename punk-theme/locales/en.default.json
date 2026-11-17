@@ -50,6 +50,12 @@
   "collections": {
     "title": "Collections"
   },
+  "footer": {
+    "newsletter_email": "Email for the newsletter"
+  },
+  "policies": {
+    "contents": "Contents"
+  },
   "gift_card": {
     "add_to_apple_wallet": "Add to Apple Wallet",
     "card": "Gift card",

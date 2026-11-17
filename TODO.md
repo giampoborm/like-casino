@@ -56,7 +56,7 @@ layout/theme.liquid        ← wraps every page (head, header group, footer grou
 
 ## Status
 
-**Built and committed (1a0d96f, product gallery view after), not yet deployed — header and rack deploy together; waiting to finish the rack first.** Scratch/test images go in `working-assets/` (outside the theme, never pushed):
+**Nothing deployed yet.** Latest work is on branch `cart-leg-lamp`: cart page redo (3c08b29, Oct 31) and the add-to-cart animation (7c51d06, Nov 12). Earlier: header and rack deploy together; waiting to finish the rack first. Scratch/test images go in `working-assets/` (outside the theme, never pushed):
 - `catalogue-rows` section — horizontal category rows (scroll-snap, "see all" card)
 - `clothing-rack` section + `clothing-rack-garment` snippet + `collection.rack.json` — first working version, flat 2D, swing/sway; needs realism + real assets
 - `header` — reworked with editor settings (glow/shadow select etc.)
@@ -80,7 +80,7 @@ layout/theme.liquid        ← wraps every page (head, header group, footer grou
 - [x] **Header** — done as is (Oct 2026): accepted by the user without further changes
 
 ### 2. Decor block — 1 session
-- [ ] `blocks/decor.liquid` — off image, optional "on" image, x/y %, width, layer, animation (none / sway / flicker / toggle on click), optional link. Shoe = first instance. ⏳ lamp assets from client
+- [~] **Almost done** *(user, Nov 12 2026)*. Note: there is no `blocks/decor.liquid` in the repo yet; decor so far lives inside sections (boots, cart leg + lamp, cookie bust). Planned scope: `blocks/decor.liquid` — off image, optional "on" image, x/y %, width, layer, animation (none / sway / flicker / toggle on click), optional link. Shoe = first instance. ⏳ lamp assets from client
 - [ ] **Decor placement list** — decide which object goes where: bust → cookie announcer, lamps/lights → (pages TBD), boots → navigation/breadcrumbs, shoe → home. Record it here
 
 ### 3. Home — 0.5–1 session
@@ -132,7 +132,7 @@ layout/theme.liquid        ← wraps every page (head, header group, footer grou
 - [ ] **New boot PNG** *(user)*: laces left on the boot, emerging from the silhouette; then set the lace points and lace colour in the editor
 - [x] **Defaults from the editor + schema tidy-up** (Oct 28 2026, checked in a browser at 1440 and 390 px) — tuned editor values pulled and made the defaults. Position compensations moved into the CSS layout (`--pp-wall-pad`, `--pp-buy-x/y`, `--pp-back-x/y`), so every offset slider defaults to 0. Boots on phones get their own grid (boot beside title + price, description full width below). Schema: everyday choices on top (Layout, Style), every slider behind one **"Fine-tune → Show settings for"** select that works like tabs (incl. "Phone: …" groups); text blocks have a Desktop/Phone "Screen" select. `templates/product.json` reset to defaults. Same approach still to do for the other sections tuned in the editor
 - [ ] **Non-gallery view — "product basic showcase" section** *(potential)*: a simpler product page with more editing power through blocks. Decide if it is needed at all, then scope it
-- [ ] **Alternative buttons: boot or stamp** — "Add to cart" and "Sold out" as a stamp (ink-stamp look, sold-out = different stamp, disabled state) **or** a hanging boot. Decide which (or make it an editor select), then build; may reuse the decor block (step 2)
+- [x] **Alternative buttons: boot or stamp** — solved as the editor select "Action buttons → Style" (Buttons / Hanging boots / Ink stamps), see above
 - [ ] **Resize tape PNGs** — masking/clear tape files are 1568–1792 px wide, ~1 MB each; the tape draws at ~60 px, so downscale to ~300 px (the black ones are ~250 px, ~50 KB). Also part of step 8
 - [ ] **Tape opacity control** — tape colour/style is done; an opacity slider is not
 - [ ] Verify on a phone: the mobile text grid (title / price + button / description) and the vertical-desktop layout were checked in code and CSS only, not in a browser
@@ -144,7 +144,8 @@ layout/theme.liquid        ← wraps every page (head, header group, footer grou
 - [ ] Back-to-catalogue navigation (see step 7)
 
 ### 6. Footer + new pages — 1–2 sessions
-- [ ] **Footer** section — navigation menu, newsletter signup, social/contact, all editable (footer group in `theme.liquid`)
+- [~] **Footer** (Nov 17 2026, written from code, **not yet seen in a browser**) — plain text following the theme (colour, main font, text effect). Every item is a block the client can hide/reorder/remove: About us link (empty = page `about`), Policies link, Cookie settings button, Social link (network select, Instagram default; icon/name/both; `snippets/social-icon.liquid`), Shop location (empty = store address; optional Google Maps link), Business hours, Contact / newsletter (email + Shopify customer form tagged `newsletter`), Copyright. Section: layout on desktop (default one row) and layout on phone ≤640px (default stacked), each one row / columns / stacked; alignment, text size, icon size, gap, space above. Payment icons and the menu picker removed. Still hidden on home + cart (decided)
+- [~] **Policies page** (Nov 17) — `sections/policies.liquid` + `templates/page.policies.json`: all policies on one page with anchors and a contents list. "Shop policy" blocks pull Settings → Policies; a "Custom policy" block holds the **cookie policy** (`#cookies`). Cookie banner/bar policy link and the footer Policies link default to `/pages/policies(#cookies)` via `snippets/policies-url.liquid`, falling back to the privacy policy. **Admin:** create a page with handle `policies`, template `policies`; write the cookie policy in the block
 - [ ] **"Who are we" / About page** — `page.about.json` with flexible sections (text on paper, images, decor blocks)
 - [ ] **Contact page** — `page.contact.json` *(form vs. info-only to confirm)*
 - [~] **Cookie banner** (Oct 29 2026) — `sections/cookie-banner.liquid` + `assets/cookie-banner.css/js`, in a new **Overlays** section group (`overlay-group.json`, rendered on every page incl. home). Skin over Shopify's Customer Privacy API, built from the user's mockup as **one fixed composition**: `assets/bust.png` tilted -6deg + the user's hand-drawn bubble (`working-assets/SVG/bubble.svg` → `snippets/speech-bubble.liquid`, outline reduced to one edge so it takes a fill; always white with a black line), tail tip just beside the mouth. Everything (positions, sizes, text) is in `--cb-u` = bust width (140px desktop, shrinks to fit phones / short screens), so the scene scales as one piece; the geometry is documented at the top of `cookie-banner.css`. Words sit at fixed, slightly rotated spots inside the bubble (`.cookie-banner__spot--title/a/b/c/d/e`). Settings: **Size** (scales bust + bubble + text together, 50–150%), **Text size** (text only, `--cb-t`), **Font** (theme main / theme stamp / Shopify font picker / uploaded file link from Content → Files, loaded as `CookieBannerFont`). Default text enlarged Oct 29 (title 0.34u, words 0.15u, notes 0.85em, min 11 / 10.5px). Still to decide: a setting to move the whole scene.
@@ -167,11 +168,17 @@ layout/theme.liquid        ← wraps every page (head, header group, footer grou
 
 ### 9. Cart — ~2 sessions
 > **Full redo** of the cart page (confirmed Oct 28 2026), not a retouch of the current one.
-- [ ] Rope across full width, polaroid items hanging by clips, horizontal scroll on overflow
-- [ ] Subtotal + checkout on paper, remove interaction, empty state, mobile
+- [x] **Cart redo** (3c08b29, Oct 31 2026) — built as **leg + lamp** instead of the rope/polaroid idea: "Style" select = images (back = a leg coming out of the wall, checkout = a lamp that lights on hover; image settings only show for this style) or the original bevelled buttons. Cards share one picture height, no QTY line, remove ×, subtotal, empty state. Phone: list splits into swipeable pages with a pager above the lamp (`assets/cart.js`). Footer hidden on the cart page
+- [ ] Check the cart page in a browser again after the add-to-cart changes (desktop + phone), incl. the empty state
+- [ ] *(dropped unless wanted back)* rope across full width with polaroid items hanging by clips
 
 ### 10. Details — polish pass *(user wants to spend real time here)*
-- [ ] **Add-to-cart animation** — something physical happens when an item is added (e.g. a polaroid flies to / drops onto the cart rope, boot swings, stamp thud). Decide the idea, then build; respect `prefers-reduced-motion`
+- [x] **Add-to-cart animation** (7c51d06, Nov 12 2026) — the product page adds to the cart without leaving it (`product-add.js`); the **header basket fills** with clothes falling in from the top of the screen (`header-cart.js`), then the button/boot/stamp swings and a second click goes to the cart. Reduced motion = no animation, straight to the end state
+  - **Sprite:** `assets/cart-fill-sprite.png` (user-drawn, source `working-assets/spritesheetcart.psd`): one horizontal strip, 17 frames of 180×280 (empty space on top for the fall, basket in the bottom half). Resting frames 1 (empty) / 7 / 12 / 17 (full); a full basket stays full, no extra animation. Header settings: Cart sprite (image picker overrides the bundled one), frames, frame per level, frame length (90 ms), **Cart position up/down** (default −10 px, pushes the empty top past the screen edge)
+  - **Hanging boots** now swing as damped pendulums (`hanging-boot.js`): drop, faint breeze, mouse nudge, push after an add
+  - [ ] **Not yet seen in a browser by Claude** (Playwright browser not installed): the user checked the header position; still to check the full 0 → 1 → 2 → 3 → 4 items sequence on desktop + phone, and the hover lift/glow on the taller icon
+  - [ ] Optional: nudge sprite frame 10 by 2 px (frames 5, 8, 15 by 1 px) so the basket never shifts
+  - [ ] The header scrolls away on long product pages, so the fill can play off-screen. Decide whether the cart icon should stay pinned at the top
 - [ ] **Boots and similar objects — more work** — more detail and life on the hanging boots and other hanging/decor objects (motion, laces, shadows, reactions), beyond the product-page items in step 5
 
 ### 11. Launch checklist — 1–2 sessions
@@ -201,4 +208,4 @@ layout/theme.liquid        ← wraps every page (head, header group, footer grou
 
 **Waiting on client:** lamp (off + on) and other decor objects · hook-less garment PNGs for the rack (see the spec under the rack hero) · mannequin cut-out · boots
 
-**To make:** small sprayed logo · cart icon · pin and nail PNGs · paper variants (small note, receipt strip, A4 sheet, polaroid — each as top/middle/bottom) · rope/wire · clip · sold-out stamp · "add to cart" stamp · clear tape texture (transparent PNG) · spotlight mask (if it needs an image)
+**To make:** small sprayed logo · ~~cart icon~~ (done: basket sprite, Nov 2026) · pin and nail PNGs · paper variants (small note, receipt strip, A4 sheet, polaroid — each as top/middle/bottom) · rope/wire · clip · sold-out stamp · "add to cart" stamp · clear tape texture (transparent PNG) · spotlight mask (if it needs an image)

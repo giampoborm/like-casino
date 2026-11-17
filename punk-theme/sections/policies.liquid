@@ -1,0 +1,227 @@
+{% comment %}
+  Policies page: every policy on one page, each with its own anchor so links can jump
+  straight to one part (the cookie banner links to #cookies).
+  Blocks: "Shop policy" pulls a policy written in Settings → Policies;
+  "Custom policy" is written here (used for the cookie policy, which Shopify does not provide).
+  Setup: create a page with the handle "policies" and assign it the "policies" template.
+{% endcomment %}
+
+{{ 'section-policies.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign s = section.settings
+
+  # Collect the sections that will actually show, for the contents list
+  assign entries = ''
+  for block in section.blocks
+    case block.type
+      when 'shop_policy'
+        case block.settings.policy
+          when 'privacy'
+            assign policy = shop.privacy_policy
+          when 'refunds'
+            assign policy = shop.refund_policy
+          when 'shipping'
+            assign policy = shop.shipping_policy
+          when 'terms'
+            assign policy = shop.terms_of_service
+          when 'contact'
+            assign policy = shop.contact_information
+          when 'subscriptions'
+            assign policy = shop.subscription_policy
+        endcase
+        if policy.body != blank
+          assign entries = entries | append: block.settings.policy | append: '|' | append: policy.title | append: '~~'
+        endif
+      when 'custom'
+        if block.settings.content != blank
+          assign anchor = block.settings.anchor | handleize
+          assign entries = entries | append: anchor | append: '|' | append: block.settings.heading | append: '~~'
+        endif
+    endcase
+  endfor
+  assign entries = entries | split: '~~'
+-%}
+
+<div
+  class="policies"
+  style="
+    --policies-text: {{ s.text_size }}px;
+    --policies-width: {{ s.max_width }}px;
+  "
+>
+  {%- if s.show_title -%}
+    <h1 class="policies__title">{{ page.title | default: s.fallback_title }}</h1>
+  {%- endif -%}
+
+  {%- if s.show_intro and page.content != blank -%}
+    <div class="policies__intro rte">{{ page.content }}</div>
+  {%- endif -%}
+
+  {%- if s.show_contents and entries.size > 1 -%}
+    <nav class="policies__contents" aria-label="{{ 'policies.contents' | t }}">
+      <ul>
+        {%- for entry in entries -%}
+          {%- assign parts = entry | split: '|' -%}
+          <li><a href="#{{ parts[0] }}">{{ parts[1] }}</a></li>
+        {%- endfor -%}
+      </ul>
+    </nav>
+  {%- endif -%}
+
+  {%- for block in section.blocks -%}
+    {%- case block.type -%}
+      {%- when 'shop_policy' -%}
+        {%- case block.settings.policy -%}
+          {%- when 'privacy' -%}{%- assign policy = shop.privacy_policy -%}
+          {%- when 'refunds' -%}{%- assign policy = shop.refund_policy -%}
+          {%- when 'shipping' -%}{%- assign policy = shop.shipping_policy -%}
+          {%- when 'terms' -%}{%- assign policy = shop.terms_of_service -%}
+          {%- when 'contact' -%}{%- assign policy = shop.contact_information -%}
+          {%- when 'subscriptions' -%}{%- assign policy = shop.subscription_policy -%}
+        {%- endcase -%}
+        {%- if policy.body != blank -%}
+          <section class="policies__item" id="{{ block.settings.policy }}" {{ block.shopify_attributes }}>
+            <h2 class="policies__heading">{{ policy.title }}</h2>
+            <div class="rte">{{ policy.body }}</div>
+          </section>
+        {%- elsif request.design_mode -%}
+          <section class="policies__item policies__item--empty" {{ block.shopify_attributes }}>
+            <p>This policy is empty. Write it in Settings → Policies.</p>
+          </section>
+        {%- endif -%}
+
+      {%- when 'custom' -%}
+        {%- if block.settings.content != blank -%}
+          <section class="policies__item" id="{{ block.settings.anchor | handleize }}" {{ block.shopify_attributes }}>
+            {%- if block.settings.heading != blank -%}
+              <h2 class="policies__heading">{{ block.settings.heading }}</h2>
+            {%- endif -%}
+            <div class="rte">{{ block.settings.content }}</div>
+          </section>
+        {%- elsif request.design_mode -%}
+          <section class="policies__item policies__item--empty" {{ block.shopify_attributes }}>
+            <p>{{ block.settings.heading | default: 'Custom policy' }}: empty. Write the text in this block.</p>
+          </section>
+        {%- endif -%}
+    {%- endcase -%}
+  {%- endfor -%}
+</div>
+
+{% schema %}
+{
+  "name": "Policies",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Create a page with the handle \"policies\" and pick this template. The cookie banner and footer link here"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_title",
+      "label": "Show page title",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "fallback_title",
+      "label": "Title",
+      "info": "Used only when the page has no title",
+      "default": "Policies"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_intro",
+      "label": "Show page content as intro",
+      "info": "The text written on the page in Online Store → Pages",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_contents",
+      "label": "Show contents list",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "text_size",
+      "label": "Text size",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "max_width",
+      "label": "Text width",
+      "min": 480,
+      "max": 1200,
+      "step": 20,
+      "unit": "px",
+      "default": 760
+    }
+  ],
+  "blocks": [
+    {
+      "type": "shop_policy",
+      "name": "Shop policy",
+      "settings": [
+        {
+          "type": "select",
+          "id": "policy",
+          "label": "Policy",
+          "info": "Written in Settings → Policies. Empty = hidden",
+          "options": [
+            { "value": "privacy", "label": "Privacy policy" },
+            { "value": "refunds", "label": "Refund policy" },
+            { "value": "shipping", "label": "Shipping policy" },
+            { "value": "terms", "label": "Terms of service" },
+            { "value": "contact", "label": "Contact information" },
+            { "value": "subscriptions", "label": "Subscription policy" }
+          ],
+          "default": "privacy"
+        }
+      ]
+    },
+    {
+      "type": "custom",
+      "name": "Custom policy",
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Heading",
+          "default": "Cookie policy"
+        },
+        {
+          "type": "richtext",
+          "id": "content",
+          "label": "Text",
+          "info": "Empty = hidden"
+        },
+        {
+          "type": "text",
+          "id": "anchor",
+          "label": "Link name",
+          "info": "Lowercase, no spaces. Keep \"cookies\" for the cookie policy: the cookie banner links to it",
+          "default": "cookies"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Policies",
+      "blocks": [
+        { "type": "custom" },
+        { "type": "shop_policy", "settings": { "policy": "privacy" } },
+        { "type": "shop_policy", "settings": { "policy": "refunds" } },
+        { "type": "shop_policy", "settings": { "policy": "shipping" } },
+        { "type": "shop_policy", "settings": { "policy": "terms" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

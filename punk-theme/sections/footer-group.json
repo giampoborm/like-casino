@@ -13,10 +13,35 @@
   "sections": {
     "footer": {
       "type": "footer",
+      "blocks": {
+        "about": { "type": "about", "settings": { "label": "About us", "link": "" } },
+        "policies": { "type": "policies", "settings": { "label": "Policies", "link": "" } },
+        "cookie_settings": { "type": "cookie_settings", "settings": { "label": "Cookie settings" } },
+        "instagram": { "type": "social", "settings": { "network": "instagram", "link": "", "display": "icon" } },
+        "location": { "type": "location", "settings": { "heading": "", "address": "", "map_link": true } },
+        "hours": { "type": "hours", "settings": { "heading": "", "hours": "Tue–Sat 10:00–19:00\nSun–Mon closed" } },
+        "contact": {
+          "type": "contact",
+          "settings": {
+            "heading": "",
+            "email": "",
+            "newsletter": true,
+            "placeholder": "your email",
+            "button": "Sign up",
+            "thanks": "You're on the list."
+          }
+        },
+        "copyright": { "type": "copyright", "settings": { "text": "" } }
+      },
+      "block_order": ["about", "policies", "cookie_settings", "instagram", "location", "hours", "contact", "copyright"],
       "settings": {
-        "menu": "",
-        "cookie_settings_label": "Cookie settings",
-        "show_payment_icons": true
+        "layout": "row",
+        "layout_mobile": "stack",
+        "align": "center",
+        "text_size": 14,
+        "icon_size": 20,
+        "gap": 32,
+        "space_above": 48
       }
     }
   },

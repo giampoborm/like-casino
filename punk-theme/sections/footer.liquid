@@ -1,76 +1,458 @@
-<footer>
-  <div class="footer__copyright">
-    &copy;
-    {{ 'now' | date: '%Y' }}
-    {{ shop.name | link_to: routes.root_url }}, {{ powered_by_link }}
-  </div>
+{% comment %}
+  Footer: plain text on the wall, following the theme text colour, font and text effect.
+  Every item is a block, so the client turns items on/off (eye icon), reorders and removes them.
+  Layout (row / columns / stack), alignment, text size and spacing are section settings.
+  Hidden on the home page and the cart page (see layout/theme.liquid).
+{% endcomment %}
 
-  <div class="footer__links">
-    {% for link in section.settings.menu.links %}
-      {{ link.title | link_to: link.url }}
-    {% endfor %}
-    {% if section.settings.cookie_settings_label != blank %}
-      <button type="button" class="footer__cookie-settings" data-cookie-settings>
-        {{- section.settings.cookie_settings_label -}}
-      </button>
-    {% endif %}
-  </div>
+{{ 'section-footer.css' | asset_url | stylesheet_tag }}
 
-  <div class="footer__payment">
-    {% if section.settings.show_payment_icons %}
-      {% for type in shop.enabled_payment_types %}
-        {{ type | payment_type_svg_tag }}
-      {% endfor %}
-    {% endif %}
+{%- liquid
+  assign s = section.settings
+  case s.align
+    when 'left'
+      assign justify = 'flex-start'
+    when 'right'
+      assign justify = 'flex-end'
+    else
+      assign justify = 'center'
+  endcase
+-%}
+
+<footer
+  class="footer footer--d-{{ s.layout }} footer--m-{{ s.layout_mobile }}"
+  style="
+    --footer-text: {{ s.text_size }}px;
+    --footer-icon: {{ s.icon_size }}px;
+    --footer-gap: {{ s.gap }}px;
+    --footer-space: {{ s.space_above }}px;
+    --footer-align: {{ s.align }};
+    --footer-justify: {{ justify }};
+  "
+>
+  <div class="footer__inner">
+    {%- for block in section.blocks -%}
+      {%- assign b = block.settings -%}
+      {%- case block.type -%}
+        {%- when 'copyright' -%}
+          <p class="footer__item footer__item--copyright" {{ block.shopify_attributes }}>
+            {%- if b.text != blank -%}
+              {{ b.text }}
+            {%- else -%}
+              &copy; {{ 'now' | date: '%Y' }} {{ shop.name }}
+            {%- endif -%}
+          </p>
+
+        {%- when 'policies' -%}
+          {%- capture link_url -%}{% render 'policies-url' %}{%- endcapture -%}
+          {%- assign link_url = link_url | strip -%}
+          {%- if b.link != blank -%}{%- assign link_url = b.link -%}{%- endif -%}
+          {%- if link_url != blank or request.design_mode -%}
+            <a class="footer__item footer__link" href="{{ link_url | default: '#' }}" {{ block.shopify_attributes }}>
+              {{- b.label -}}
+            </a>
+          {%- endif -%}
+
+        {%- when 'about' -%}
+          {%- assign link_url = b.link | default: pages['about'].url -%}
+          {%- if link_url != blank or request.design_mode -%}
+            <a class="footer__item footer__link" href="{{ link_url | default: '#' }}" {{ block.shopify_attributes }}>
+              {{- b.label -}}
+            </a>
+          {%- endif -%}
+
+        {%- when 'cookie_settings' -%}
+          <button type="button" class="footer__item footer__link footer__button" data-cookie-settings {{ block.shopify_attributes }}>
+            {{- b.label -}}
+          </button>
+
+        {%- when 'social' -%}
+          {%- if b.link != blank or request.design_mode -%}
+            {%- capture network_name -%}
+              {%- case b.network -%}
+                {%- when 'instagram' -%}Instagram
+                {%- when 'tiktok' -%}TikTok
+                {%- when 'facebook' -%}Facebook
+                {%- when 'youtube' -%}YouTube
+                {%- when 'pinterest' -%}Pinterest
+                {%- when 'x' -%}X
+              {%- endcase -%}
+            {%- endcapture -%}
+            <a
+              class="footer__item footer__link footer__social"
+              href="{{ b.link | default: '#' }}"
+              target="_blank"
+              rel="noopener"
+              {% if b.display == 'icon' %}aria-label="{{ network_name }}"{% endif %}
+              {{ block.shopify_attributes }}
+            >
+              {%- if b.display != 'name' -%}
+                {% render 'social-icon', network: b.network %}
+              {%- endif -%}
+              {%- if b.display != 'icon' -%}
+                <span>{{ network_name }}</span>
+              {%- endif -%}
+            </a>
+          {%- endif -%}
+
+        {%- when 'location' -%}
+          {%- liquid
+            if b.address != blank
+              assign address_html = b.address | escape | newline_to_br
+              assign address_query = b.address | strip_newlines
+            else
+              assign address_html = shop.address | format_address
+              assign address_query = shop.address.summary
+            endif
+            assign map_query = address_query | url_encode
+            assign map_url = 'https://www.google.com/maps/search/?api=1&query=' | append: map_query
+          -%}
+          <div class="footer__item footer__block" {{ block.shopify_attributes }}>
+            {%- if b.heading != blank -%}
+              <p class="footer__heading">{{ b.heading }}</p>
+            {%- endif -%}
+            {%- if b.map_link -%}
+              <a class="footer__link footer__address" href="{{ map_url }}" target="_blank" rel="noopener">
+                {{- address_html -}}
+              </a>
+            {%- else -%}
+              <p class="footer__address">{{ address_html }}</p>
+            {%- endif -%}
+          </div>
+
+        {%- when 'hours' -%}
+          <div class="footer__item footer__block" {{ block.shopify_attributes }}>
+            {%- if b.heading != blank -%}
+              <p class="footer__heading">{{ b.heading }}</p>
+            {%- endif -%}
+            <p>{{ b.hours | escape | newline_to_br }}</p>
+          </div>
+
+        {%- when 'contact' -%}
+          <div class="footer__item footer__block" {{ block.shopify_attributes }}>
+            {%- if b.heading != blank -%}
+              <p class="footer__heading">{{ b.heading }}</p>
+            {%- endif -%}
+            {%- if b.email != blank -%}
+              <a class="footer__link" href="mailto:{{ b.email }}">{{ b.email }}</a>
+            {%- endif -%}
+            {%- if b.newsletter -%}
+              {%- assign form_id = 'FooterNewsletter-' | append: block.id -%}
+              {%- form 'customer', id: form_id, class: 'footer__newsletter' -%}
+                <input type="hidden" name="contact[tags]" value="newsletter">
+                {%- if form.posted_successfully? -%}
+                  <p class="footer__note" role="status">{{ b.thanks }}</p>
+                {%- else -%}
+                  <label class="visually-hidden" for="{{ form_id }}-email">{{ 'footer.newsletter_email' | t }}</label>
+                  <input
+                    class="footer__input"
+                    id="{{ form_id }}-email"
+                    type="email"
+                    name="contact[email]"
+                    placeholder="{{ b.placeholder }}"
+                    autocomplete="email"
+                    required
+                  >
+                  <button class="footer__submit" type="submit">{{ b.button }}</button>
+                  {%- if form.errors -%}
+                    <p class="footer__note" role="alert">{{ form.errors.translated_fields.email }} {{ form.errors.messages.email }}</p>
+                  {%- endif -%}
+                {%- endif -%}
+              {%- endform -%}
+            {%- endif -%}
+          </div>
+      {%- endcase -%}
+    {%- endfor -%}
   </div>
 </footer>
-
-{% stylesheet %}
-  footer {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 2rem;
-  }
-  footer a,
-  footer .footer__cookie-settings {
-    text-decoration: none;
-    color: var(--color-foreground);
-  }
-  footer .footer__cookie-settings {
-    padding: 0;
-    border: 0;
-    background: none;
-    font: inherit;
-    cursor: pointer;
-  }
-  footer .footer__links,
-  footer .footer__payment {
-    display: flex;
-    gap: 1rem;
-  }
-{% endstylesheet %}
 
 {% schema %}
 {
   "name": "t:general.footer",
+  "max_blocks": 16,
   "settings": [
     {
-      "type": "link_list",
-      "id": "menu",
-      "label": "t:labels.menu"
+      "type": "select",
+      "id": "layout",
+      "label": "Layout on desktop",
+      "options": [
+        { "value": "row", "label": "One row" },
+        { "value": "columns", "label": "Columns" },
+        { "value": "stack", "label": "Stacked" }
+      ],
+      "default": "row"
     },
     {
-      "type": "text",
-      "id": "cookie_settings_label",
-      "label": "Cookie settings link",
-      "info": "Reopens the cookie banner. Required by law; empty = hidden",
-      "default": "Cookie settings"
+      "type": "select",
+      "id": "layout_mobile",
+      "label": "Layout on phone",
+      "options": [
+        { "value": "row", "label": "One row" },
+        { "value": "columns", "label": "Columns" },
+        { "value": "stack", "label": "Stacked" }
+      ],
+      "default": "stack"
     },
     {
-      "type": "checkbox",
-      "id": "show_payment_icons",
-      "label": "t:labels.show_payment_icons",
-      "default": true
+      "type": "select",
+      "id": "align",
+      "label": "Alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Centre" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "range",
+      "id": "text_size",
+      "label": "Text size",
+      "min": 10,
+      "max": 28,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "icon_size",
+      "label": "Icon size",
+      "min": 12,
+      "max": 48,
+      "step": 2,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "Space between items",
+      "min": 8,
+      "max": 96,
+      "step": 4,
+      "unit": "px",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "space_above",
+      "label": "Space above",
+      "min": 0,
+      "max": 160,
+      "step": 8,
+      "unit": "px",
+      "default": 48
+    }
+  ],
+  "blocks": [
+    {
+      "type": "copyright",
+      "name": "Copyright",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Text",
+          "info": "Empty = © year + shop name"
+        }
+      ]
+    },
+    {
+      "type": "policies",
+      "name": "Policies link",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label",
+          "default": "Policies"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link",
+          "info": "Empty = Policies page"
+        }
+      ]
+    },
+    {
+      "type": "cookie_settings",
+      "name": "Cookie settings",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "paragraph",
+          "content": "Reopens the cookie banner. Keep it: visitors must be able to change their choice"
+        },
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label",
+          "default": "Cookie settings"
+        }
+      ]
+    },
+    {
+      "type": "about",
+      "name": "About us link",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label",
+          "default": "About us"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link",
+          "info": "Empty = page with the handle \"about\""
+        }
+      ]
+    },
+    {
+      "type": "social",
+      "name": "Social link",
+      "settings": [
+        {
+          "type": "select",
+          "id": "network",
+          "label": "Network",
+          "options": [
+            { "value": "instagram", "label": "Instagram" },
+            { "value": "tiktok", "label": "TikTok" },
+            { "value": "facebook", "label": "Facebook" },
+            { "value": "youtube", "label": "YouTube" },
+            { "value": "pinterest", "label": "Pinterest" },
+            { "value": "x", "label": "X" }
+          ],
+          "default": "instagram"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Profile link",
+          "info": "Empty = hidden"
+        },
+        {
+          "type": "select",
+          "id": "display",
+          "label": "Show",
+          "options": [
+            { "value": "icon", "label": "Icon" },
+            { "value": "name", "label": "Name" },
+            { "value": "both", "label": "Icon and name" }
+          ],
+          "default": "icon"
+        }
+      ]
+    },
+    {
+      "type": "location",
+      "name": "Shop location",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Heading"
+        },
+        {
+          "type": "textarea",
+          "id": "address",
+          "label": "Address",
+          "info": "Empty = store address from Settings"
+        },
+        {
+          "type": "checkbox",
+          "id": "map_link",
+          "label": "Open in Google Maps on click",
+          "default": true
+        }
+      ]
+    },
+    {
+      "type": "hours",
+      "name": "Business hours",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Heading"
+        },
+        {
+          "type": "textarea",
+          "id": "hours",
+          "label": "Hours",
+          "default": "Tue–Sat 10:00–19:00\nSun–Mon closed"
+        }
+      ]
+    },
+    {
+      "type": "contact",
+      "name": "Contact / newsletter",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Heading"
+        },
+        {
+          "type": "text",
+          "id": "email",
+          "label": "Contact email",
+          "info": "Empty = hidden"
+        },
+        {
+          "type": "checkbox",
+          "id": "newsletter",
+          "label": "Newsletter signup",
+          "info": "Sign-ups appear in Customers, tagged newsletter",
+          "default": true
+        },
+        {
+          "type": "text",
+          "id": "placeholder",
+          "label": "Email field text",
+          "default": "your email",
+          "visible_if": "{{ block.settings.newsletter }}"
+        },
+        {
+          "type": "text",
+          "id": "button",
+          "label": "Button",
+          "default": "Sign up",
+          "visible_if": "{{ block.settings.newsletter }}"
+        },
+        {
+          "type": "text",
+          "id": "thanks",
+          "label": "Thank-you message",
+          "default": "You're on the list.",
+          "visible_if": "{{ block.settings.newsletter }}"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.footer",
+      "blocks": [
+        { "type": "about" },
+        { "type": "policies" },
+        { "type": "cookie_settings" },
+        { "type": "social" },
+        { "type": "location" },
+        { "type": "hours" },
+        { "type": "contact" },
+        { "type": "copyright" }
+      ]
     }
   ]
 }

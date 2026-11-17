@@ -2,7 +2,9 @@
 <script src="{{ 'cookie-banner.js' | asset_url }}" defer></script>
 
 {%- assign s = section.settings -%}
-{%- assign policy_url = s.policy_link | default: shop.privacy_policy.url -%}
+{%- capture policy_url -%}{% render 'policies-url', anchor: 'cookies' %}{%- endcapture -%}
+{%- assign policy_url = policy_url | strip -%}
+{%- if s.policy_link != blank -%}{%- assign policy_url = s.policy_link -%}{%- endif -%}
 {%- capture cb_selector -%}#cookie-bar-{{ section.id }}{%- endcapture -%}
 {% render 'cookie-font', settings: s, selector: cb_selector %}
 
@@ -219,7 +221,7 @@
       "type": "url",
       "id": "policy_link",
       "label": "Policy page",
-      "info": "Empty = the store's privacy policy"
+      "info": "Empty = cookie part of the Policies page"
     },
     {
       "type": "text",

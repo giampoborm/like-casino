@@ -1,0 +1,159 @@
+/*
+ * Footer: plain text on the wall. Values come from the section settings as
+ * --footer-* variables on .footer (see sections/footer.liquid).
+ */
+.footer {
+  margin-top: var(--footer-space, 48px);
+  padding: 24px var(--page-margin, 16px) 32px;
+  font-family: var(--font-main--family);
+  font-size: var(--footer-text, 14px);
+  line-height: 1.5;
+  color: var(--color-text);
+  text-shadow: var(--text-effect);
+  text-align: var(--footer-align, center);
+}
+
+.footer__inner {
+  max-width: var(--page-width);
+  margin: 0 auto;
+  gap: var(--footer-gap, 32px);
+}
+
+/*
+ * Layouts: footer--d-* applies above 640px (desktop), footer--m-* at 640px and below (phone).
+ *   row     = items side by side, wrapping when they run out of room
+ *   columns = as many columns as fit, the copyright line takes the full width
+ *   stack   = one item under the other
+ */
+.footer__block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25em;
+  align-items: var(--footer-justify, center);
+}
+
+@media (min-width: 641px) {
+  .footer--d-row .footer__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: var(--footer-justify, center);
+  }
+  .footer--d-columns .footer__inner {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 12em), 1fr));
+    align-items: start;
+  }
+  .footer--d-columns .footer__item--copyright {
+    grid-column: 1 / -1;
+  }
+  .footer--d-columns .footer__block {
+    align-items: stretch;
+  }
+  .footer--d-stack .footer__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: var(--footer-justify, center);
+  }
+}
+
+@media (max-width: 640px) {
+  .footer--m-row .footer__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: var(--footer-justify, center);
+  }
+  .footer--m-columns .footer__inner {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 9em), 1fr));
+    align-items: start;
+  }
+  .footer--m-columns .footer__item--copyright {
+    grid-column: 1 / -1;
+  }
+  .footer--m-columns .footer__block {
+    align-items: stretch;
+  }
+  .footer--m-stack .footer__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: var(--footer-justify, center);
+  }
+}
+
+.footer p {
+  margin: 0;
+}
+
+.footer__heading {
+  font-weight: 700;
+}
+
+.footer__link {
+  color: inherit;
+  text-decoration: none;
+}
+.footer__link:hover,
+.footer__link:focus-visible {
+  text-decoration: underline;
+}
+
+.footer__button {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-shadow: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+
+.footer__social {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+}
+.footer__social .social-icon {
+  width: var(--footer-icon, 20px);
+  height: var(--footer-icon, 20px);
+  flex: none;
+}
+
+/* Newsletter: email field + button on one line */
+.footer__newsletter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+  justify-content: var(--footer-justify, center);
+}
+.footer__input,
+.footer__submit {
+  font: inherit;
+  color: inherit;
+  padding: 0.35em 0.7em;
+  border: 1px solid currentColor;
+  border-radius: var(--style-border-radius-inputs, 0);
+  background: transparent;
+}
+.footer__input {
+  min-width: 0;
+  width: 14em;
+  max-width: 100%;
+}
+.footer__input::placeholder {
+  color: inherit;
+  opacity: 0.6;
+}
+.footer__submit {
+  cursor: pointer;
+}
+.footer__submit:hover,
+.footer__submit:focus-visible {
+  background: var(--color-text);
+  color: var(--color-text-inverse);
+  text-shadow: none;
+}
+.footer__newsletter .footer__note {
+  flex-basis: 100%;
+}

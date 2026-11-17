@@ -1,0 +1,33 @@
+{
+  "sections": {
+    "main": {
+      "type": "policies",
+      "blocks": {
+        "cookies": {
+          "type": "custom",
+          "settings": {
+            "heading": "Cookie policy",
+            "content": "",
+            "anchor": "cookies"
+          }
+        },
+        "privacy": { "type": "shop_policy", "settings": { "policy": "privacy" } },
+        "refunds": { "type": "shop_policy", "settings": { "policy": "refunds" } },
+        "shipping": { "type": "shop_policy", "settings": { "policy": "shipping" } },
+        "terms": { "type": "shop_policy", "settings": { "policy": "terms" } }
+      },
+      "block_order": ["cookies", "privacy", "refunds", "shipping", "terms"],
+      "settings": {
+        "show_title": true,
+        "fallback_title": "Policies",
+        "show_intro": true,
+        "show_contents": true,
+        "text_size": 16,
+        "max_width": 760
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

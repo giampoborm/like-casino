@@ -1,0 +1,23 @@
+{%- comment -%}
+  Prints the URL of the store's policies page: the page with the handle "policies"
+  (assigned the "policies" template), optionally jumping to one section of it.
+  Falls back to Shopify's privacy policy when that page does not exist.
+
+  Accepts:
+  - anchor: {String} section id on the policies page, e.g. 'cookies' (optional)
+
+  Usage (capture it, since render cannot return a value):
+  {% capture policy_url %}{% render 'policies-url', anchor: 'cookies' %}{% endcapture %}
+{%- endcomment -%}
+{%- liquid
+  assign policies_page = pages['policies']
+  if policies_page.url != blank
+    if anchor != blank
+      echo policies_page.url | append: '#' | append: anchor
+    else
+      echo policies_page.url
+    endif
+  else
+    echo shop.privacy_policy.url
+  endif
+-%}

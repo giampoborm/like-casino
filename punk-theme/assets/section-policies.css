@@ -1,0 +1,46 @@
+/*
+ * Policies page: readable text column on the wall.
+ * --policies-text and --policies-width come from the section settings.
+ */
+.policies {
+  max-width: var(--policies-width, 760px);
+  margin: 0 auto;
+  padding: 32px var(--page-margin, 16px) 48px;
+  font-family: var(--font-main--family);
+  font-size: var(--policies-text, 16px);
+  line-height: 1.6;
+  color: var(--color-text);
+  text-shadow: var(--text-effect);
+}
+
+.policies__title {
+  margin: 0 0 0.75em;
+}
+
+.policies__intro {
+  margin-bottom: 1.5em;
+}
+
+.policies__contents ul {
+  margin: 0 0 2em;
+  padding-left: 1.2em;
+}
+.policies__contents a,
+.policies .rte a {
+  color: inherit;
+}
+
+.policies__item {
+  margin-top: 2.5em;
+  /* Leave room above an anchored heading when jumped to */
+  scroll-margin-top: 24px;
+}
+
+.policies__heading {
+  margin: 0 0 0.5em;
+}
+
+.policies__item--empty {
+  opacity: 0.6;
+  font-style: italic;
+}
