@@ -14,9 +14,7 @@
       "settings": {
         "products_label": "Products",
         "products_link": "/collections/all",
-        "logo_alt": "Elena Store logo",
-        "button_style": "shoe",
-        "logo_style": "composite2"
+        "logo_alt": "Elena Store logo"
       }
     }
   },

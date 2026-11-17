@@ -8,7 +8,7 @@ A custom Shopify theme built for Elena Store on top of Shopify's Skeleton theme.
 
 | Page | Section | Concept |
 |---|---|---|
-| Homepage | `sections/home-hero.liquid` | Stage curtains, painted logo, hanging shoe / paper-rat button |
+| Homepage | `sections/home-hero.liquid` | Stage curtains, painted logo, hanging shoe button |
 | Collection | `sections/collection-floor.liquid` | Clothes scattered on a floor (default) |
 | Collection (alt) | `sections/collection-wall.liquid` | Framed pictures on a wall (swap in `templates/collection.json`) |
 | Product | `sections/product.liquid` | Photos taped to the wall, drag-to-scroll, lightbox |

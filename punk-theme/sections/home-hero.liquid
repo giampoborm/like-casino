@@ -1,8 +1,8 @@
-{% assign logo_style = section.settings.logo_style | default: 'composite2' %}
 <section
-  class="home-hero home-hero--{{ logo_style }} full-width"
+  class="home-hero full-width"
   style="
     --hero-logo-shadow: {{ section.settings.logo_shadow | divided_by: 100.0 }};
+    --hero-logo-blend: {{ section.settings.logo_blend | default: 'normal' }};
     --hero-btn-shadow: {{ section.settings.button_shadow | divided_by: 100.0 }};
     --hero-btn-glow: {{ section.settings.button_glow | divided_by: 100.0 }};
   "
@@ -34,106 +34,58 @@
     height: 3000,
     loading: 'eager'
   %}
-  <div class="home-hero__inner">
 
-    {% liquid
-      # Bundled logo per style, and how wide the stylesheet below draws it (also used for an uploaded logo)
-      if logo_style == 'sign'
-        assign logo_file = 'logosign2.png'
-        assign logo_width = 3149
-        assign logo_height = 954
-        assign logo_widths = '400,800,1000,1500,2000'
-        assign logo_sizes = '(max-width: 768px) min(90vw, 400px), min(80vw, 1000px)'
-      elsif logo_style == 'composite2'
-        assign logo_file = 'logocomposite2.png'
-        assign logo_width = 2000
-        assign logo_height = 1110
-        assign logo_widths = '420,700,950,1400,1900'
-        assign logo_sizes = '(max-width: 768px) min(90vw, 420px), min(75vw, 950px)'
-      else
-        assign logo_file = 'biglogofinal.png'
-        assign logo_width = 2885
-        assign logo_height = 3788
-        assign logo_widths = '380,600,800,1100,1600'
-        assign logo_sizes = '(max-width: 768px) min(70vw, 380px), 73vh'
-      endif
-      assign logo_alt = section.settings.logo_alt | default: shop.name
-    %}
-    <div class="home-hero__logo home-hero__logo--{{ logo_style }}">
-      {% if section.settings.logo != blank %}
-        {{
-          section.settings.logo
-          | image_url: width: 2000
-          | image_tag:
-            loading: 'eager',
-            fetchpriority: 'high',
-            widths: '400,600,800,1000,1200,1600,2000',
-            sizes: logo_sizes,
-            alt: logo_alt,
-            class: 'home-hero__logo-img'
-        }}
-      {% else %}
-        {% render 'asset-image',
-          file: logo_file,
-          class: 'home-hero__logo-img',
-          alt: logo_alt,
-          widths: logo_widths,
-          sizes: logo_sizes,
-          width: logo_width,
-          height: logo_height,
+  {% liquid
+    # The logo is drawn 85% of the screen height tall (about 65% of it wide), never wider than 80% of the screen
+    assign logo_sizes = '(max-width: 768px) 80vw, min(80vw, 65vh)'
+    assign logo_alt = section.settings.logo_alt | default: shop.name
+  %}
+  <div class="home-hero__logo">
+    {% if section.settings.logo != blank %}
+      {{
+        section.settings.logo
+        | image_url: width: 2000
+        | image_tag:
           loading: 'eager',
-          fetchpriority: 'high'
-        %}
-      {% endif %}
-    </div>
-
-    {% assign products_href = section.settings.products_link | default: routes.all_products_collection_url %}
-    {% assign btn_style = section.settings.button_style | default: 'rat' %}
-    {% assign products_label = section.settings.products_label | default: 'Products' %}
-    <a
-      class="home-hero__products-btn home-hero__products-btn--{{ btn_style }}"
-      href="{{ products_href }}"
-      {% if btn_style == 'shoe' %}
-        aria-label="{{ products_label | escape }}"
-      {% endif %}
-    >
-      {% if btn_style == 'shoe' %}
-        {% # 80% of the screen height tall (60% on phones), so about 16% / 12% of that height wide %}
-        {% render 'asset-image',
-          file: 'shoerope.png',
-          class: 'home-hero__products-btn-img home-hero__products-btn-img--default',
-          widths: '200,300,400,767',
-          sizes: '(max-width: 768px) 12vh, 16vh',
-          width: 767,
-          height: 3873,
-          loading: 'eager'
-        %}
-      {% else %}
-        {% render 'asset-image',
-          file: 'products_button1.png',
-          class: 'home-hero__products-btn-img home-hero__products-btn-img--default',
-          widths: '280,560,840,1184',
-          sizes: '(max-width: 768px) min(70vw, 400px), 280px',
-          width: 1184,
-          height: 880,
-          loading: 'eager'
-        %}
-        {% render 'asset-image',
-          file: 'products_button1_hover.png',
-          class: 'home-hero__products-btn-img home-hero__products-btn-img--hover',
-          widths: '280,560,840,1184',
-          sizes: '(max-width: 768px) min(70vw, 400px), 280px',
-          width: 1184,
-          height: 880,
-          loading: 'eager'
-        %}
-        <span class="home-hero__products-btn-label">
-          {{ products_label }}
-        </span>
-      {% endif %}
-    </a>
-
+          fetchpriority: 'high',
+          widths: '400,600,800,1000,1200,1600,2000',
+          sizes: logo_sizes,
+          alt: logo_alt,
+          class: 'home-hero__logo-img'
+      }}
+    {% else %}
+      {% render 'asset-image',
+        file: 'biglogo.png',
+        class: 'home-hero__logo-img',
+        alt: logo_alt,
+        widths: '400,600,800,1100,1500,2000',
+        sizes: logo_sizes,
+        width: 2185,
+        height: 2872,
+        loading: 'eager',
+        fetchpriority: 'high'
+      %}
+    {% endif %}
   </div>
+
+  {% assign products_href = section.settings.products_link | default: routes.all_products_collection_url %}
+  {% assign products_label = section.settings.products_label | default: 'Products' %}
+  <a
+    class="home-hero__products-btn"
+    href="{{ products_href }}"
+    aria-label="{{ products_label | escape }}"
+  >
+    {% # 80% of the screen height tall (60% on phones), so about 16% / 12% of that height wide %}
+    {% render 'asset-image',
+      file: 'shoerope.png',
+      class: 'home-hero__products-btn-img',
+      widths: '200,300,400,767',
+      sizes: '(max-width: 768px) 12vh, 16vh',
+      width: 767,
+      height: 3873,
+      loading: 'eager'
+    %}
+  </a>
 </section>
 
 {% stylesheet %}
@@ -146,93 +98,45 @@
     padding: 0 5vw;
   }
 
-  .home-hero__inner {
-    width: 100%;
+  /* ── Logo (centre) ── */
+  /* The blend mode sits on the wrapper so the logo mixes with the page background behind it */
+  .home-hero__logo {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: clamp(3rem, 6vw, 7rem);
-  }
-
-  /* ── Logo (left) ── */
-  .home-hero__logo {
-    flex: 0 0 auto;
-    display: flex;
-    align-items: center;
+    mix-blend-mode: var(--hero-logo-blend, normal);
   }
 
   .home-hero__logo-img {
-    height: 95svh;
-    width: auto;
-    filter: drop-shadow(0 30px 40px rgba(0, 0, 0, var(--hero-logo-shadow)));
-  }
-
-  .home-hero--sign .home-hero__logo {
-    position: absolute;
-    top: 40%;
-    left: 50%;
-    transform: translateX(-50%);
-  }
-
-  .home-hero__logo--sign .home-hero__logo-img {
+    display: block;
+    width: min(80vw, calc(85svh * 2185 / 2872));
     height: auto;
-    width: min(80vw, 1000px);
     max-width: none;
-    filter:
-      drop-shadow(0 0 5px rgba(0, 0, 0, calc(var(--hero-logo-shadow) * 1.4)))
-      drop-shadow(0 20px 20px rgba(0, 0, 0, calc(var(--hero-logo-shadow) * 0.25)));
+    filter: drop-shadow(0 20px 25px rgba(0, 0, 0, var(--hero-logo-shadow)));
   }
 
-  /* ── Composite 2 ── */
-  .home-hero--composite2 .home-hero__logo {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+  /* ── Products button: a shoe hanging from a rope ── */
+  @keyframes pendulum-sway {
+    0%, 100% { transform: rotate(-3deg); }
+    50%       { transform: rotate(3deg); }
   }
 
-  .home-hero__logo--composite2 .home-hero__logo-img {
-    height: auto;
-    width: min(75vw, 950px);
-    max-width: none;
-    filter:
-      drop-shadow(0 0 6px rgba(0, 0, 0, calc(var(--hero-logo-shadow) * 1.3)))
-      drop-shadow(0 20px 25px rgba(0, 0, 0, calc(var(--hero-logo-shadow) * 0.35)));
-  }
-
-  /* ── Products button (right) ── */
   .home-hero__products-btn {
-    flex: 0 0 auto;
-    position: relative;
-    display: inline-block;
-    text-decoration: none;
-    transform: rotate(1deg);
+    position: absolute;
+    top: 0;
+    right: 25vw;
+    z-index: 1;
+    display: block;
+    transform-origin: top center;
+    animation: pendulum-sway 4s ease-in-out infinite;
     filter:
       drop-shadow(0 2px 2px rgba(0, 0, 0, calc(var(--hero-btn-shadow) * 0.75)))
       drop-shadow(0 3px 6px rgba(0, 0, 0, calc(var(--hero-btn-shadow) * 1.25)));
     transition: filter 0.2s ease;
   }
 
-  @keyframes pendulum-sway {
-    0%, 100% { transform: rotate(-3deg); }
-    50%       { transform: rotate(3deg); }
-  }
-
-  .home-hero__products-btn--shoe {
-    position: absolute;
-    top: 0;
-    right: 25vw;
-    transform-origin: top center;
-    animation: pendulum-sway 4s ease-in-out infinite;
-  }
-
-  .home-hero__products-btn--shoe .home-hero__products-btn-img {
-    width: auto;
-    height: 80svh;
-  }
-
-  .home-hero__products-btn--shoe:hover,
-  .home-hero__products-btn--shoe:focus-visible {
+  .home-hero__products-btn:hover,
+  .home-hero__products-btn:focus-visible {
     filter:
       drop-shadow(0 2px 2px rgba(0, 0, 0, calc(var(--hero-btn-shadow) * 0.75)))
       drop-shadow(0 3px 6px rgba(0, 0, 0, calc(var(--hero-btn-shadow) * 1.25)))
@@ -241,38 +145,8 @@
 
   .home-hero__products-btn-img {
     display: block;
-    width: 280px;
-    height: auto;
-  }
-
-  .home-hero__products-btn-img--hover {
-    position: absolute;
-    top: 0;
-    left: 0;
-    opacity: 0;
-  }
-
-  .home-hero__products-btn--rat:hover .home-hero__products-btn-img--default,
-  .home-hero__products-btn--rat:focus-visible .home-hero__products-btn-img--default {
-    opacity: 0;
-  }
-
-  .home-hero__products-btn--rat:hover .home-hero__products-btn-img--hover,
-  .home-hero__products-btn--rat:focus-visible .home-hero__products-btn-img--hover {
-    opacity: 1;
-  }
-
-  .home-hero__products-btn-label {
-    position: absolute;
-    bottom: 1%;
-    left: 80%;
-    transform: translateX(-50%);
-    font-family: var(--font-main--family);
-    font-size: clamp(1.5rem, 2vw, 1.7rem);
-    text-transform: uppercase;
-    color: var(--color-positive);
-    white-space: nowrap;
-    pointer-events: none;
+    width: auto;
+    height: 80svh;
   }
 
   /* ── Curtains ── */
@@ -299,54 +173,13 @@
 
   /* Visitors who ask for less motion get a still shoe */
   @media (prefers-reduced-motion: reduce) {
-    .home-hero__products-btn--shoe {
+    .home-hero__products-btn {
       animation: none;
     }
   }
 
-  /* ── Mobile ── */
   @media (max-width: 768px) {
-    .home-hero__inner {
-      flex-direction: column;
-      justify-content: center;
-    }
-
-    .home-hero__logo-img {
-      height: auto;
-      width: min(70vw, 380px);
-    }
-
-    .home-hero__products-btn {
-      flex: 0 0 auto;
-    }
-
     .home-hero__products-btn-img {
-      width: min(70vw, 400px);
-    }
-
-    /* Sign logo: large and anchored to the bottom */
-    .home-hero--sign .home-hero__logo {
-      top: auto;
-      bottom: 25%;
-      transform: translateX(-50%);
-    }
-
-    .home-hero__logo--sign .home-hero__logo-img {
-      width: min(90vw, 400px);
-    }
-
-    /* Composite 2: centred, full-width on mobile */
-    .home-hero--composite2 .home-hero__logo {
-      top: 50%;
-      transform: translate(-50%, 30%);
-    }
-
-    .home-hero__logo--composite2 .home-hero__logo-img {
-      width: min(90vw, 420px);
-    }
-
-    /* Shoe-rope button: smaller on mobile */
-    .home-hero__products-btn--shoe .home-hero__products-btn-img {
       height: 60svh;
     }
   }
@@ -356,17 +189,6 @@
 {
   "name": "Homepage hero",
   "settings": [
-    {
-      "type": "select",
-      "id": "logo_style",
-      "label": "Logo style",
-      "default": "composite2",
-      "options": [
-        { "value": "composite2", "label": "Composite 2" },
-        { "value": "sign", "label": "Sign" },
-        { "value": "frame", "label": "Frame" }
-      ]
-    },
     {
       "type": "image_picker",
       "id": "logo",
@@ -379,9 +201,35 @@
       "default": "Elena Store logo"
     },
     {
+      "type": "select",
+      "id": "logo_blend",
+      "label": "Logo blend mode",
+      "info": "How the logo mixes with the background behind it. Multiply drops light areas, Screen drops dark areas.",
+      "default": "normal",
+      "options": [
+        { "value": "normal", "label": "Normal" },
+        { "value": "multiply", "label": "Multiply" },
+        { "value": "screen", "label": "Screen" },
+        { "value": "overlay", "label": "Overlay" },
+        { "value": "darken", "label": "Darken" },
+        { "value": "lighten", "label": "Lighten" },
+        { "value": "color-dodge", "label": "Color dodge" },
+        { "value": "color-burn", "label": "Color burn" },
+        { "value": "hard-light", "label": "Hard light" },
+        { "value": "soft-light", "label": "Soft light" },
+        { "value": "difference", "label": "Difference" },
+        { "value": "exclusion", "label": "Exclusion" },
+        { "value": "hue", "label": "Hue" },
+        { "value": "saturation", "label": "Saturation" },
+        { "value": "color", "label": "Color" },
+        { "value": "luminosity", "label": "Luminosity" }
+      ]
+    },
+    {
       "type": "text",
       "id": "products_label",
       "label": "Products button label",
+      "info": "Read out by screen readers; the shoe itself has no text.",
       "default": "Products"
     },
     {
@@ -389,16 +237,6 @@
       "id": "products_link",
       "label": "Products button link",
       "default": "/collections/all"
-    },
-    {
-      "type": "select",
-      "id": "button_style",
-      "label": "Button style",
-      "default": "rat",
-      "options": [
-        { "value": "rat", "label": "Rat" },
-        { "value": "shoe", "label": "Shoe" }
-      ]
     },
     {
       "type": "header",
