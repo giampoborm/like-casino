@@ -1,18 +1,24 @@
-/* Cookie banner — one fixed composition: tilted bust bottom-left, hand-drawn bubble beside it,
-   words scattered inside the bubble. Everything is measured in --cb-u (= the bust's width),
-   so the whole scene scales as one piece and the tail always stays on the mouth.
+/* Cookie banner — one fixed composition: tilted bust bottom-left with a cigarette, smoke rising
+   from its tip into a cloud (above-right on phones, beside the bust on desktop); the words sit
+   in the cloud. Everything is measured in
+   --cb-u (= the bust's width), so the whole scene scales as one piece.
 
-   Geometry (bust.png 594 × 1268, so its height is 2.135u; mouth 35% from the top, its corner
-   at 58% of the width). The bust turns -6deg around its bottom centre, which puts the mouth
-   corner at x 0.654u, 1.315u above the scene's bottom. The drawn tail tip sits at the bubble's
-   left edge, 37.4% up from its bottom (snippets/speech-bubble.liquid). */
+   Geometry (bust.png 594 × 1268, so its height is 2.135u; mouth 35.6% from the top). The bust
+   turns -6deg around its bottom centre; the cigarette sits in the mouth and turns with it.
+   The cloud is an ordinary box sized by its text: cookie-smoke.js draws the smoke around it
+   and the trail from the cigarette tip ([data-smoke-tip]) up to it. */
 
 .cookie-banner {
   --cb-gap: 16px;
   /* 140px × the Size setting on desktop; shrinks to fit narrow or short screens */
-  --cb-u: min(calc(140px * var(--cb-scale, 1)), calc((100vw - 2 * var(--cb-gap)) / 4.25), calc((100vh - 24px) / 2.86));
+  --cb-u: min(calc(140px * var(--cb-scale, 1)), calc((100vw - 2 * var(--cb-gap)) / 4.3), calc((100vh - 24px) / 4.1));
   /* Text unit: follows the scene, times the Text size setting */
   --cb-t: calc(var(--cb-u) * var(--cb-text-scale, 1));
+  /* One shadow for bust, cigarette and smoke (not the words). Scales with the scene × Size */
+  --cb-shadow-u: calc(var(--cb-u) * var(--cb-shadow-size, 1));
+  --cb-drop: drop-shadow(calc(0.03 * var(--cb-shadow-u)) calc(0.045 * var(--cb-shadow-u)) calc(0.06 * var(--cb-shadow-u)) rgba(0, 0, 0, var(--cb-shadow, 0.4)));
+  /* Smoke casts the same shadow, only softer */
+  --cb-drop-soft: drop-shadow(calc(0.03 * var(--cb-shadow-u)) calc(0.045 * var(--cb-shadow-u)) calc(0.12 * var(--cb-shadow-u)) rgba(0, 0, 0, var(--cb-shadow, 0.4)));
   position: fixed;
   left: var(--cb-gap);
   bottom: 0;
@@ -26,11 +32,11 @@
 
 .cookie-banner__scene {
   position: relative;
-  width: calc(4.25 * var(--cb-u));
-  height: calc(2.86 * var(--cb-u));
+  width: calc(4.3 * var(--cb-u));
+  height: calc(2.1 * var(--cb-u));
 }
 
-/* ---------- Bust ---------- */
+/* ---------- Bust + cigarette ---------- */
 
 .cookie-banner__bust {
   position: absolute;
@@ -39,76 +45,113 @@
   width: var(--cb-u);
   transform: rotate(-6deg);
   transform-origin: 50% 100%;
+  filter: var(--cb-drop);
 }
 
 .cookie-banner__bust-img {
   display: block;
   width: 100%;
   height: auto;
-  filter: drop-shadow(4px 6px 8px rgba(0, 0, 0, var(--cb-bust-shadow)));
 }
 
-/* ---------- Bubble ---------- */
-
-.cookie-banner__bubble {
+/* Filter end between the lips, right of centre; hangs down a little towards the right */
+.cookie-banner__cig {
   position: absolute;
-  left: calc(0.74 * var(--cb-u));
-  bottom: calc(0.395 * var(--cb-u));
-  width: calc(3.5 * var(--cb-u));
-  /* The drawing's proportions: 2060 × 1448 */
-  height: calc(2.46 * var(--cb-u));
-  isolation: isolate;
-  color: #000;
+  left: 50%;
+  top: 35.7%;
+  width: 34%;
+  transform: translateY(-50%) rotate(14deg);
+  transform-origin: 0 50%;
+}
+
+.cookie-banner__cig-img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Zero-size marker on the lit end: the smoke starts here */
+.cookie-banner__cig-tip {
+  position: absolute;
+  right: 2%;
+  top: 50%;
+  width: 0;
+  height: 0;
+}
+
+/* ---------- Smoke (drawn by cookie-smoke.js, in px from the scene's top left) ---------- */
+
+.cookie-banner__smoke {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  overflow: visible;
+  pointer-events: none;
+  filter: var(--cb-drop-soft);
+}
+
+/* ---------- Cloud: the text box the smoke is drawn around ---------- */
+
+.cookie-banner__cloud {
+  position: absolute;
+  left: calc(1.1 * var(--cb-u));
+  /* Phones: just above eye level, beside the head */
+  bottom: calc(1.65 * var(--cb-u));
+  /* Leaves room on the right for the billows drawn round it */
+  width: calc(2.9 * var(--cb-u));
+  box-sizing: border-box;
+  padding: calc(0.04 * var(--cb-u)) calc(0.06 * var(--cb-u));
+  color: var(--cb-text, #000);
   font-family: var(--cb-font, var(--font-main--family));
   font-size: max(11px, calc(0.15 * var(--cb-t)));
   line-height: 1.2;
   pointer-events: auto;
 }
 
-.speech-bubble {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
+.cookie-banner__layer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(0.07 * var(--cb-u));
 }
-
-/* Always a white bubble with a black line, whatever the theme colours */
-.speech-bubble path {
-  fill: #fff;
-  stroke: #000;
-  stroke-width: max(1.5px, calc(0.021 * var(--cb-u)));
-  stroke-linejoin: round;
-}
-
-/* ---------- Words: fixed spots inside the bubble, each a little skewed ---------- */
 
 .cookie-banner__layer[hidden] {
   display: none;
 }
 
-.cookie-banner__spot {
-  position: absolute;
-  left: var(--x);
-  top: var(--y);
-  /* max-content: otherwise a spot far right only gets the space left of the edge */
-  width: max-content;
-  max-width: var(--w, 30%);
-  margin: 0;
-  transform: translate(-50%, -50%) rotate(var(--r));
-  text-align: center;
+/* Three equal columns that never wrap, whatever the words */
+.cookie-banner__row {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: flex-start;
+  gap: 0.2em 0.4em;
+  width: 100%;
 }
 
-.cookie-banner__spot--title   { --x: 58%; --y: 15%; --r: -3deg; --w: 70%; }
-.cookie-banner__spot--message { --x: 57%; --y: 27%; --r: -2deg; --w: 58%; }
-.cookie-banner__spot--a       { --x: 26%; --y: 39%; --r: -6deg; --w: 25%; }
-.cookie-banner__spot--b       { --x: 53%; --y: 47%; --r: 3deg; --w: 27%; }
-.cookie-banner__spot--c       { --x: 81%; --y: 51%; --r: 6deg; --w: 25%; }
-.cookie-banner__spot--d       { --x: 30%; --y: 75%; --r: -4deg; }
-.cookie-banner__spot--e       { --x: 70%; --y: 80%; --r: 5deg; }
+.cookie-banner__row--links {
+  justify-content: center;
+  gap: 0.2em 2.5em;
+}
+
+.cookie-banner__row--links .cookie-banner__choice {
+  flex: 0 1 auto;
+}
+
+/* Each word a little skewed, as if written by hand */
+.cookie-banner__tilt {
+  transform: translateY(var(--dy, 0)) rotate(var(--r, 0deg));
+}
+
+.cookie-banner__tilt--1 { --r: -3deg; }
+.cookie-banner__tilt--2 { --r: -2deg; }
+.cookie-banner__tilt--3 { --r: -5deg; }
+.cookie-banner__tilt--4 { --r: 3deg; --dy: 0.25em; }
+.cookie-banner__tilt--5 { --r: 5deg; --dy: 0.45em; }
 
 .cookie-banner__title {
+  margin: 0;
   font-size: calc(0.34 * var(--cb-t));
   line-height: 1;
   white-space: nowrap;
@@ -116,7 +159,7 @@
 
 /* Layer 2 carries checkboxes and longer words: a size down */
 [data-cookie-layer='choices'] {
-  font-size: 0.9em;
+  font-size: 0.85em;
 }
 
 [data-cookie-layer='choices'] .cookie-banner__title {
@@ -124,7 +167,9 @@
 }
 
 .cookie-banner__message {
+  max-width: 85%;
   font-size: 0.85em;
+  text-align: center;
 }
 
 .cookie-banner__message p {
@@ -140,11 +185,14 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 2px 4px;
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 2px 1px;
   border: 0;
   background: none;
   color: inherit;
   font: inherit;
+  text-align: center;
   cursor: pointer;
 }
 
@@ -160,6 +208,7 @@
 
 .cookie-banner__choice-note {
   margin-top: 1px;
+  text-wrap: balance;
   font-size: max(10.5px, 0.85em);
 }
 
@@ -177,7 +226,7 @@ button.cookie-banner__choice:focus-visible .cookie-banner__choice-label {
   width: max(12px, calc(0.1 * var(--cb-u)));
   height: max(12px, calc(0.1 * var(--cb-u)));
   margin: 0;
-  accent-color: #000;
+  accent-color: var(--cb-text, #000);
 }
 
 .cookie-banner__choice input:disabled {
@@ -202,12 +251,30 @@ button.cookie-banner__choice:focus-visible .cookie-banner__choice-label {
 
 .cookie-banner__choice:focus-visible,
 .cookie-banner__link:focus-visible {
-  outline: 2px dashed #000;
+  outline: 2px dashed currentColor;
   outline-offset: 2px;
 }
 
 @media (max-width: 640px) {
   .cookie-banner {
     --cb-gap: 8px;
+  }
+}
+
+/* Desktop: the cloud sits beside the bust, at head-and-shoulders height, and spreads sideways */
+@media (min-width: 750px) {
+  .cookie-banner {
+    --cb-u: min(calc(140px * var(--cb-scale, 1)), calc((100vw - 2 * var(--cb-gap)) / 6.2), calc((100vh - 24px) / 2.3));
+  }
+
+  .cookie-banner__scene {
+    width: calc(6.2 * var(--cb-u));
+  }
+
+  .cookie-banner__cloud {
+    left: calc(1.75 * var(--cb-u));
+    bottom: calc(0.55 * var(--cb-u));
+    width: calc(3.9 * var(--cb-u));
+    padding: calc(0.04 * var(--cb-u)) calc(0.06 * var(--cb-u));
   }
 }

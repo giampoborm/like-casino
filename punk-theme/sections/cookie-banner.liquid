@@ -1,4 +1,5 @@
 {{ 'cookie-banner.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'cookie-smoke.js' | asset_url }}" defer></script>
 <script src="{{ 'cookie-banner.js' | asset_url }}" defer></script>
 
 {%- assign s = section.settings -%}
@@ -13,25 +14,32 @@
   #cookie-banner-{{ section.id }} {
     --cb-scale: {{ s.scale | divided_by: 100.0 }};
     --cb-text-scale: {{ s.text_scale | divided_by: 100.0 }};
-    --cb-bust-shadow: {{ s.bust_shadow | divided_by: 100.0 }};
+    --cb-shadow: {{ s.bust_shadow | divided_by: 100.0 }};
+    --cb-shadow-size: {{ s.shadow_size | divided_by: 100.0 }};
+    --cb-smoke: {{ s.smoke_color }};
+    --cb-text: {{ s.text_color }};
   }
 </style>
 
 {%- comment -%}
-  One fixed composition: bust + bubble are laid out together (see cookie-banner.css),
-  so the tail always points at the mouth. Words sit at fixed spots inside the bubble.
+  One fixed composition: bust with a cigarette, smoke drawn in code (cookie-smoke.js) rising
+  from the cigarette tip into a cloud. The cloud is drawn around the text box, so it always
+  fits whatever the texts are.
 {%- endcomment -%}
 <div
   id="cookie-banner-{{ section.id }}"
   class="cookie-banner"
   data-cookie-banner
   data-show-when="{{ s.show_when }}"
+  data-smoke-wisp="{{ s.smoke_wisp }}"
+  data-smoke-opacity="{{ s.smoke_opacity }}"
+  data-smoke-spread="{{ s.smoke_spread }}"
   role="region"
   aria-label="{{ s.aria_label | escape }}"
   hidden
 >
   <div class="cookie-banner__scene">
-    <div class="cookie-banner__bust">
+    <div class="cookie-banner__bust" data-smoke-unit>
       {%- if s.bust != blank -%}
         {{ s.bust | image_url: width: 600 | image_tag: alt: '', class: 'cookie-banner__bust-img', loading: 'lazy', widths: '200, 300, 400, 600' }}
       {%- else -%}
@@ -46,54 +54,70 @@
           loading="lazy"
         >
       {%- endif -%}
+      <span class="cookie-banner__cig">
+        {%- if s.cigarette != blank -%}
+          {{ s.cigarette | image_url: width: 300 | image_tag: alt: '', class: 'cookie-banner__cig-img', loading: 'lazy' }}
+        {%- else -%}
+          <img src="{{ 'cig.png' | asset_url }}" alt="" class="cookie-banner__cig-img" width="67" height="8" loading="lazy">
+        {%- endif -%}
+        <i class="cookie-banner__cig-tip" data-smoke-tip></i>
+      </span>
     </div>
 
-    <div class="cookie-banner__bubble">
-      {% render 'speech-bubble' %}
+    <svg class="cookie-banner__smoke" data-smoke-svg aria-hidden="true" focusable="false"></svg>
 
+    <div class="cookie-banner__cloud" data-smoke-cloud>
       {%- comment -%} Layer 1: cookies? yes / maybe / no, all the same style {%- endcomment -%}
       <div class="cookie-banner__layer" data-cookie-layer="notice">
-        <p class="cookie-banner__spot cookie-banner__spot--title cookie-banner__title">{{ s.heading }}</p>
+        <p class="cookie-banner__title cookie-banner__tilt cookie-banner__tilt--1">{{ s.heading }}</p>
         {%- if s.message != blank -%}
-          <div class="cookie-banner__spot cookie-banner__spot--message cookie-banner__message">{{ s.message }}</div>
+          <div class="cookie-banner__message cookie-banner__tilt cookie-banner__tilt--2">{{ s.message }}</div>
         {%- endif -%}
-        <button type="button" class="cookie-banner__spot cookie-banner__spot--a cookie-banner__choice" data-cookie-answer="yes">
-          <span class="cookie-banner__choice-label">{{ s.yes_label }}</span>
-          {%- if s.yes_note != blank -%}<span class="cookie-banner__choice-note">{{ s.yes_note }}</span>{%- endif -%}
-        </button>
-        <button type="button" class="cookie-banner__spot cookie-banner__spot--b cookie-banner__choice" data-cookie-answer="maybe">
-          <span class="cookie-banner__choice-label">{{ s.maybe_label }}</span>
-          {%- if s.maybe_note != blank -%}<span class="cookie-banner__choice-note">{{ s.maybe_note }}</span>{%- endif -%}
-        </button>
-        <button type="button" class="cookie-banner__spot cookie-banner__spot--c cookie-banner__choice" data-cookie-answer="no">
-          <span class="cookie-banner__choice-label">{{ s.no_label }}</span>
-          {%- if s.no_note != blank -%}<span class="cookie-banner__choice-note">{{ s.no_note }}</span>{%- endif -%}
-        </button>
-        <button type="button" class="cookie-banner__spot cookie-banner__spot--d cookie-banner__link" data-cookie-choose>{{ s.choose_label }}</button>
-        {%- if policy_url != blank and s.policy_label != blank -%}
-          <a class="cookie-banner__spot cookie-banner__spot--e cookie-banner__link" href="{{ policy_url }}">{{ s.policy_label }}</a>
-        {%- endif -%}
+        <div class="cookie-banner__row">
+          <button type="button" class="cookie-banner__choice cookie-banner__tilt cookie-banner__tilt--3" data-cookie-answer="yes">
+            <span class="cookie-banner__choice-label">{{ s.yes_label }}</span>
+            {%- if s.yes_note != blank -%}<span class="cookie-banner__choice-note">{{ s.yes_note }}</span>{%- endif -%}
+          </button>
+          <button type="button" class="cookie-banner__choice cookie-banner__tilt cookie-banner__tilt--4" data-cookie-answer="maybe">
+            <span class="cookie-banner__choice-label">{{ s.maybe_label }}</span>
+            {%- if s.maybe_note != blank -%}<span class="cookie-banner__choice-note">{{ s.maybe_note }}</span>{%- endif -%}
+          </button>
+          <button type="button" class="cookie-banner__choice cookie-banner__tilt cookie-banner__tilt--5" data-cookie-answer="no">
+            <span class="cookie-banner__choice-label">{{ s.no_label }}</span>
+            {%- if s.no_note != blank -%}<span class="cookie-banner__choice-note">{{ s.no_note }}</span>{%- endif -%}
+          </button>
+        </div>
+        <div class="cookie-banner__row cookie-banner__row--links">
+          <button type="button" class="cookie-banner__link cookie-banner__tilt cookie-banner__tilt--2" data-cookie-choose>{{ s.choose_label }}</button>
+          {%- if policy_url != blank and s.policy_label != blank -%}
+            <a class="cookie-banner__link cookie-banner__tilt cookie-banner__tilt--4" href="{{ policy_url }}">{{ s.policy_label }}</a>
+          {%- endif -%}
+        </div>
       </div>
 
-      {%- comment -%} Layer 2: per-purpose choice on the same spots. Toggles start off; Shopify's stored choice fills them in when reopened. {%- endcomment -%}
+      {%- comment -%} Layer 2: per-purpose choice. Toggles start off; Shopify's stored choice fills them in when reopened. {%- endcomment -%}
       <div class="cookie-banner__layer" data-cookie-layer="choices" hidden>
-        <p class="cookie-banner__spot cookie-banner__spot--title cookie-banner__title">{{ s.choices_heading }}</p>
-        <label class="cookie-banner__spot cookie-banner__spot--a cookie-banner__choice">
-          <span class="cookie-banner__choice-label"><input type="checkbox" checked disabled> {{ s.necessary_title }}</span>
-          {%- if s.necessary_text != blank -%}<span class="cookie-banner__choice-note">{{ s.necessary_text }}</span>{%- endif -%}
-        </label>
-        <label class="cookie-banner__spot cookie-banner__spot--b cookie-banner__choice">
-          <span class="cookie-banner__choice-label"><input type="checkbox" data-cookie-purpose="analytics"> {{ s.analytics_title }}</span>
-          {%- if s.analytics_text != blank -%}<span class="cookie-banner__choice-note">{{ s.analytics_text }}</span>{%- endif -%}
-        </label>
-        <label class="cookie-banner__spot cookie-banner__spot--c cookie-banner__choice">
-          <span class="cookie-banner__choice-label"><input type="checkbox" data-cookie-purpose="marketing"> {{ s.marketing_title }}</span>
-          {%- if s.marketing_text != blank -%}<span class="cookie-banner__choice-note">{{ s.marketing_text }}</span>{%- endif -%}
-        </label>
-        <button type="button" class="cookie-banner__spot cookie-banner__spot--d cookie-banner__choice" data-cookie-save>
-          <span class="cookie-banner__choice-label">{{ s.save_label }}</span>
-        </button>
-        <button type="button" class="cookie-banner__spot cookie-banner__spot--e cookie-banner__link" data-cookie-back>{{ s.back_label }}</button>
+        <p class="cookie-banner__title cookie-banner__tilt cookie-banner__tilt--1">{{ s.choices_heading }}</p>
+        <div class="cookie-banner__row">
+          <label class="cookie-banner__choice cookie-banner__tilt cookie-banner__tilt--3">
+            <span class="cookie-banner__choice-label"><input type="checkbox" checked disabled> {{ s.necessary_title }}</span>
+            {%- if s.necessary_text != blank -%}<span class="cookie-banner__choice-note">{{ s.necessary_text }}</span>{%- endif -%}
+          </label>
+          <label class="cookie-banner__choice cookie-banner__tilt cookie-banner__tilt--4">
+            <span class="cookie-banner__choice-label"><input type="checkbox" data-cookie-purpose="analytics"> {{ s.analytics_title }}</span>
+            {%- if s.analytics_text != blank -%}<span class="cookie-banner__choice-note">{{ s.analytics_text }}</span>{%- endif -%}
+          </label>
+          <label class="cookie-banner__choice cookie-banner__tilt cookie-banner__tilt--5">
+            <span class="cookie-banner__choice-label"><input type="checkbox" data-cookie-purpose="marketing"> {{ s.marketing_title }}</span>
+            {%- if s.marketing_text != blank -%}<span class="cookie-banner__choice-note">{{ s.marketing_text }}</span>{%- endif -%}
+          </label>
+        </div>
+        <div class="cookie-banner__row cookie-banner__row--links">
+          <button type="button" class="cookie-banner__choice cookie-banner__tilt cookie-banner__tilt--2" data-cookie-save>
+            <span class="cookie-banner__choice-label">{{ s.save_label }}</span>
+          </button>
+          <button type="button" class="cookie-banner__link cookie-banner__tilt cookie-banner__tilt--4" data-cookie-back>{{ s.back_label }}</button>
+        </div>
       </div>
     </div>
   </div>
@@ -131,7 +155,7 @@
       "step": 5,
       "unit": "%",
       "label": "Size",
-      "info": "Bust, bubble and text together. Shrinks further on small screens",
+      "info": "Bust, smoke and text together. Shrinks further on small screens",
       "default": 100
     },
     {
@@ -142,7 +166,7 @@
       "step": 5,
       "unit": "%",
       "label": "Text size",
-      "info": "Text only, inside the bubble",
+      "info": "Text only. The cloud grows to fit it",
       "default": 100
     },
     {
@@ -186,14 +210,87 @@
       "info": "Empty = bundled bust. A new one needs the same framing: transparent PNG, mouth 35% from the top"
     },
     {
+      "type": "image_picker",
+      "id": "cigarette",
+      "label": "Cigarette image",
+      "info": "Empty = bundled cigarette. Transparent PNG, filter on the left, lit end on the right"
+    },
+    {
+      "type": "header",
+      "content": "Shadow"
+    },
+    {
+      "type": "paragraph",
+      "content": "One shadow for mannequin, cigarette and smoke. The words stay sharp"
+    },
+    {
       "type": "range",
       "id": "bust_shadow",
       "min": 0,
       "max": 100,
       "step": 5,
       "unit": "%",
-      "label": "Bust shadow",
+      "label": "Strength",
       "default": 40
+    },
+    {
+      "type": "range",
+      "id": "shadow_size",
+      "min": 0,
+      "max": 300,
+      "step": 10,
+      "unit": "%",
+      "label": "Size",
+      "info": "How far it falls and how soft it is",
+      "default": 100
+    },
+    {
+      "type": "header",
+      "content": "Smoke"
+    },
+    {
+      "type": "color",
+      "id": "smoke_color",
+      "label": "Smoke",
+      "default": "#f4f2ee"
+    },
+    {
+      "type": "range",
+      "id": "smoke_wisp",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "label": "Wispy edges",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "smoke_opacity",
+      "min": 30,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "label": "Smoke opacity",
+      "info": "Lower lets more of the wall show through, but the text gets harder to read",
+      "default": 75
+    },
+    {
+      "type": "range",
+      "id": "smoke_spread",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "label": "Smoke around the text",
+      "info": "How far the smoke reaches past the words. It always stops at the screen edge",
+      "default": 30
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text",
+      "default": "#000000"
     },
     {
       "type": "header",

@@ -45,6 +45,8 @@
       showLayer(layer || 'notice');
       if (layer === 'choices') fillToggles();
       banner.hidden = false;
+      // cookie-smoke.js draws the smoke once the banner has a size
+      banner.dispatchEvent(new CustomEvent('cookie-banner:open', { bubbles: true }));
     }
 
     function close() {
@@ -97,6 +99,17 @@
     document.querySelectorAll('[data-cookie-banner]').forEach(function (el) {
       banners.push(setup(el));
     });
+    // Theme editor: a changed setting re-renders the section with a new element; wire it up and show it
+    if (window.Shopify && window.Shopify.designMode) {
+      document.addEventListener('shopify:section:load', function (e) {
+        e.target.querySelectorAll('[data-cookie-banner]').forEach(function (el) {
+          var b = setup(el);
+          banners.push(b);
+          b.open('notice');
+        });
+      });
+    }
+
     if (!banners.length) return;
 
     document.addEventListener('click', function (event) {
