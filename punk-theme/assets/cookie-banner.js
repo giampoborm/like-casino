@@ -18,10 +18,14 @@
   var api = null;
   var banners = [];
 
+  // Has this visitor already answered? Shopify keeps the answer in its own consent cookie
+  // (about a year); each value is 'yes', 'no' or '' (not asked yet).
   function hasChoice() {
     if (!api || !api.currentVisitorConsent) return false;
-    var c = api.currentVisitorConsent();
-    return !!c && c.analytics !== '' && c.analytics !== undefined;
+    var c = api.currentVisitorConsent() || {};
+    return ['analytics', 'marketing', 'preferences'].some(function (k) {
+      return c[k] === 'yes' || c[k] === 'no';
+    });
   }
 
   function setup(banner) {
@@ -127,9 +131,11 @@
         }
         api = window.Shopify.customerPrivacy;
         if (!api || window.Shopify.designMode) return;
+        // Ask once: never again after an answer. shouldShowBanner() only says whether the
+        // visitor's region needs a banner; it stays true after they have answered.
+        if (hasChoice()) return;
         banners.forEach(function (b) {
-          var needed = b.el.dataset.showWhen === 'always' ? !hasChoice() : api.shouldShowBanner();
-          if (needed) b.open('notice');
+          if (b.el.dataset.showWhen === 'always' || api.shouldShowBanner()) b.open('notice');
         });
       });
     }
