@@ -51,6 +51,16 @@ Run all CLI commands from within `punk-theme/`:
 - The "wall" design uses custom visual assets in `assets/` — do not rename or remove them without updating all references
 - `blocks/` components are nested inside sections, not standalone
 
+## Deploying (pushing to a store)
+When the user says "push it" / "make it live", push the **whole committed theme** — never a hand-picked `--only <files>` list. Partial pushes broke the live homepage on 2026-11-17: a new section went live without the snippet it rendered (added in an earlier, never-pushed commit).
+
+1. Working tree must be clean (commit first). Run `shopify theme check` from `punk-theme/` — stop on errors.
+2. See what's not live yet: `git diff live --stat` (the `live` tag marks the last pushed commit). Mention it to the user.
+3. Push from `punk-theme/`:
+   - **Test store** (`laic-a-casino-prova`, live theme `casino-style` #194813133144 — editor settings there are throwaway): `shopify theme push -t 194813133144 --allow-live`
+   - **Client store** (later): add `--ignore config/settings_data.json --ignore "templates/*.json" --ignore "sections/*-group.json"` so the client's editor changes survive; push those JSON files only when the user asks.
+4. After a successful push: `git tag -f live` (and `git push -f origin live` if a remote exists).
+
 ## MCP
 Shopify publishes an official MCP server (`@shopify/dev-mcp`) that gives Claude access to Shopify Polaris docs, component references, and API documentation.
 
