@@ -50,7 +50,7 @@
   {% endif %}
 
   {% paginate collection.products by section.settings.products_per_page %}
-    <div class="collection-floor__grid">
+    <div class="collection-floor__grid" data-floor-grid>
       {% for product in collection.products %}
         {%- liquid
           assign offset_index = forloop.index0 | modulo: 10
@@ -58,9 +58,13 @@
           assign x_off = x_offsets[offset_index] | times: x_scale
           assign rot_off = rot_offsets[offset_index] | times: rot_scale
 
-          # No lazy loading here: Safari never loads lazy pictures inside CSS columns (they stay
-          # blank even after scrolling). The srcset keeps each picture card-sized, so eager is cheap.
+          # The first row is on screen when the page opens; the rest load as they scroll into view.
+          # (collection-floor.js deals cards out row by row, so the first `cols` cards are the top row.)
+          assign card_loading = 'lazy'
           assign card_priority = 'auto'
+          if forloop.index <= cols
+            assign card_loading = 'eager'
+          endif
           if forloop.first
             assign card_priority = 'high'
           endif
@@ -74,7 +78,7 @@
                 product.featured_image
                 | image_url: width: 900
                 | image_tag:
-                  loading: 'eager',
+                  loading: card_loading,
                   fetchpriority: card_priority,
                   widths: '200,300,400,600,800,900',
                   sizes: card_sizes,
@@ -108,6 +112,8 @@
     </div>
   {% endpaginate %}
 </section>
+
+<script src="{{ 'collection-floor.js' | asset_url }}" defer></script>
 
 {% stylesheet %}
   .collection-floor {
@@ -173,17 +179,30 @@
     color: var(--color-text);
   }
 
+  /* No CSS columns (column-count): Safari skips lazy pictures in them and makes cards vanish on
+     hover. collection-floor.js deals the cards into real column boxes (__col), each card into the
+     shortest one; without the script this plain grid with the same column count is the fallback. */
   .collection-floor__grid {
-    column-count: var(--floor-cols);
+    --floor-cols-now: var(--floor-cols);
+    display: grid;
+    grid-template-columns: repeat(var(--floor-cols-now), minmax(0, 1fr));
     column-gap: var(--floor-gap);
+    align-items: start;
   }
 
-  /* The column item itself stays plain: Safari mis-draws transformed/filtered children of CSS
-     columns (cards vanishing on hover), so the offset, shadow and glow live on __inner. */
+  .collection-floor__grid.is-masonry {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--floor-gap);
+  }
+
+  .collection-floor__col {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
   .collection-floor-card {
-    display: inline-block;
-    width: 100%;
-    break-inside: avoid;
+    display: block;
   }
 
   .collection-floor-card__inner {
@@ -268,10 +287,10 @@
   }
 
   @media (max-width: 980px) {
-    .collection-floor__grid { column-count: var(--floor-cols-md); }
+    .collection-floor__grid { --floor-cols-now: var(--floor-cols-md); }
   }
   @media (max-width: 720px) {
-    .collection-floor__grid { column-count: var(--floor-cols-sm); }
+    .collection-floor__grid { --floor-cols-now: var(--floor-cols-sm); }
   }
   @media (max-width: 520px) {
     .collection-floor { padding-left: 0; padding-right: 0; }
