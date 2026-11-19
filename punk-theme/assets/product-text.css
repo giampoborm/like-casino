@@ -80,7 +80,7 @@
   --pp-gap-x: 3rem;
   --pp-gap-y: 0;
   --pp-text-pad-b: 4rem;
-  --pp-wall-pad: 70px 40px 0;
+  --pp-wall-pad: 70px 40px 30px;
   --pp-buy-x: -35px;
   --pp-buy-y: -25px;
 }

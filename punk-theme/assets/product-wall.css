@@ -1,5 +1,8 @@
+/* Sideways only. With overflow-x: auto alone, the browser silently makes overflow-y auto too, and the
+   strip turns into a small vertical scroller that crops whatever pokes out of it. */
 .product-wall-scroll {
   overflow-x: auto;
+  overflow-y: hidden;
   margin: 0;
   scrollbar-width: none;
 }
@@ -30,7 +33,11 @@
   flex-shrink: 0;
   width: calc(260px * var(--photo-scale, 1));
   margin-left: calc(var(--img-overlap, -36px) + var(--photo-gap, 0px));
-  transform: translateY(calc(var(--img-offset, 0px) * var(--scatter-scale, 1))) rotate(calc(var(--img-rotation, 0deg) * var(--rotation-scale, 1)));
+  /* The up/down scatter is done with margins, not translateY, so the strip grows to hold it:
+     a margin of twice the offset on one side moves a centred photo by the offset. */
+  margin-top: calc(max(0px, var(--img-offset, 0px)) * 2 * var(--scatter-scale, 1));
+  margin-bottom: calc(max(0px, var(--img-offset, 0px) * -1) * 2 * var(--scatter-scale, 1));
+  transform: rotate(calc(var(--img-rotation, 0deg) * var(--rotation-scale, 1)));
   z-index: var(--img-z, 1);
   cursor: pointer;
   overflow: visible;
@@ -175,9 +182,12 @@
     grid-template-areas: "text gallery";
   }
 
+  /* clip, not hidden: hidden would make this a vertical scroller too (see .product-wall-scroll) */
   .product-page--vertical .product-wall-scroll {
     grid-area: gallery;
     overflow-x: hidden;
+    overflow-x: clip;
+    overflow-y: visible;
     cursor: default;
   }
 
@@ -195,6 +205,7 @@
   .product-page--vertical .product-wall__photo {
     width: min(calc(320px * var(--photo-scale, 1)), 90%);
     margin-left: 0;
+    margin-bottom: 0;
     margin-top: calc(var(--img-overlap, -20px) - 10px + var(--photo-gap, 0px));
     transform: translateX(calc(var(--img-hoffset, 20px) * var(--scatter-scale, 1))) rotate(calc(var(--img-rotation, 0deg) * 2 * var(--rotation-scale, 1)));
   }
@@ -236,6 +247,8 @@
 
   .product-wall-scroll--vertical {
     overflow-x: hidden;
+    overflow-x: clip;
+    overflow-y: visible;
     cursor: default;
   }
 
@@ -253,6 +266,7 @@
   .product-wall--vertical .product-wall__photo {
     width: min(calc(280px * var(--photo-scale, 1)), calc(100vw - 40px));
     margin-left: 0;
+    margin-bottom: 0;
     margin-top: calc(var(--img-overlap, -20px) - 10px + var(--photo-gap, 0px));
     transform: translateX(calc(var(--img-hoffset, 20px) * var(--scatter-scale, 1))) rotate(calc(var(--img-rotation, 0deg) * 2 * var(--rotation-scale, 1)));
   }
