@@ -25,15 +25,24 @@
   display: flex;
   gap: var(--catalogue-gap);
   margin: 0;
-  padding: 0.5rem var(--catalogue-gutter) 1.5rem;
+  /* Edge to edge: no side padding, the row runs to the screen edges.
+     Top/bottom padding only keeps the drop shadow and hover glow from being clipped. */
+  padding: 0.5rem 0 1.5rem;
   list-style: none;
   overflow-x: auto;
   overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory;
-  scroll-padding-inline: var(--catalogue-gutter);
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: color-mix(in srgb, var(--catalogue-ink) 40%, transparent) transparent;
+}
+
+/* Mouse users scroll the row with the wheel (section-catalogue-rows.js); snapping would
+   yank each small wheel step back to the card it started from, so it is for touch only. */
+@media (hover: hover) and (pointer: fine) {
+  .catalogue-row__track {
+    scroll-snap-type: none;
+  }
 }
 
 .catalogue-row__item {

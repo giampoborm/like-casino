@@ -5,6 +5,7 @@
 {% endcomment %}
 
 {{ 'section-catalogue-rows.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'section-catalogue-rows.js' | asset_url }}" defer></script>
 
 {%- liquid
   if section.settings.sold_out_text != blank
@@ -24,7 +25,7 @@
 -%}
 
 <section
-  class="section-catalogue-rows"
+  class="section-catalogue-rows full-width"
   style="
     --catalogue-card-max: {{ section.settings.card_width }}px;
     --catalogue-gap: {{ section.settings.gap }}px;
@@ -44,7 +45,7 @@
         <h2 class="catalogue-row__title">{{ row_title | escape }}</h2>
       {% endif %}
 
-      <ul class="catalogue-row__track" role="list">
+      <ul class="catalogue-row__track" role="list" data-catalogue-track>
         {% if row_collection != blank %}
           {% for product in row_collection.products limit: block.settings.limit %}
             <li class="catalogue-row__item">
