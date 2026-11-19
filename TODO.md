@@ -56,7 +56,11 @@ layout/theme.liquid        ← wraps every page (head, header group, footer grou
 
 ## Status
 
-**Nothing deployed yet.** Latest work is on branch `cart-leg-lamp`: cart page redo (3c08b29, Oct 31) and the add-to-cart animation (7c51d06, Nov 12). Earlier: header and rack deploy together; waiting to finish the rack first. Scratch/test images go in `working-assets/` (outside the theme, never pushed):
+**Live on the test store** (`laic-a-casino-prova`) since Nov 18 2026: whole theme pushed from branch `theme-review-fixes`; the `live` git tag marks the last pushed commit (deploy steps in `CLAUDE.md`). Scratch/test images go in `working-assets/` (outside the theme, never pushed).
+
+**Next up (user, Nov 19):** a new product-page fix (to describe) → catalogue rows → schema check across sections. Later: Events / About page, newsletter popup.
+
+Earlier notes:
 - `catalogue-rows` section — horizontal category rows (scroll-snap, "see all" card)
 - `clothing-rack` section + `clothing-rack-garment` snippet + `collection.rack.json` — first working version, flat 2D, swing/sway; needs realism + real assets
 - `header` — reworked with editor settings (glow/shadow select etc.)
@@ -85,8 +89,8 @@ layout/theme.liquid        ← wraps every page (head, header group, footer grou
 
 ### 3. Home — 0.5–1 session
 - [x] `home-hero` shadows: logo, button and shoe hover glow are schema sliders (Oct 2026); dead code removed
-- [ ] `home-hero`: logo / curtains / rat / shoe picked by filename → image pickers or decor blocks. **Curtains fully editable via schema**
-- [ ] **Fourth logo option** *(meaning to confirm with user: fourth logo variant vs. fourth hero element)*
+- [x] **Single central logo** (46e1ffb, Nov 17 2026) with a blend mode; unused logo styles and the rat button removed
+- [ ] `home-hero`: curtains / shoe picked by filename → image pickers or decor blocks. **Curtains fully editable via schema**
 - [ ] Replace paper-tape buttons with the paper+pin button component (single CTA → catalogue)
 - [ ] Logo position/size at all viewports; mobile layout
 
@@ -102,6 +106,7 @@ layout/theme.liquid        ← wraps every page (head, header group, footer grou
 - [x] **Collection floor schema** — done Oct 2026: columns (desktop/mobile), gap, products per page, sort menu toggle, tilt / offset / row spacing, show names/prices, sold-out text/size/angle/shadow, shadow and hover glow; hardcoded values and dead code removed
 - [ ] **Horizontal catalogue row section** (`catalogue-rows`) — section built with schema Oct 2026 (card width, gap, picture ratio, names/prices, row title size, sold-out and "see all" text, shadows); still to do: place it in a template, confirm categories from product type / automated collections (check client's admin data), final visual pass and mobile. Planned as its own step after the product page rework
 - [ ] **Other collection sections — retouch and define exactly** *(user, Oct 28 2026)*: decide what each of `collection-floor` / `collection-wall` is for and where it is used, then do a visual pass on each
+- [x] **Floor: products missing / vanishing on hover in Safari** (client report, fixed Nov 19 2026) — Safari never loads `loading="lazy"` pictures inside CSS columns (reproduced in WebKit: 1 of 7 blank on iPhone, 2 on desktop). Floor pictures are now all eager. The offset/shadow/hover glow moved from the column item to `.collection-floor-card__inner` (Safari mis-draws filtered/transformed column children); the hover vanish itself was not reproducible in headless WebKit, so **ask the client to confirm on her device**
 - [ ] Paginated grid for "see all" (`paginate … by 24`), sorting controls (plain typography), hover tilt, sold-out overlay, empty state
 - [x] **`collection-wall` kept** (decided Oct 2026): follows the branding rules like every section, takes each product's **second** image (first is the packshot PNG used on the floor/rack; falls back to the first if it is the only one), and has schema settings for columns, gap, picture shape, products per page, frame choice/thickness/optional frame image pickers, max tilt, straighten on hover and shadow strength. Not yet placed in a template
 - [ ] **"Sold Out" text as a schema setting** — done for collection floor and catalogue rows; still to do: collection wall and product page (the product page with its rework)
@@ -136,7 +141,7 @@ layout/theme.liquid        ← wraps every page (head, header group, footer grou
 - [ ] **Resize tape PNGs** — masking/clear tape files are 1568–1792 px wide, ~1 MB each; the tape draws at ~60 px, so downscale to ~300 px (the black ones are ~250 px, ~50 KB). Also part of step 8
 - [ ] **Tape opacity control** — tape colour/style is done; an opacity slider is not
 - [ ] Verify on a phone: the mobile text grid (title / price + button / description) and the vertical-desktop layout were checked in code and CSS only, not in a browser
-- [ ] **Variants:** no variant picker yet; the form always sends the first available variant. Needed if any product has sizes/options (confirm with the user)
+- [x] **Variants:** variant picker for multi-variant products (7542437, Nov 16 2026)
 
 **Still open from the rework:**
 - [ ] **Better layout** — rework the overall composition (product name on receipt-strip paper, description on A4 paper, "one of a kind" mark)
@@ -144,6 +149,8 @@ layout/theme.liquid        ← wraps every page (head, header group, footer grou
 - [ ] Back-to-catalogue navigation (see step 7)
 
 ### 6. Footer + new pages — 1–2 sessions
+- [ ] **Events page** — `sections/page-events.liquid` exists; decide its layout and make a `page.events.json` the client can assign
+- [ ] **Newsletter popup** *(optional, later)* — reuse the footer's customer form tagged `newsletter`; editor toggle, delay, ask-once
 - [~] **Footer** (Nov 17 2026, written from code, **not yet seen in a browser**) — plain text following the theme (colour, main font, text effect). Every item is a block the client can hide/reorder/remove: About us link (empty = page `about`), Policies link, Cookie settings button, Social link (network select, Instagram default; icon/name/both; `snippets/social-icon.liquid`), Shop location (empty = store address; optional Google Maps link), Business hours, Contact / newsletter (email + Shopify customer form tagged `newsletter`), Copyright. Section: layout on desktop (default one row) and layout on phone ≤640px (default stacked), each one row / columns / stacked; alignment, text size, icon size, gap, space above. Payment icons and the menu picker removed. Still hidden on home + cart (decided)
 - [~] **Policies page** (Nov 17) — `sections/policies.liquid` + `templates/page.policies.json`: all policies on one page with anchors and a contents list. "Shop policy" blocks pull Settings → Policies; a "Custom policy" block holds the **cookie policy** (`#cookies`). Cookie banner/bar policy link and the footer Policies link default to `/pages/policies(#cookies)` via `snippets/policies-url.liquid`, falling back to the privacy policy. **Admin:** create a page with handle `policies`, template `policies`; write the cookie policy in the block
 - [ ] **"Who are we" / About page** — `page.about.json` with flexible sections (text on paper, images, decor blocks)
@@ -152,7 +159,8 @@ layout/theme.liquid        ← wraps every page (head, header group, footer grou
   - [x] **Plain alternative: Cookie bar** (Oct 29) — `sections/cookie-bar.liquid` + `assets/cookie-bar.css`: small panel at the bottom, same texts, same two layers, yes/maybe/no as three equal boxes; colours, text size and font settings. In `overlay-group.json` as a **hidden** section, so the client switches between bust banner and bar with the eye icon in the Overlays group (use one, not both). Shared: `cookie-banner.js` (now handles every `[data-cookie-banner]`, runs once) and `snippets/cookie-font.liquid` (font source → `--cb-font`) Layer 1: cookies / **yes** (analytics + ads) / **maybe** (analytics only) / **no** (necessary only), same style, each with a note; "choose" + "policy" (empty link = store privacy policy). Message empty by default. No ✕. Layer 2 on the same spots: your choice / necessary (locked) / analytics / ads (off by default) / save / back. Preferences always false, sale_of_data follows ads. Reopens from any `[data-cookie-settings]` or `#cookie-settings` link; footer has a "Cookie settings" setting. Show: "where the law requires it" (`shouldShowBanner`) or "everyone until they choose". Checked at 1440/390 px on `theme dev` with the real bust; button → consent values verified with a stubbed API
   - [x] **Bust PNG** — `assets/bust.png` (594 × 1268, 1.2 MB source; the theme serves 200–594 px versions)
   - [ ] **Verify the save on the real domain** — `setTrackingConsent` fails on `127.0.0.1` (SSL to the local server); test on the store preview link: Reject → reload → no banner
-  - [ ] **Admin:** turn off Shopify's own banner (Settings → Customer privacy), otherwise two banners show
+  - [x] **Admin:** Shopify's own banner turned off (user, Nov 19 2026)
+  - [x] **Smoking mannequin** (8d8f50a, Nov 18 2026): the speech bubble was replaced by a cigarette + code-drawn smoke cloud (`cookie-smoke.js`) sized around the text; settings for smoke colour/edges/opacity, text colour, cigarette image, shared shadow. Asks once and never reopens by itself after an answer (94ed1cc)
   - [ ] **Cookie policy page** *(client)*, then link it in the banner's "Cookie policy page" setting
   - [ ] Footer "Cookie settings" link: not visible on `theme dev` yet (`footer-group.json` change not synced); check after restart/push. The footer is hidden on the homepage, so the link lives on the other pages
 

@@ -58,25 +58,23 @@
           assign x_off = x_offsets[offset_index] | times: x_scale
           assign rot_off = rot_offsets[offset_index] | times: rot_scale
 
-          # The first cards are on screen when the page opens; the rest load as they scroll into view
-          assign card_loading = 'lazy'
+          # No lazy loading here: Safari never loads lazy pictures inside CSS columns (they stay
+          # blank even after scrolling). The srcset keeps each picture card-sized, so eager is cheap.
           assign card_priority = 'auto'
-          if forloop.index <= cols
-            assign card_loading = 'eager'
-          endif
           if forloop.first
             assign card_priority = 'high'
           endif
           assign card_alt = product.featured_image.alt | default: product.title
         -%}
         <article class="collection-floor-card" style="margin-bottom: {{ mb_off }}px; --x-off: {{ x_off }}px;">
+          <div class="collection-floor-card__inner">
           <a class="collection-floor-card__media" href="{{ product.url }}" style="--rot: {{ rot_off }}deg;">
             {% if product.featured_image %}
               {{
                 product.featured_image
                 | image_url: width: 900
                 | image_tag:
-                  loading: card_loading,
+                  loading: 'eager',
                   fetchpriority: card_priority,
                   widths: '200,300,400,600,800,900',
                   sizes: card_sizes,
@@ -100,6 +98,7 @@
               {% endif %}
             </div>
           {% endif %}
+          </div>
         </article>
       {% endfor %}
     </div>
@@ -179,16 +178,21 @@
     column-gap: var(--floor-gap);
   }
 
+  /* The column item itself stays plain: Safari mis-draws transformed/filtered children of CSS
+     columns (cards vanishing on hover), so the offset, shadow and glow live on __inner. */
   .collection-floor-card {
     display: inline-block;
     width: 100%;
     break-inside: avoid;
+  }
+
+  .collection-floor-card__inner {
     transform: translateX(var(--x-off, 0px));
     filter: drop-shadow(0 4px 8px rgba(0, 0, 0, var(--floor-shadow)));
     transition: filter 0.2s ease;
   }
 
-  .collection-floor-card:hover {
+  .collection-floor-card:hover .collection-floor-card__inner {
     filter:
       drop-shadow(0 3px 6px rgba(0, 0, 0, calc(var(--floor-shadow) * 1.6)))
       drop-shadow(0 0 18px rgba(255, 255, 255, var(--floor-glow)));
