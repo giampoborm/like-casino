@@ -11,6 +11,9 @@
  *   - the mouse: moving across the boot nudges it the same way (data-hover-sway, 1 = default)
  *   - `boot:swing` events, e.g. from product-add.js after an add (detail.strength, 1 = default)
  * The Sway setting (--boot-swing, 2.5deg = 100%) scales the drop swing and the breeze.
+ *
+ * A boot rendered hidden waits: unhide it and dispatch `boot:drop` to drop it in (detail.strength
+ * scales the swing it lands with, 1 = default, 0 = still).
  */
 (function () {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -31,6 +34,7 @@
 
   // Length of the pendulum: from the knot up to where the lace is hung.
   function measure(b) {
+    if (b.boot.hidden) return; // not dropped in yet
     const css = getComputedStyle(b.boot);
     const lace = parseFloat(css.getPropertyValue('--boot-string')) || 1500;
     const hookY = (parseFloat(css.getPropertyValue('--boot-hook-y')) || 0) / 100;
@@ -63,11 +67,22 @@
     measure(b);
 
     // Swing once the lace goes taut at the end of the fall.
-    const delay = parseFloat(css.getPropertyValue('--boot-delay')) || 0;
-    setTimeout(() => {
-      b.ready = true;
-      kick(b, LANDING * b.sway);
-    }, (delay + TAUT_AT) * 1000);
+    const land = (delay, amplitude) => {
+      setTimeout(() => {
+        measure(b); // a dropped-in boot: now it hangs where it will stay
+        b.ready = true;
+        kick(b, amplitude);
+      }, (delay + TAUT_AT) * 1000);
+    };
+    if (boot.hidden) {
+      boot.addEventListener('boot:drop', (event) => {
+        measure(b);
+        const strength = event.detail && event.detail.strength != null ? event.detail.strength : 1;
+        land(0, LANDING * b.sway * strength);
+      });
+    } else {
+      land(parseFloat(css.getPropertyValue('--boot-delay')) || 0, LANDING * b.sway);
+    }
 
     const hover = Number(boot.dataset.hoverSway) || 0;
     if (hover) {
@@ -97,6 +112,7 @@
     const dt = Math.min(0.033, (now - last) / 1000);
     last = now;
     for (const b of boots) {
+      if (!b.w0) continue; // hidden, not measured yet
       b.omega += (-b.w0 * b.w0 * Math.sin(b.theta) - 2 * DAMPING * b.w0 * b.omega) * dt;
       b.theta += b.omega * dt;
       const breeze = BREEZE * b.sway * Math.sin(((now / 1000 + b.phase) * 2 * Math.PI) / BREEZE_PERIOD);

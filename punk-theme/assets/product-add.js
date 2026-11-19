@@ -1,8 +1,9 @@
 /*
  * Add to cart without leaving the product page. Without JS the form still posts to /cart/add.
  * First click: the piece goes into the cart, the header hears `cart:added` (header-cart.js fills
- * the cart icon), and once that has played the button swings. After that the same button takes you
- * to the cart.
+ * the cart icon), and once that has played the button swings. With boots, the buy boot (rendered
+ * hidden beside the add boot, a link to the cart) drops in straight away instead. After that the
+ * same button takes you to the cart too.
  *
  * Config on the [data-cart-add] wrapper: data-cart-url, data-swing (strength, 1 = default, 0 = off),
  * data-added-label / data-go-label (screen readers), data-error-label (fallback error).
@@ -35,6 +36,8 @@
     const error = wrap.querySelector('[data-add-error]');
     const { cartUrl, addedLabel, goLabel, errorLabel } = wrap.dataset;
     const strength = Number(wrap.dataset.swing) || 0;
+    // Buy boot, hidden until the piece is in the cart.
+    const buyBoot = wrap.querySelector('.hanging-boot[hidden]');
     let busy = false;
     let added = false;
 
@@ -79,19 +82,25 @@
         if (button.hasAttribute('aria-label')) button.setAttribute('aria-label', goLabel);
         status.textContent = addedLabel;
 
+        // Boots: the buy boot drops in now, while the header fills the cart.
+        if (buyBoot && buyBoot.hidden) {
+          buyBoot.hidden = false;
+          buyBoot.dispatchEvent(new CustomEvent('boot:drop', { detail: { strength } }));
+        }
+
         // Item count for the header basket. If this second request fails the add still stands:
         // skip the fill rather than report an error for something that worked.
         const cart = await fetch(`${cartUrl}.js`, { headers: { Accept: 'application/json' } })
           .then((r) => (r.ok ? r.json() : null))
           .catch(() => null);
-        if (!cart) return;
-
-        // The header sets detail.finished when it plays the fill; no header, no wait.
-        const detail = { itemCount: cart.item_count, finished: null };
-        document.dispatchEvent(new CustomEvent('cart:added', { detail }));
-        busy = false;
-        await detail.finished;
-        swing(button, strength);
+        if (cart) {
+          // The header sets detail.finished when it plays the fill; no header, no wait.
+          const detail = { itemCount: cart.item_count, finished: null };
+          document.dispatchEvent(new CustomEvent('cart:added', { detail }));
+          busy = false;
+          await detail.finished;
+        }
+        if (!buyBoot) swing(button, strength);
       } catch (e) {
         error.textContent = (e && e.message) || errorLabel;
         error.hidden = false;

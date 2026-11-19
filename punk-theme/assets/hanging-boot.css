@@ -75,6 +75,35 @@
   top: calc(var(--boot-fixed-y, 0) * 1vh);
 }
 
+/* `display: block` above would otherwise beat the hidden attribute */
+.hanging-boot[hidden] {
+  display: none;
+}
+
+/*
+ * A pair: the second boot hangs on its own lace at the same height as the first, in front of it,
+ * moved sideways by --boot-pair-x (% of the boot width; 0 = right on top of it). Both share a parent
+ * that is their positioning box (.hanging-boot-pair). A fixed one keeps the fixed position of the
+ * first (same --boot-fixed-x / -y) and moves sideways the same way.
+ */
+.hanging-boot-pair {
+  display: block;
+  position: relative;
+}
+
+.hanging-boot-pair > .hanging-boot ~ .hanging-boot {
+  position: absolute;
+  left: 0;
+  top: 0;
+  translate: calc(var(--boot-pair-x, 10) * 1%) 0;
+}
+
+.hanging-boot-pair > .hanging-boot--fixed ~ .hanging-boot--fixed {
+  position: fixed;
+  left: calc(var(--boot-fixed-x, 0) * 1%);
+  top: calc(var(--boot-fixed-y, 0) * 1vh);
+}
+
 .hanging-boot--disabled {
   cursor: not-allowed;
 }

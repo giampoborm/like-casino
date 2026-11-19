@@ -15,6 +15,7 @@
   - stamp: optional text stamped across the boot (sold out)
   - hover_sway: optional strength (1 = default) of the push the mouse gives it; off when blank or 0
   - modifier: extra BEM modifier, e.g. 'back' or 'buy'
+  - hidden: true renders it hidden; unhide it and dispatch `boot:drop` to drop it in (hanging-boot.js)
 
   Size, lace, sway and shadow come from CSS variables set by the parent
   (--boot-w, --boot-string, --boot-lace-color, --boot-lace-width, --boot-swing, --boot-shadow).
@@ -43,6 +44,7 @@
     aria-label="{{ label }}"
     style="{{ boot_style }}"
     {% if hover_sway > 0 %}data-hover-sway="{{ hover_sway }}"{% endif %}
+    {% if hidden %}hidden{% endif %}
   >
     {{ boot_inner }}
   </a>
@@ -53,6 +55,7 @@
     aria-label="{{ label }}"
     style="{{ boot_style }}"
     {% if hover_sway > 0 %}data-hover-sway="{{ hover_sway }}"{% endif %}
+    {% if hidden %}hidden{% endif %}
     {% if disabled %}disabled{% endif %}
   >
     {{ boot_inner }}

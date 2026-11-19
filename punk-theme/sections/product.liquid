@@ -131,6 +131,10 @@
   {% if s.back_boot_image != blank %}
     {% assign back_boot_src = s.back_boot_image | image_url: width: 600 %}
   {% endif %}
+  {% assign add_boot_src = 'add2cartboot.png' | asset_img_url: '600x' %}
+  {% if s.add_boot_image != blank %}
+    {% assign add_boot_src = s.add_boot_image | image_url: width: 600 %}
+  {% endif %}
   {% assign buy_boot_src = 'buyboot.png' | asset_img_url: '600x' %}
   {% if s.buy_boot_image != blank %}
     {% assign buy_boot_src = s.buy_boot_image | image_url: width: 600 %}
@@ -372,19 +376,46 @@
               {% if action_style == 'boots' %}
                 {% comment %} Sold out: the boot is disabled and swaps to the sold-out boot image (bundled, or the picker). {% endcomment %}
                 {% if product.available %}
-                  {% assign buy_label = 'products.add_to_cart' | t %}
-                  {% render 'hanging-boot',
-                    src: buy_boot_src,
-                    label: buy_label,
-                    hook_x: s.buy_hook_x,
-                    hook_y: s.buy_hook_y,
-                    fixed: s.buy_boot_fixed,
-                    fixed_x: buy_fx,
-                    fixed_y: buy_fy,
-                    delay: 0.35,
-                    hover_sway: boot_hover_sway,
-                    modifier: 'buy'
+                  {% comment %}
+                    The add-to-cart boot hangs alone. Once the piece is in the cart, the buy boot (a link
+                    to the cart) drops in on its own lace beside it, as a pair (product-add.js). Without JS
+                    the form posts to /cart/add, which goes to the cart anyway.
+                  {% endcomment %}
+                  {% liquid
+                    assign add_label = 'products.add_to_cart' | t
+                    assign go_label = 'products.go_to_cart' | t
+                    assign pair_x = s.buy_boot_pair_x
+                    if s.reset_layout
+                      assign pair_x = 10
+                    endif
                   %}
+                  <span class="hanging-boot-pair" style="--boot-pair-x: {{ pair_x }}">
+                    {% render 'hanging-boot',
+                      src: add_boot_src,
+                      label: add_label,
+                      hook_x: s.buy_hook_x,
+                      hook_y: s.buy_hook_y,
+                      fixed: s.buy_boot_fixed,
+                      fixed_x: buy_fx,
+                      fixed_y: buy_fy,
+                      delay: 0.35,
+                      hover_sway: boot_hover_sway,
+                      modifier: 'add'
+                    %}
+                    {% render 'hanging-boot',
+                      src: buy_boot_src,
+                      href: routes.cart_url,
+                      label: go_label,
+                      hook_x: s.buy_hook_x,
+                      hook_y: s.buy_hook_y,
+                      fixed: s.buy_boot_fixed,
+                      fixed_x: buy_fx,
+                      fixed_y: buy_fy,
+                      hover_sway: boot_hover_sway,
+                      hidden: true,
+                      modifier: 'buy'
+                    %}
+                  </span>
                 {% else %}
                   {% assign sold_boot_src = 'soldoutboot.png' | asset_img_url: '600x' %}
                   {% if s.sold_out_boot_image != blank %}
@@ -622,7 +653,8 @@
     { "type": "range", "id": "text_y", "label": "Position Y", "min": -300, "max": 300, "step": 10, "unit": "px", "default": 0, "visible_if": "{{ section.settings.tune == 'text' }}" },
 
     { "type": "range", "id": "add_swing", "label": "Swing after adding", "info": "Plays once the cart has filled. 0 = no swing", "min": 0, "max": 200, "step": 10, "unit": "%", "default": 100, "visible_if": "{{ section.settings.tune == 'actions' }}" },
-    { "type": "range", "id": "hover_sway", "label": "Sway on mouse over", "info": "The mouse pushes boot and lace the way it moves, then they swing back. 0 = off", "min": 0, "max": 200, "step": 10, "unit": "%", "default": 100, "visible_if": "{{ section.settings.tune == 'actions' and section.settings.action_style == 'boots' }}" },
+    { "type": "range", "id": "buy_boot_pair_x", "label": "Buy boot beside the add boot", "info": "Where the buy boot lands after an add, in % of the boot width. 0 = right on top of it", "min": -100, "max": 100, "step": 5, "unit": "%", "default": 10, "visible_if": "{{ section.settings.tune == 'actions' and section.settings.action_style == 'boots' }}" },
+    { "type": "range", "id": "hover_sway","label": "Sway on mouse over", "info": "The mouse pushes boot and lace the way it moves, then they swing back. 0 = off", "min": 0, "max": 200, "step": 10, "unit": "%", "default": 100, "visible_if": "{{ section.settings.tune == 'actions' and section.settings.action_style == 'boots' }}" },
     { "type": "range", "id": "back_boot_size", "label": "Back size", "min": 50, "max": 200, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ section.settings.tune == 'actions' and section.settings.action_style != 'buttons' }}" },
     { "type": "range", "id": "back_boot_x", "label": "Back X", "min": -1000, "max": 1000, "step": 20, "unit": "px", "default": 0, "visible_if": "{{ section.settings.tune == 'actions' and section.settings.action_style != 'buttons' }}" },
     { "type": "range", "id": "back_boot_y", "label": "Back Y", "min": -1000, "max": 1000, "step": 20, "unit": "px", "default": 0, "visible_if": "{{ section.settings.tune == 'actions' and section.settings.action_style != 'buttons' }}" },
@@ -659,7 +691,8 @@
     { "type": "image_picker", "id": "tape_clear_a", "label": "Clear tape A", "info": "Empty = default", "visible_if": "{{ section.settings.tune == 'images' and section.settings.tape_style == 'clear' }}" },
     { "type": "image_picker", "id": "tape_clear_b", "label": "Clear tape B", "info": "Empty = default", "visible_if": "{{ section.settings.tune == 'images' and section.settings.tape_style == 'clear' }}" },
     { "type": "image_picker", "id": "back_boot_image", "label": "Back boot image", "info": "Empty = default", "visible_if": "{{ section.settings.tune == 'images' and section.settings.action_style == 'boots' }}" },
-    { "type": "image_picker", "id": "buy_boot_image", "label": "Buy boot image", "info": "Empty = default", "visible_if": "{{ section.settings.tune == 'images' and section.settings.action_style == 'boots' }}" },
+    { "type": "image_picker", "id": "add_boot_image", "label": "Add to cart boot image", "info": "Empty = default", "visible_if": "{{ section.settings.tune == 'images' and section.settings.action_style == 'boots' }}" },
+    { "type": "image_picker", "id": "buy_boot_image", "label": "Buy boot image", "info": "Drops onto the lace after an add and goes to the cart. Empty = default","visible_if": "{{ section.settings.tune == 'images' and section.settings.action_style == 'boots' }}" },
     { "type": "image_picker", "id": "sold_out_boot_image", "label": "Sold out boot image", "info": "Empty = default", "visible_if": "{{ section.settings.tune == 'images' and section.settings.action_style == 'boots' }}" },
 
     {
