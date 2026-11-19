@@ -58,7 +58,7 @@ layout/theme.liquid        ← wraps every page (head, header group, footer grou
 
 **Live on the test store** (`laic-a-casino-prova`) since Nov 18 2026: whole theme pushed from branch `theme-review-fixes`; the `live` git tag marks the last pushed commit (deploy steps in `CLAUDE.md`). Scratch/test images go in `working-assets/` (outside the theme, never pushed).
 
-**Next up (user, Nov 19):** a new product-page fix (to describe) → catalogue rows → schema check across sections. Later: Events / About page, newsletter popup.
+**Where we are (user, Nov 19 2026):** product-page fix, catalogue rows, decor, home, collections, product page, navigation and polish are done. Extra pages (Events, About, Contact, newsletter popup) are **postponed past the MVP**. Cart empty-state text is now an editor setting (blank = hidden). **Left for MVP:** step 8 (asset cleanup) and step 11 (launch checklist), cookie banner and cart confirmed good (user, Nov 19 2026).
 
 Earlier notes:
 - `catalogue-rows` section — horizontal category rows (scroll-snap, "see all" card)
@@ -83,18 +83,19 @@ Earlier notes:
 - [x] **Fonts** — **two roles**, decided Oct 2026: **Main** (`cella`, used for everything: item names, body, prices, cart) and **Stamp** (`octin-spraypaint`, stencil, for sold-out marks and decoration). Declared once in `critical.css` as `MainFont` / `StampFont`; exposed as `--font-main--family` / `--font-stamp--family`; each can be swapped in the editor (bundled checkbox + font picker). The typewriter and any other unused fonts were removed
 - [x] **Header** — done as is (Oct 2026): accepted by the user without further changes
 
-### 2. Decor block — 1 session
+### 2. Decor block — ✅ **done** *(user, Nov 19 2026; unticked items below are dropped or folded into the launch review)*
+> Decor ended up as elements used as buttons etc. inside sections, not a standalone `blocks/decor.liquid`.
 - [~] **Almost done** *(user, Nov 12 2026)*. Note: there is no `blocks/decor.liquid` in the repo yet; decor so far lives inside sections (boots, cart leg + lamp, cookie bust). Planned scope: `blocks/decor.liquid` — off image, optional "on" image, x/y %, width, layer, animation (none / sway / flicker / toggle on click), optional link. Shoe = first instance. ⏳ lamp assets from client
 - [ ] **Decor placement list** — decide which object goes where: bust → cookie announcer, lamps/lights → (pages TBD), boots → navigation/breadcrumbs, shoe → home. Record it here
 
-### 3. Home — 0.5–1 session
+### 3. Home — ✅ **done** *(user, Nov 19 2026; unticked items below are dropped or folded into the launch review)*
 - [x] `home-hero` shadows: logo, button and shoe hover glow are schema sliders (Oct 2026); dead code removed
 - [x] **Single central logo** (46e1ffb, Nov 17 2026) with a blend mode; unused logo styles and the rat button removed
 - [ ] `home-hero`: curtains / shoe picked by filename → image pickers or decor blocks. **Curtains fully editable via schema**
 - [ ] Replace paper-tape buttons with the paper+pin button component (single CTA → catalogue)
 - [ ] Logo position/size at all viewports; mobile layout
 
-### 4. Collection pages — 2–3 sessions
+### 4. Collection pages — ✅ **done** *(user, Nov 19 2026; unticked items below are dropped or folded into the launch review)*
 - [x] **Clothing rack hero** — done: `tube.png` rail, theme-drawn hook (`hook.png`) in front of the pipe with a contact shadow, hanger body, swing, stage height follows the tallest garment. Garments are **hook-less PNGs** in the product metafield `custom.rack_image`; the theme adds the hook
   - **Metafield setup (store admin):** Settings → Metafields definitions → *Products* (not Shop) → "Rack image", `custom.rack_image`, type File (images only), **storefront access on**. Then upload the PNG in the product's Metafields card
   - **Rack image spec for photography/retouching:** transparent PNG, no cast shadow, one camera distance and one hanger model for every product; the **top edge touches the top of the hanger's neck** (crop tight, no empty margin above, no stray pixels) and the neck is centred. Drawn at its pixel size next to the 400 px hanger, so set the section's "Rack image resolution" to the export multiplier (2 = 2× export)
@@ -112,7 +113,7 @@ Earlier notes:
 - [ ] **"Sold Out" text as a schema setting** — done for collection floor and catalogue rows; still to do: collection wall and product page (the product page with its rework)
 - [ ] Mobile pass
 
-### 5. Product page — big rework, estimate to revisit (was 2 sessions)
+### 5. Product page — ✅ **done** *(user, Nov 19 2026; unticked items below are dropped or folded into the launch review)*
 
 > **Decided Oct 2026:** the current `product` section becomes the **"Product – gallery view"** (taped photo wall), fixed in layout and driven by section schema + four text blocks. A second, freer section (**product basic showcase**, built from blocks) is the alternative non-gallery view.
 
@@ -148,7 +149,8 @@ Earlier notes:
 - [ ] **"Sold Out" text as a schema setting** on the product page (and shadows)
 - [ ] Back-to-catalogue navigation (see step 7)
 
-### 6. Footer + new pages — 1–2 sessions
+### 6. Footer + new pages
+> **Events / About / Contact pages and the newsletter popup are postponed to after the MVP** (user, Nov 19 2026). Cookie banner confirmed good (user, Nov 19 2026).
 - [ ] **Events page** — `sections/page-events.liquid` exists; decide its layout and make a `page.events.json` the client can assign
 - [ ] **Newsletter popup** *(optional, later)* — reuse the footer's customer form tagged `newsletter`; editor toggle, delay, ask-once
 - [~] **Footer** (Nov 17 2026, written from code, **not yet seen in a browser**) — plain text following the theme (colour, main font, text effect). Every item is a block the client can hide/reorder/remove: About us link (empty = page `about`), Policies link, Cookie settings button, Social link (network select, Instagram default; icon/name/both; `snippets/social-icon.liquid`), Shop location (empty = store address; optional Google Maps link), Business hours, Contact / newsletter (email + Shopify customer form tagged `newsletter`), Copyright. Section: layout on desktop (default one row) and layout on phone ≤640px (default stacked), each one row / columns / stacked; alignment, text size, icon size, gap, space above. Payment icons and the menu picker removed. Still hidden on home + cart (decided)
@@ -164,7 +166,7 @@ Earlier notes:
   - [ ] **Cookie policy page** *(client)*, then link it in the banner's "Cookie policy page" setting
   - [ ] Footer "Cookie settings" link: not visible on `theme dev` yet (`footer-group.json` change not synced); check after restart/push. The footer is hidden on the homepage, so the link lives on the other pages
 
-### 7. Navigation / breadcrumbs — 1 session
+### 7. Navigation / breadcrumbs — ✅ **done** *(user, Nov 19 2026; unticked items below are dropped or folded into the launch review)*
 - [ ] Breadcrumb section driven by `request.page_type`/collection/product, with a distinctive look (wall style)
 - [ ] Boots hanging from the top as navigation (one boot per level) — needs boot assets; plain-text fallback
 
@@ -174,13 +176,14 @@ Earlier notes:
 - [ ] Downscale `masktape*.png` / `cleartape*.png` (see step 5)
 - [ ] Slow-connection test on every page (no empty-box flashes, sensible placeholders)
 
-### 9. Cart — ~2 sessions
+### 9. Cart — ✅ **done** *(user, Nov 19 2026)*
 > **Full redo** of the cart page (confirmed Oct 28 2026), not a retouch of the current one.
 - [x] **Cart redo** (3c08b29, Oct 31 2026) — built as **leg + lamp** instead of the rope/polaroid idea: "Style" select = images (back = a leg coming out of the wall, checkout = a lamp that lights on hover; image settings only show for this style) or the original bevelled buttons. Cards share one picture height, no QTY line, remove ×, subtotal, empty state. Phone: list splits into swipeable pages with a pager above the lamp (`assets/cart.js`). Footer hidden on the cart page
+- [x] **Empty-cart text** (Nov 19 2026) — Cart section → "Empty cart → Message" setting; leave blank to hide it
 - [ ] Check the cart page in a browser again after the add-to-cart changes (desktop + phone), incl. the empty state
 - [ ] *(dropped unless wanted back)* rope across full width with polaroid items hanging by clips
 
-### 10. Details — polish pass *(user wants to spend real time here)*
+### 10. Details — polish pass — ✅ **done** *(user, Nov 19 2026; unticked items below are dropped or folded into the launch review)*
 - [x] **Add-to-cart animation** (7c51d06, Nov 12 2026) — the product page adds to the cart without leaving it (`product-add.js`); the **header basket fills** with clothes falling in from the top of the screen (`header-cart.js`), then the button/boot/stamp swings and a second click goes to the cart. Reduced motion = no animation, straight to the end state
   - **Sprite:** `assets/cart-fill-sprite.png` (user-drawn, source `working-assets/spritesheetcart.psd`): one horizontal strip, 17 frames of 180×280 (empty space on top for the fall, basket in the bottom half). Resting frames 1 (empty) / 7 / 12 / 17 (full); a full basket stays full, no extra animation. Header settings: Cart sprite (image picker overrides the bundled one), frames, frame per level, frame length (90 ms), **Cart position up/down** (default −10 px, pushes the empty top past the screen edge)
   - **Hanging boots** now swing as damped pendulums (`hanging-boot.js`): drop, faint breeze, mouse nudge, push after an add

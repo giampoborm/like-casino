@@ -62,9 +62,11 @@
 
   {% if cart.item_count == 0 %}
 
-    <div class="cart-empty">
-      <p>{{ 'cart.empty_message' | t }}</p>
-    </div>
+    {% if section.settings.empty_message != blank %}
+      <div class="cart-empty">
+        <p>{{ section.settings.empty_message | escape }}</p>
+      </div>
+    {% endif %}
 
   {% else %}
 
@@ -385,6 +387,17 @@
       "info": "On mobile, more items than this are split into pages you swipe or arrow through, so the list never reaches the lamp.",
       "default": 5,
       "visible_if": "{{ section.settings.cart_style == 'images' }}"
+    },
+    {
+      "type": "header",
+      "content": "Empty cart"
+    },
+    {
+      "type": "text",
+      "id": "empty_message",
+      "label": "Message",
+      "default": "Nothing in here yet, you brokie",
+      "info": "Shown when the cart is empty. Leave blank to show nothing."
     }
   ]
 }
