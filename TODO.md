@@ -171,10 +171,11 @@ Earlier notes:
 - [ ] Boots hanging from the top as navigation (one boot per level) — needs boot assets; plain-text fallback
 
 ### 8. Asset cleanup + optimization — 1 session
-- [ ] Audit `assets/` and remove unused files (check every reference first; never rename/remove "wall" assets blindly)
-- [ ] WebP conversion + lazy loading
-- [ ] Downscale `masktape*.png` / `cleartape*.png` (see step 5)
-- [ ] Slow-connection test on every page (no empty-box flashes, sensible placeholders)
+- [x] Audit `assets/` (Nov 20 2026): every image is referenced; `assets/` 210 MB → 43 MB (Shopify theme zip limit is 50 MB). Images downscaled to the widest size the theme requests (frames 700, boots 600, curtains 1200, big logo 2000, backgrounds 2400); the 8 backgrounds are now `.jpg` (`css-variables.liquid` updated); full-size background originals in `working-assets/original-backgrounds/`
+- [x] WebP: not needed. Shopify's CDN already serves every theme image as WebP (e.g. `lampbuy.png` 3.5 MB on disk → 87 KB delivered). Lazy loading already done via `asset-image`
+- [x] Downscale `masktape*.png` / `cleartape*.png` (→ 480 px; the theme requests 240)
+- [x] Slow-connection test (Nov 20 2026, phone, ~1.6 Mbps + 4× CPU): LCP home 7.5 s (big logo), collection 4.5 s, product 6.6 s. Theme images on home ≈ 1.2 MB; ~0.5 MB more is Shopify's own checkout prefetch. Possible later: lower-res big logo/curtains on phones
+- [ ] Drop the "Sfondo prova 1–6" background presets once the client picks one (−17 MB)
 
 ### 9. Cart — ✅ **done** *(user, Nov 19 2026)*
 > **Full redo** of the cart page (confirmed Oct 28 2026), not a retouch of the current one.
@@ -193,6 +194,11 @@ Earlier notes:
 - [ ] **Boots and similar objects — more work** — more detail and life on the hanging boots and other hanging/decor objects (motion, laces, shadows, reactions), beyond the product-page items in step 5
 
 ### 11. Launch checklist — 1–2 sessions
+- [x] **Test sweep (Nov 20 2026)**: theme check clean; Chromium + WebKit (iPhone 13, iPad, Mac) + Firefox (desktop, Android size): every page loads, no theme JS errors, no broken images; add to cart → cart → Shopify checkout → remove works everywhere; sold-out button disabled; keyboard can reach everything incl. checkout lamp
+- [x] Fixed: search field overflowed phone screens; added Favicon setting (Branding) with the anarchy A as fallback (`assets/favicon.png`)
+- [ ] Search page is still unstyled Skeleton (not linked anywhere): style it or leave it
+- [ ] Admin, not theme: homepage meta description + social sharing image (Preferences), refund policy (`/policies/refund-policy` is 404), store name still "laic a casino prova"
+- [ ] Not testable by Claude: theme editor pass (needs admin login), a real iPhone, a real test order with the Bogus Gateway
 - [ ] **Thorough review of the whole theme** — every page and section, desktop + phone
 - [ ] **Right defaults everywhere** — tune each section in the editor, then make those values the schema defaults and reset the templates (as done for the product page, step 5)
 - [ ] **Editability check** — every section: all content/colors/links/positions are schema settings (the MVP principle)

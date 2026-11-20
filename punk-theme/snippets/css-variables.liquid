@@ -71,17 +71,17 @@
       tall phone screen by its height, so it needs more pixels there than a portrait one.
     {%- endcomment -%}
     {%- liquid
-      assign bg_file = 'sfondoprova6.png'
+      assign bg_file = 'sfondoprova6.jpg'
       assign bg_landscape = false
       if settings.background_preset == 'custom'
         if settings.background_image and settings.background_image.aspect_ratio > 1
           assign bg_landscape = true
         endif
       elsif settings.background_preset contains 'wallbackground'
-        assign bg_file = settings.background_preset | append: '.png'
+        assign bg_file = settings.background_preset | append: '.jpg'
         assign bg_landscape = true
       else
-        assign bg_file = 'sfondoprova' | append: settings.background_preset | append: '.png'
+        assign bg_file = 'sfondoprova' | append: settings.background_preset | append: '.jpg'
       endif
 
       assign bg_w_small = 1200

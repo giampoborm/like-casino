@@ -51,6 +51,11 @@
 {% endif %}
 
 {% stylesheet %}
+  /* size="50" alone makes the field wider than a phone screen */
+  form[role='search'] input[type='search'] {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
   .search-results {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));

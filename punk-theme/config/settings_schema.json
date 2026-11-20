@@ -17,6 +17,12 @@
         "info": "Gift card page"
       },
       {
+        "type": "image_picker",
+        "id": "favicon",
+        "label": "Favicon",
+        "info": "Browser tab icon. Square image, at least 96 × 96 px. Empty = the anarchy A from the logo."
+      },
+      {
         "type": "header",
         "content": "Colours"
       },

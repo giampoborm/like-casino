@@ -7,7 +7,7 @@
 # Scratch / source files, never pushed
 working-assets/
 
-# Background test variants (20+ MB each, over Shopify's file size limit); the chosen one gets tracked
+# Background originals live in working-assets/original-backgrounds/; the theme ships 2400px JPGs (Nov 2026)
 punk-theme/assets/sfondoprova*.png
 
 # Claude Code project data
