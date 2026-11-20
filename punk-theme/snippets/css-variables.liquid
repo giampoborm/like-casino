@@ -123,9 +123,21 @@
       --site-background-image: {{ bg_gradient }}, url({{ bg_url_small }});
     }
   }
-  @media (min-width: 1700px), (min-width: 1000px) and (min-resolution: 1.5dppx) {
+  {%- comment -%}
+    The wall sits behind everything, so retina laptops don't need the 2400px file (about 1.4 MB
+    instead of 0.6 MB): only screens wider than 1700px get it.
+  {%- endcomment %}
+  @media (min-width: 1700px) {
     :root {
       --site-background-image: {{ bg_gradient }}, url({{ bg_url_large }});
     }
   }
 {% endstyle %}
+{%- comment -%}
+  A CSS background is only requested once the stylesheet has been applied to the page. Preloading
+  it here starts the download with the HTML, so the wall shows up with the page instead of after it.
+  The media queries match the ones above, so each screen fetches only its own file.
+{%- endcomment %}
+{{ bg_url_small | preload_tag: as: 'image', media: '(max-width: 700px)' }}
+{{ bg_url | preload_tag: as: 'image', media: '(min-width: 701px) and (max-width: 1699px)' }}
+{{ bg_url_large | preload_tag: as: 'image', media: '(min-width: 1700px)' }}
